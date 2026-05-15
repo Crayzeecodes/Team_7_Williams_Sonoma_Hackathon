@@ -1,0 +1,30 @@
+# macOS system files
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcworkspace
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcuserstate
+
+# CocoaPods
+Pods/
+# Carthage
+Carthage/Build/
+# Swift Package Manager
+.build/
+# Xcode Archives
+*.xcarchive
+
+# Temporary files
+*.swp
+*.tmp
+*.log
+
+# Provisioning and certificates (don’t commit your private keys)
+*.p12
+*.mobileprovision
+*.key

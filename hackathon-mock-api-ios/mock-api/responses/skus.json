@@ -1,0 +1,471 @@
+[
+  {
+    "id": "2505456",
+    "name": "Williams Sonoma End-Grain Cutting Board, Acacia, 15\" X 20\"",
+    "shortName": "Williams Sonoma End-Grain Cutting Board, Acacia, 15\" X 20\"",
+    "primaryGroupId": "williams-sonoma-acacia-cutting-board",
+    "price": {
+      "regularPrice": 129.95,
+      "surcharge": 0,
+      "retailPrice": 129.95,
+      "sellingPrice": 129.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "color": "brown-parent/brown",
+      "pattern": "cutlery",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "williams-sonoma",
+      "organic": "true",
+      "productType": "cutting-boards-storage",
+      "canGiftWrap": "true",
+      "allProductTypes": "cutting-boards-storage",
+      "material": "acacia",
+      "isShoppable": "true",
+      "name": "Williams Sonoma End-Grain Cutting Board, Acacia, 15\" X 20\"",
+      "shortName": "Williams Sonoma End-Grain Cutting Board, Acacia, 15\" X 20\""
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img17m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Williams Sonoma End-Grain Cutting Board, Acacia, 15\" X 20\""
+          }
+        }
+      ]
+    },
+    "availability": "ON_HAND",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "6121370",
+    "name": "Williams Sonoma Board Oil",
+    "shortName": "Williams Sonoma Board Oil",
+    "primaryGroupId": "williams-sonoma-board-oil",
+    "price": {
+      "regularPrice": 10.95,
+      "surcharge": 0,
+      "retailPrice": 10.95,
+      "sellingPrice": 10.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "pattern": "homekeeping",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "williams-sonoma",
+      "organic": "true",
+      "productType": "cutting-board-oil",
+      "canGiftWrap": "true",
+      "allProductTypes": "cutting-board-oil",
+      "isShoppable": "true",
+      "name": "Williams Sonoma Board Oil",
+      "shortName": "Williams Sonoma Board Oil"
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img27m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Williams Sonoma Board Oil"
+          }
+        }
+      ]
+    },
+    "availability": "ON_HAND",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "6247040",
+    "name": "Hold Everything Lidded Ceramic Bowl, Ashwood, 12\"",
+    "shortName": "Hold Everything Lidded Ceramic Bowl, Ashwood, 12\"",
+    "primaryGroupId": "hold-everything-lidded-ceramic-bowl",
+    "price": {
+      "regularPrice": 89.95,
+      "surcharge": 0,
+      "retailPrice": 89.95,
+      "sellingPrice": 89.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "pattern": "homekeeping",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "hold-everything",
+      "productType": "tabletop-serveware-bowl",
+      "canGiftWrap": "true",
+      "collection": "[he-pantry, he-fridge]",
+      "allProductTypes": "tabletop-serveware-bowl",
+      "material": "[wood-parent/wood, ceramic-parent/ceramic]",
+      "isShoppable": "true",
+      "name": "Hold Everything Lidded Ceramic Bowl, Ashwood, 12\"",
+      "shortName": "Hold Everything Lidded Ceramic Bowl, Ashwood, 12\""
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img64m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Hold Everything Lidded Ceramic Bowl, Ashwood, 12\""
+          }
+        }
+      ]
+    },
+    "availability": "ON_HAND",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "1341411",
+    "name": "Apilco Tradition Porcelain Cup & Saucer, Each",
+    "shortName": "Apilco Tradition Porcelain Cup & Saucer, Each",
+    "primaryGroupId": "apilco-tradition-porcelain-cup-and-saucer",
+    "price": {
+      "regularPrice": 34.95,
+      "surcharge": 0,
+      "retailPrice": 34.95,
+      "sellingPrice": 34.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "color": "white-parent/white",
+      "pattern": "[tabletop, glassware]",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "apilco",
+      "productType": "cups-and-saucers",
+      "canGiftWrap": "true",
+      "collection": "apilco-tradition",
+      "allProductTypes": "[cups-and-saucers, tea-cups]",
+      "material": "porcelain",
+      "isShoppable": "true",
+      "name": "Apilco Tradition Porcelain Cup & Saucer, Each",
+      "shortName": "Apilco Tradition Porcelain Cup & Saucer, Each"
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img95m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Apilco Tradition Porcelain Cup & Saucer, Each"
+          }
+        }
+      ]
+    },
+    "availability": "NLA"
+  },
+  {
+    "id": "2453926",
+    "name": "Staub Enameled Cast Iron Round Dutch Oven, 7-Qt., Basil",
+    "shortName": "Staub Enameled Cast Iron Round Dutch Oven, 7-Qt., Basil",
+    "primaryGroupId": "staub-round-cocotte",
+    "price": {
+      "regularPrice": 470.0,
+      "surcharge": 0,
+      "retailPrice": 470.0,
+      "sellingPrice": 299.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "freeShip": true,
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "color": "green-parent/basil",
+      "pattern": "cookware",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "staub-parent/staub",
+      "organic": "true",
+      "productType": "dutch-ovens",
+      "earthFriendly": "true",
+      "canGiftWrap": "true",
+      "collection": "staub-cast-iron",
+      "allProductTypes": "dutch-ovens",
+      "material": "enameled-cast-iron",
+      "isShoppable": "true",
+      "name": "Staub Enameled Cast Iron Round Dutch Oven, 7-Qt., Basil",
+      "shortName": "Staub Enameled Cast Iron Round Dutch Oven, 7-Qt., Basil"
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img83m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Staub Enameled Cast Iron Round Dutch Oven, 7-Qt., Basil"
+          }
+        }
+      ]
+    },
+    "availability": "ON_HAND",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "8381456",
+    "name": "Cuisinart PerfecTemp Programmable Coffee Maker with Glass Carafe, 14-cup",
+    "shortName": "Cuisinart PerfecTemp Programmable Coffee Maker with Glass Carafe, 14-cup",
+    "primaryGroupId": "cuisinart-perfect-temp-14-cup-programmable-coffeemaker",
+    "price": {
+      "regularPrice": 119.95,
+      "surcharge": 0,
+      "retailPrice": 119.95,
+      "sellingPrice": 119.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "freeShip": true,
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "color": "silver-parent/silver",
+      "pattern": "electrics",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "cuisinart-parent/cuisinart",
+      "organic": "true",
+      "productType": "coffee-maker",
+      "height": "14.00",
+      "programmable-timer": "true",
+      "earthFriendly": "true",
+      "canGiftWrap": "true",
+      "collection": "cuisinart-coffee",
+      "allProductTypes": "coffee-maker",
+      "adjustable-brew-strength": "true",
+      "depth": "9.00",
+      "width": "7.75",
+      "isShoppable": "true",
+      "name": "Cuisinart PerfecTemp Programmable Coffee Maker with Glass Carafe, 14-cup",
+      "shortName": "Cuisinart PerfecTemp Programmable Coffee Maker with Glass Carafe, 14-cup"
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img122m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Cuisinart PerfecTemp Programmable Coffee Maker with Glass Carafe, 14-cup"
+          }
+        }
+      ]
+    },
+    "availability": "ON_HAND",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "8227593",
+    "name": "Hold Everything Lazy Susan, Small, Walnut Finish, 10\"",
+    "shortName": "Hold Everything Lazy Susan, Small, Walnut Finish, 10\"",
+    "primaryGroupId": "hold-everything-lazy-susan",
+    "price": {
+      "regularPrice": 59.95,
+      "surcharge": 0,
+      "retailPrice": 59.95,
+      "sellingPrice": 59.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "pattern": "homekeeping",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "hold-everything",
+      "organic": "true",
+      "productType": "lazy-susan",
+      "canGiftWrap": "true",
+      "collection": "he-countertop",
+      "allProductTypes": "lazy-susan",
+      "material": "walnut-finish",
+      "isShoppable": "true",
+      "name": "Hold Everything Lazy Susan, Small, Walnut Finish, 10\"",
+      "shortName": "Hold Everything Lazy Susan, Small, Walnut Finish, 10\""
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img153m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Hold Everything Lazy Susan, Small, Walnut Finish, 10\""
+          }
+        }
+      ]
+    },
+    "availability": "BACK_ORDERED",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "5001660",
+    "name": "Williams Sonoma Organic House Extra Virgin Olive Oil",
+    "shortName": "Williams Sonoma Organic House Extra Virgin Olive Oil",
+    "primaryGroupId": "house-olive-oil",
+    "price": {
+      "regularPrice": 38.95,
+      "surcharge": 0,
+      "retailPrice": 38.95,
+      "sellingPrice": 38.95,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "pattern": "food",
+      "isFood": "true",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "williams-sonoma",
+      "organic": "true",
+      "productType": "oil",
+      "canGiftWrap": "true",
+      "allProductTypes": "oil",
+      "isShoppable": "true",
+      "name": "Williams Sonoma Organic House Extra Virgin Olive Oil",
+      "shortName": "Williams Sonoma Organic House Extra Virgin Olive Oil"
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img4m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Williams Sonoma Organic House Extra Virgin Olive Oil"
+          }
+        }
+      ]
+    },
+    "availability": "ON_HAND",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "9670912",
+    "name": "Dorset Martini Glasses, Set of 4",
+    "shortName": "Dorset Martini Glasses, Set of 4",
+    "primaryGroupId": "dorset-crystal-martini-glass",
+    "price": {
+      "regularPrice": 179.8,
+      "surcharge": 0,
+      "retailPrice": 179.8,
+      "sellingPrice": 179.8,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "color": "clear",
+      "pattern": "[tabletop, glassware]",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "williams-sonoma",
+      "organic": "true",
+      "productType": "bar-glasses-martini",
+      "canGiftWrap": "true",
+      "collection": "dorset",
+      "allProductTypes": "bar-glasses-martini",
+      "material": "lead-free-crystal",
+      "isShoppable": "true",
+      "name": "Dorset Martini Glasses, Set of 4",
+      "shortName": "Dorset Martini Glasses, Set of 4"
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img236m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Dorset Martini Glasses, Set of 4"
+          }
+        }
+      ]
+    },
+    "availability": "BACK_ORDERED",
+    "deliveryEstimate": "TRANSIT"
+  },
+  {
+    "id": "181543",
+    "name": "Staub Enameled Cast Iron Traditional Deep Skillet, 8 1/2\", Citron",
+    "shortName": "Staub Enameled Cast Iron Traditional Deep Skillet, 8 1/2\", Citron",
+    "primaryGroupId": "staub-traditional-skillet",
+    "price": {
+      "regularPrice": 180.0,
+      "surcharge": 0,
+      "retailPrice": 180.0,
+      "sellingPrice": 180.0,
+      "monogramOrPersonalizationPrice": 17.0
+    },
+    "freeShip": true,
+    "properties": {
+      "isMarketPlace": "false",
+      "isSpecialOrder": "false",
+      "color": "yellow-parent/citron",
+      "pattern": "cookware",
+      "isFood": "false",
+      "isFurniture": "false",
+      "spiritType": "williams-sonoma",
+      "hasUtilityNeeds": "true",
+      "brand": "staub-parent/staub",
+      "productType": "fry-pans-skillets",
+      "canGiftWrap": "true",
+      "broiler-safe": "true",
+      "pickupServiceLevels": "[{\"pickupServiceLevel\":\"PICKUP_INTERNAL\",\"pickupInternal\":true}]",
+      "collection": "staub-cast-iron",
+      "allProductTypes": "fry-pans-skillets",
+      "material": "enameled-cast-iron",
+      "isShoppable": "true",
+      "shippingDestinationServiceCode": "[{\"destinationServiceCode\":\"UPSAP\",\"upsapEligible\":true}]",
+      "name": "Staub Enameled Cast Iron Traditional Deep Skillet, 8 1/2\", Citron",
+      "shortName": "Staub Enameled Cast Iron Traditional Deep Skillet, 8 1/2\", Citron"
+    },
+    "media": {
+      "images": [
+        {
+          "type": "prodimage",
+          "path": "/img5m.jpg",
+          "aspect": "q",
+          "properties": {
+            "altText": "Staub Enameled Cast Iron Traditional Deep Skillet, 8 1/2\\\", Citron"
+          }
+        }
+      ]
+    },
+    "availability": "ON_HAND",
+    "deliveryEstimate": "TRANSIT"
+  }
+]
