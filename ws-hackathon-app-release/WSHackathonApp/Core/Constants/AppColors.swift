@@ -20,8 +20,8 @@ enum AppColors {
     static let mutedText        = Color(hex: "#A09890")       // Light Warm Gray
 
     // MARK: - Accent
-    static let accent           = Color(hex: "#8B1A1A")       // WS Deep Red / Burgundy
-    static let accentLight      = Color(hex: "#B5342A")       // WS Red
+    static let accent           = Color(hex: "#1A1A1A")       // Premium Black
+    static let accentLight      = Color(hex: "#333333")       // Charcoal
 
     // MARK: - Borders
     static let border           = Color(hex: "#D9D4CC")       // Warm Divider

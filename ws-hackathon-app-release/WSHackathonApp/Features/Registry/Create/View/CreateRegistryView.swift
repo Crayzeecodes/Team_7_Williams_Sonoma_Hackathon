@@ -13,6 +13,8 @@ struct CreateRegistryView: View {
         _viewModel = StateObject(wrappedValue: CreateRegistryViewModel(registryType: registryType))
     }
 
+    @State private var showDiscardAlert = false
+
     var body: some View {
         NavigationStack(path: $viewModel.navigationPath) {
             commonStepOne
@@ -28,12 +30,42 @@ struct CreateRegistryView: View {
                         giftingSplitStep
                     }
                 }
+                .navigationBarBackButtonHidden(true)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            handleDismiss()
+                        } label: {
+                            Image(systemName: viewModel.navigationPath.isEmpty ? "xmark" : "chevron.left")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(AppColors.primaryText)
+                        }
+                    }
+                }
+                .alert("Discard Changes?", isPresented: $showDiscardAlert) {
+                    Button("Keep Editing", role: .cancel) { }
+                    Button("Discard", role: .destructive) { dismiss() }
+                } message: {
+                    Text("Are you sure you want to stop? Your progress will not be saved.")
+                }
                 .task {
                     await viewModel.detectCurrencyIfNeeded()
                 }
                 .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
                     if shouldDismiss { dismiss() }
                 }
+        }
+    }
+
+    private func handleDismiss() {
+        if viewModel.navigationPath.isEmpty {
+            if viewModel.hasChanges {
+                showDiscardAlert = true
+            } else {
+                dismiss()
+            }
+        } else {
+            viewModel.goBack()
         }
     }
 
@@ -69,10 +101,15 @@ struct CreateRegistryView: View {
                     .datePickerStyle(.compact)
                     .labelsHidden()
                 }
-
+                
+                Spacer()
+            }
+            .padding(.bottom, 100)
+            .overlay(alignment: .bottom) {
                 primaryButton(title: "Next", isEnabled: viewModel.canContinueFromStepOne, isLoading: false) {
                     viewModel.continueFromStepOne()
                 }
+                .padding(.bottom, 20)
             }
         }
     }
@@ -93,34 +130,26 @@ struct CreateRegistryView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
 
+                Spacer()
+            }
+            .padding(.bottom, 100)
+            .overlay(alignment: .bottom) {
                 primaryButton(title: "Next", isEnabled: true, isLoading: false) {
                     viewModel.continueFromCollaborators()
                 }
+                .padding(.bottom, 20)
             }
         }
     }
 
     private var plannerStep: some View {
         ZStack {
-            AppColors.surfaceLight.ignoresSafeArea()
+            Color(uiColor: .systemBackground).ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: 24) {
-                // Header
-                HStack {
-                    Button {
-                        viewModel.goBackPlanner()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 30))
-                            .foregroundStyle(AppColors.mutedText)
-                    }
-                    Spacer()
-                }
-                .padding(.bottom, 10)
-
                 Text("Step \(viewModel.currentQuestionIndex + 1)")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(AppColors.accent)
+                    .foregroundStyle(AppColors.primaryText)
                 
                 Text(viewModel.currentQuestion.question)
                     .font(.system(size: 32, weight: .bold))
@@ -139,32 +168,41 @@ struct CreateRegistryView: View {
                                     if option == "Other" {
                                         viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer = ""
                                     } else {
-                                        viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer = option
+                                        if viewModel.plannerAnswers[viewModel.currentQuestionIndex].allowsMultiple {
+                                            if viewModel.plannerAnswers[viewModel.currentQuestionIndex].answers.contains(option) {
+                                                viewModel.plannerAnswers[viewModel.currentQuestionIndex].answers.remove(option)
+                                            } else {
+                                                viewModel.plannerAnswers[viewModel.currentQuestionIndex].answers.insert(option)
+                                            }
+                                        } else {
+                                            viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer = option
+                                        }
                                     }
                                 } label: {
                                     HStack {
                                         Text(option)
                                             .font(.system(size: 17, weight: .semibold))
                                         Spacer()
-                                        if viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer == option {
+                                        if (viewModel.plannerAnswers[viewModel.currentQuestionIndex].allowsMultiple && viewModel.plannerAnswers[viewModel.currentQuestionIndex].answers.contains(option)) ||
+                                           (!viewModel.plannerAnswers[viewModel.currentQuestionIndex].allowsMultiple && viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer == option) {
                                             Image(systemName: "checkmark.circle.fill")
-                                                .foregroundStyle(AppColors.accent)
+                                                .foregroundStyle(AppColors.alwaysBlack)
                                         }
                                     }
                                     .padding()
                                     .frame(maxWidth: .infinity)
-                                    .background(AppColors.pureWhite)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .background(Color(uiColor: .secondarySystemBackground))
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer == option ? AppColors.accent : Color.clear, lineWidth: 2)
+                                        RoundedRectangle(cornerRadius: 25)
+                                            .stroke((viewModel.plannerAnswers[viewModel.currentQuestionIndex].allowsMultiple && viewModel.plannerAnswers[viewModel.currentQuestionIndex].answers.contains(option)) ||
+                                                    (!viewModel.plannerAnswers[viewModel.currentQuestionIndex].allowsMultiple && viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer == option) ? AppColors.alwaysBlack : Color.clear, lineWidth: 2)
                                     )
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
                         
-                        // Custom Answer Field if "Other" or if current answer is not in options
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Custom Answer")
                                 .font(.system(size: 14, weight: .semibold))
@@ -173,26 +211,27 @@ struct CreateRegistryView: View {
                             
                             TextField("Enter your custom answer here", text: $viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer)
                                 .padding()
-                                .background(AppColors.pureWhite)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .background(Color(uiColor: .secondarySystemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 25))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(isCustomAnswer ? AppColors.accent : Color.clear, lineWidth: 2)
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .stroke(isCustomAnswer ? AppColors.alwaysBlack : Color.clear, lineWidth: 2)
                                 )
                         }
                         .padding(.top, 8)
                     }
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 120)
                 }
             }
             .padding(24)
             
-            // Bottom Buttons
             VStack {
                 Spacer()
                 HStack(spacing: 16) {
-                    secondaryButton(title: "Previous") {
-                        viewModel.goBackPlanner()
+                    if viewModel.currentQuestionIndex > 0 || !viewModel.navigationPath.isEmpty {
+                        secondaryButton(title: "Previous") {
+                            viewModel.goBackPlanner()
+                        }
                     }
                     
                     primaryButton(title: "Next", isEnabled: viewModel.canAdvancePlanner, isLoading: false) {
@@ -201,12 +240,11 @@ struct CreateRegistryView: View {
                 }
                 .padding(24)
                 .background(
-                    LinearGradient(colors: [AppColors.surfaceLight.opacity(0), AppColors.surfaceLight], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color(uiColor: .systemBackground).opacity(0), Color(uiColor: .systemBackground)], startPoint: .top, endPoint: .bottom)
                         .padding(.top, -20)
                 )
             }
         }
-        .navigationBarHidden(true)
     }
 
     private var isCustomAnswer: Bool {
@@ -220,7 +258,12 @@ struct CreateRegistryView: View {
             VStack(spacing: 18) {
                 currencyPicker
                 budgetField(title: "Budget amount", text: $viewModel.budgetText, symbol: viewModel.selectedCurrency.symbol)
+                Spacer()
+            }
+            .padding(.bottom, 100)
+            .overlay(alignment: .bottom) {
                 submitArea(enabled: viewModel.canSubmitEventBudget)
+                    .padding(.bottom, 20)
             }
         }
     }
@@ -240,8 +283,13 @@ struct CreateRegistryView: View {
                 } else {
                     budgetField(title: "Your individual budget", text: $viewModel.yourBudgetText, symbol: viewModel.selectedCurrency.symbol)
                 }
-
+                
+                Spacer()
+            }
+            .padding(.bottom, 100)
+            .overlay(alignment: .bottom) {
                 submitArea(enabled: viewModel.canSubmitGiftingBudget)
+                    .padding(.bottom, 20)
             }
         }
     }
@@ -260,7 +308,7 @@ struct CreateRegistryView: View {
             .pickerStyle(.menu)
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppColors.pureWhite)
+            .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 25))
         }
     }
@@ -279,7 +327,7 @@ struct CreateRegistryView: View {
                     .font(.system(size: 22, weight: .bold))
             }
             .padding()
-            .background(AppColors.pureWhite)
+            .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 25))
         }
     }
@@ -295,14 +343,14 @@ struct CreateRegistryView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .multilineTextAlignment(.leading)
             }
-            .foregroundStyle(viewModel.selectedSplitType == value ? AppColors.pureWhite : AppColors.primaryText)
+            .foregroundStyle(viewModel.selectedSplitType == value ? .white : AppColors.primaryText)
             .padding(18)
             .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
-            .background(viewModel.selectedSplitType == value ? AppColors.accent : AppColors.pureWhite)
+            .background(viewModel.selectedSplitType == value ? AppColors.alwaysBlack : Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 25))
             .overlay(
                 RoundedRectangle(cornerRadius: 25)
-                    .stroke(viewModel.selectedSplitType == value ? AppColors.accent : AppColors.border, lineWidth: 1)
+                    .stroke(viewModel.selectedSplitType == value ? AppColors.alwaysBlack : AppColors.border, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -331,7 +379,7 @@ struct CreateRegistryView: View {
             content()
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.pureWhite)
+                .background(Color(uiColor: .secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 25))
         }
     }
@@ -352,7 +400,7 @@ struct CreateRegistryView: View {
             .padding(.vertical, 16)
             .background(isEnabled ? AppColors.alwaysBlack : AppColors.borderStrong)
             .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 25))
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled || isLoading)
@@ -365,8 +413,8 @@ struct CreateRegistryView: View {
                 .foregroundStyle(AppColors.primaryText)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(AppColors.surfaceMedium)
-                .clipShape(RoundedRectangle(cornerRadius: 25))
+                .background(Color(uiColor: .secondarySystemBackground))
+                .clipShape(Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -391,7 +439,7 @@ private struct FormScaffold<Content: View>: View {
             }
             .padding(20)
         }
-        .background(AppColors.surfaceLight.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
     }
 }

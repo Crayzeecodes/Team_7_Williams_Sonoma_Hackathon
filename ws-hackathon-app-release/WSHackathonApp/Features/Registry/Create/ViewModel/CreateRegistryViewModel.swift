@@ -23,11 +23,10 @@ final class CreateRegistryViewModel: ObservableObject {
     @Published var eventDate: Date = Date()
     @Published var collaboratorCount: Int = 1
     @Published var plannerAnswers: [RegistryPlannerAnswer] = [
-        .init(question: "What is the primary purpose of this event?", answer: "", options: ["Birthday Party", "Wedding", "Anniversary", "Housewarming", "Baby Shower", "Corporate Event", "Other"]),
-        .init(question: "How many guests are you expecting?", answer: "", options: ["< 10", "10-25", "25-50", "50-100", "100+", "Other"]),
-        .init(question: "What is the overall vibe or theme?", answer: "", options: ["Modern", "Classic", "Rustic", "Bohemian", "Minimalist", "Colorful", "Other"]),
-        .init(question: "Are there any specific product categories you'd like to focus on?", answer: "", options: ["Cookware", "Bakeware", "Electrics", "Tabletop", "Kitchen Tools", "Coffee & Tea", "Other"]),
-        .init(question: "Any items to avoid?", answer: "", options: ["None", "Small Appliances", "Plastic items", "Fragile items", "Sharp objects", "Other"])
+        .init(question: "How many guests are you expecting?", answer: "", options: ["< 10", "10-25", "25-50", "50-100", "100+", "Other"], allowsMultiple: false),
+        .init(question: "What is the overall vibe or theme?", answer: "", options: ["Modern", "Classic", "Rustic", "Bohemian", "Minimalist", "Colorful", "Other"], allowsMultiple: true),
+        .init(question: "Are there any specific product categories you'd like to focus on?", answer: "", options: ["Cookware", "Bakeware", "Electrics", "Tabletop", "Kitchen Tools", "Coffee & Tea", "Other"], allowsMultiple: true),
+        .init(question: "Any items to avoid?", answer: "", options: ["None", "Small Appliances", "Plastic items", "Fragile items", "Sharp objects", "Other"], allowsMultiple: true)
     ]
     @Published var currentQuestionIndex: Int = 0
     @Published var selectedSplitType: RegistryPaymentSplitType = .split
@@ -58,6 +57,10 @@ final class CreateRegistryViewModel: ObservableObject {
         }
     }
 
+    var hasChanges: Bool {
+        !creatorName.isEmpty || !registryName.isEmpty || budgetText != "" || yourBudgetText != ""
+    }
+
     var canContinueFromStepOne: Bool {
         !creatorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !registryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
@@ -65,7 +68,12 @@ final class CreateRegistryViewModel: ObservableObject {
     }
 
     var canAdvancePlanner: Bool {
-        !plannerAnswers[currentQuestionIndex].answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let answer = plannerAnswers[currentQuestionIndex]
+        if answer.allowsMultiple {
+            return !answer.answers.isEmpty || !answer.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        } else {
+            return !answer.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
     }
 
     var canSubmitEventBudget: Bool {
@@ -142,6 +150,14 @@ final class CreateRegistryViewModel: ObservableObject {
         if currentQuestionIndex > 0 {
             currentQuestionIndex -= 1
         } else {
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
+        }
+    }
+
+    func goBack() {
+        if !navigationPath.isEmpty {
             navigationPath.removeLast()
         }
     }

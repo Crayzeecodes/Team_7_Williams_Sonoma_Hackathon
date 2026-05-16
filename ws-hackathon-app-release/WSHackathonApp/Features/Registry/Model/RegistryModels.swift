@@ -9,7 +9,9 @@ struct RegistryPlannerAnswer: Codable, Hashable, Identifiable {
     var id: String { question }
     let question: String
     var answer: String
+    var answers: Set<String> = [] // New for multiple selection
     var options: [String]?
+    var allowsMultiple: Bool = false
 }
 
 struct RegistryPlannerQuestion: Identifiable {
