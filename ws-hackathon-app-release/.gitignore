@@ -1,3 +1,20 @@
+# macOS
+.DS_Store
+
+# Xcode
+DerivedData/
+.deriveddata/
+.deriveddata-ios/
+
+# Node
+node_modules/
+
+# Env files
+.env
+
+# Logs
+*.log
+server.log
 # macOS system files
 .DS_Store
 
@@ -28,3 +45,14 @@ Carthage/Build/
 *.p12
 *.mobileprovision
 *.key
+
+
+
+
+
+# Parent-folder ignores
+../.deriveddata/
+../.deriveddata-ios/
+../hackathon-mock-api-ios/mock-api/node_modules/
+../hackathon-mock-api-ios/mock-api/.env
+../hackathon-mock-api-ios/mock-api/server.log
