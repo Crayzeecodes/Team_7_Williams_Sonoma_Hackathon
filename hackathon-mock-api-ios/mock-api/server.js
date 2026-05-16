@@ -8,9 +8,12 @@ const mongoose = require("mongoose");
 const path = require("path");
 const { Server } = require("socket.io");
 const auth = require("./middleware/auth");
+const memoryAuth = require("./middleware/memoryAuth");
 const Product = require("./models/Product");
 const User = require("./models/User");
 const registryRoutes = require("./routes/registry");
+const registryMemoryRoutes = require("./routes/registryMemory");
+const memoryStore = require("./services/memoryStore");
 const { initializeRegistrySocket } = require("./socket/registrySocket");
 
 dotenv.config();
@@ -45,9 +48,25 @@ function delayedJson(res, fileName, status = 200, delay = 250) {
   }, delay);
 }
 
+function normalizeImagePath(imagePath) {
+  const value = String(imagePath || "").trim();
+  if (!value) {
+    return value;
+  }
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+  if (value.startsWith("/images/")) {
+    return value;
+  }
+  return `/images/${value.replace(/^\//, "")}`;
+}
+
 function mapSkuToProduct(sku) {
   const price = Number(sku?.price?.sellingPrice || sku?.price?.regularPrice || 0);
-  const images = (sku?.media?.images || []).map((image) => image.path).filter(Boolean);
+  const images = (sku?.media?.images || [])
+    .map((image) => normalizeImagePath(image.path))
+    .filter(Boolean);
   const properties = sku?.properties || {};
   const specs = [];
 
@@ -122,9 +141,48 @@ function serializeUser(user) {
   };
 }
 
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
+function buildSkuResponse(products) {
+  return products.map((product) => ({
+    id: product.skuId,
+    name: product.name,
+    shortName: product.name,
+    primaryGroupId: product.skuId,
+    price: {
+      regularPrice: product.price,
+      surcharge: 0,
+      retailPrice: product.price,
+      sellingPrice: product.price,
+      monogramOrPersonalizationPrice: 0,
+    },
+    properties: {
+      brand: "williams-sonoma",
+      productType: product.category,
+      allProductTypes: product.category,
+      canGiftWrap: "true",
+      isShoppable: "true",
+      name: product.name,
+      shortName: product.name,
+    },
+    media: {
+      images: (product.images || []).map((imagePath) => ({
+        type: "prodimage",
+        path: normalizeImagePath(imagePath),
+        aspect: "q",
+        properties: {
+          altText: product.name,
+        },
+      })),
+    },
+    availability: "ON_HAND",
+    deliveryEstimate: "TRANSIT",
+  }));
+}
+
+const seededProducts = readJson("skus.json").map((sku) => ({
+  _id: String(sku.id),
+  ...mapSkuToProduct(sku),
+}));
+memoryStore.setProducts(seededProducts);
 
 app.post("/auth/register", async (req, res) => {
   try {
@@ -136,18 +194,32 @@ app.post("/auth/register", async (req, res) => {
       return res.status(400).json({ message: "name, email, and password are required" });
     }
 
-    const existingUser = await User.findOne({ email });
+    if (app.locals.dbAvailable) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(409).json({ message: "User already exists" });
+      }
+
+      const user = await User.create({
+        email,
+        password,
+        name,
+        addresses: [],
+        createdAt: new Date(),
+      });
+
+      return res.status(201).json({
+        token: issueToken(user),
+        user: serializeUser(user),
+      });
+    }
+
+    const existingUser = memoryStore.findUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
     }
 
-    const user = await User.create({
-      email,
-      password,
-      name,
-      addresses: [],
-      createdAt: new Date(),
-    });
+    const user = memoryStore.createUser({ email, password, name });
 
     return res.status(201).json({
       token: issueToken(user),
@@ -163,7 +235,10 @@ app.post("/auth/login", async (req, res) => {
     const email = String(req.body?.email || "").trim().toLowerCase();
     const password = String(req.body?.password || "");
 
-    const user = await User.findOne({ email });
+    const user = app.locals.dbAvailable
+      ? await User.findOne({ email })
+      : memoryStore.findUserByEmail(email);
+
     if (!user || user.password !== password) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -186,7 +261,7 @@ app.post("/login", async (req, res) => {
       return delayedJson(res, "error_401.json", 401, 200);
     }
 
-    const user = await ensureDemoUser();
+    const user = await ensureDemoUserForMode();
     return res.json({
       token: issueToken(user),
       user: serializeUser(user),
@@ -206,44 +281,13 @@ app.get("/feed", (req, res) => {
 
 app.get("/skus", async (req, res) => {
   try {
+    if (!app.locals.dbAvailable) {
+      return res.json(buildSkuResponse(memoryStore.getProducts()));
+    }
+
     const products = await Product.find({}).lean();
     if (products.length > 0) {
-      return res.json(
-        products.map((product) => ({
-          id: product.skuId,
-          name: product.name,
-          shortName: product.name,
-          primaryGroupId: product.skuId,
-          price: {
-            regularPrice: product.price,
-            surcharge: 0,
-            retailPrice: product.price,
-            sellingPrice: product.price,
-            monogramOrPersonalizationPrice: 0,
-          },
-          properties: {
-            brand: "williams-sonoma",
-            productType: product.category,
-            allProductTypes: product.category,
-            canGiftWrap: "true",
-            isShoppable: "true",
-            name: product.name,
-            shortName: product.name,
-          },
-          media: {
-            images: (product.images || []).map((imagePath) => ({
-              type: "prodimage",
-              path: imagePath,
-              aspect: "q",
-              properties: {
-                altText: product.name,
-              },
-            })),
-          },
-          availability: "ON_HAND",
-          deliveryEstimate: "TRANSIT",
-        }))
-      );
+      return res.json(buildSkuResponse(products));
     }
 
     return delayedJson(res, "skus.json", 200, 300);
@@ -252,12 +296,35 @@ app.get("/skus", async (req, res) => {
   }
 });
 
-app.use("/api/registry", auth, registryRoutes);
+async function ensureDemoUserForMode() {
+  if (app.locals.dbAvailable) {
+    return ensureDemoUser();
+  }
+
+  return memoryStore.ensureUser({
+    email: "demo@hackathon.com",
+    password: "123456",
+    name: "Demo User",
+  });
+}
 
 async function start() {
-  await mongoose.connect(MONGODB_URI);
-  await seedProductsIfNeeded();
-  await ensureDemoUser();
+  app.locals.dbAvailable = false;
+
+  try {
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 3000 });
+    app.locals.dbAvailable = true;
+    await seedProductsIfNeeded();
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.warn(`MongoDB unavailable, starting in memory mode: ${error.message}`);
+  }
+
+  await ensureDemoUserForMode();
+  app.use("/api/registry", app.locals.dbAvailable ? auth : memoryAuth, app.locals.dbAvailable ? registryRoutes : registryMemoryRoutes);
+  app.get("/health", (req, res) => {
+    res.json({ status: "ok", mode: app.locals.dbAvailable ? "mongodb" : "memory" });
+  });
 
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Mock API running on http://0.0.0.0:${PORT}`);
