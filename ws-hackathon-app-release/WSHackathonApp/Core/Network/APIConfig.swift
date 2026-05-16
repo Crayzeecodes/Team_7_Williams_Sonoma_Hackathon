@@ -7,7 +7,8 @@ import Foundation
 
 enum APIConfig {
     static let defaultBaseURLString: String = {
-        return "http://Unnattis-MacBook-Air.local:3001"
+        // REPLACE with your Supabase Project URL (e.g. https://xyz.supabase.co)
+        return "https://YOUR_SUPABASE_PROJECT_URL.supabase.co"
     }()
 
     static var baseURL: URL {
@@ -18,25 +19,18 @@ enum APIConfig {
             return url
         }
 
-        if let override = Bundle.main.object(forInfoDictionaryKey: "WSAPIBaseURL") as? String,
-           let url = URL(string: override),
-           let scheme = url.scheme,
-           !scheme.isEmpty {
-            return url
-        }
-
         return URL(string: defaultBaseURLString)!
     }
 
     static var authBaseURL: URL {
-        baseURL.appendingPathComponent("auth")
+        baseURL.appendingPathComponent("auth/v1")
     }
 
     static var socketURL: URL {
         baseURL
     }
 
-    static let registryBasePath = "/api/registry"
+    static let registryBasePath = "/rest/v1/registries" // Standard Supabase REST path
     static let requestTimeout: TimeInterval = 30
 
     static var authToken: String? {

@@ -17,27 +17,27 @@ struct PiggyBankView: View {
     var body: some View {
         VStack(spacing: 14) {
             ZStack {
+                // Translucent Piggy Body
                 PiggyBankShape()
                     .stroke(Color(hex: "#D4C9BB"), style: .init(lineWidth: 4, lineCap: .round, lineJoin: .round))
                     .background(
                         PiggyBankShape()
-                            .fill(Color.white.opacity(0.7))
+                            .fill(Color.white.opacity(0.3)) // More translucent
                     )
                     .frame(height: 220)
-                    .overlay(alignment: .bottom) {
-                        GeometryReader { proxy in
-                            let height = proxy.size.height * displayedFillLevel
-                            LinearGradient(
-                                colors: [Color(hex: "#F2A623"), Color(hex: "#E8593C")],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                            .frame(width: proxy.size.width, height: height)
-                            .mask(PiggyBankShape().frame(width: proxy.size.width, height: proxy.size.height))
-                            .frame(maxHeight: .infinity, alignment: .bottom)
-                        }
-                    }
-                    .rotationEffect(.degrees(tilt))
+                
+                // Static Coins inside
+                let coinCount = Int(displayedFillLevel * 20)
+                ForEach(0..<20, id: \.self) { i in
+                    Circle()
+                        .fill(Color(hex: "#F2A623"))
+                        .frame(width: 12, height: 12)
+                        .offset(x: CGFloat.random(in: -40...40, seed: i), 
+                                y: CGFloat.random(in: 0...60, seed: i))
+                        .opacity(i < coinCount ? 0.9 : 0)
+                        .animation(.easeInOut, value: displayedFillLevel)
+                }
+                .mask(PiggyBankShape().frame(height: 220))
 
                 Rectangle()
                     .fill(Color(hex: "#C9BBA9"))
@@ -45,6 +45,7 @@ struct PiggyBankView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 4))
                     .offset(y: -70)
 
+                // Animation Particles (when triggered)
                 ForEach(particles) { particle in
                     Circle()
                         .fill(Color(hex: "#F2A623"))
@@ -53,6 +54,7 @@ struct PiggyBankView: View {
                         .opacity(particle.opacity)
                 }
             }
+            .rotationEffect(.degrees(tilt))
 
             Text("\(currencySymbol)\(Int(budgetSnapshot.remainingAmount)) of \(currencySymbol)\(Int(budgetSnapshot.totalBudget)) remaining")
                 .font(.system(size: 20, weight: .bold))
@@ -115,6 +117,23 @@ struct PiggyBankView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.05) {
             particles.removeAll()
         }
+    }
+}
+
+// Helper for seeded random to keep coins static for a given index
+extension CGFloat {
+    static func random(in range: ClosedRange<CGFloat>, seed: Int) -> CGFloat {
+        var generator = SeededRandomGenerator(seed: seed)
+        return CGFloat.random(in: range, using: &generator)
+    }
+}
+
+struct SeededRandomGenerator: RandomNumberGenerator {
+    init(seed: Int) {
+        srand48(seed)
+    }
+    func next() -> UInt64 {
+        return UInt64(drand48() * Double(UInt64.max))
     }
 }
 

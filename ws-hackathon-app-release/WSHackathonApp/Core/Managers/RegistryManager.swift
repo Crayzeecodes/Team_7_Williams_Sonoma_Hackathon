@@ -11,7 +11,7 @@ import SwiftUI
     var items: [WSRegistryItem] = []
     
     func addToRegistry(_ product: WSProduct, variant: WSProductColor?) {
-        // MongoDB-ready: will POST to /api/registry endpoint
+        // Supabase-ready: will POST to registry table
         let item = WSRegistryItem(product: product, variant: variant)
         items.append(item)
     }

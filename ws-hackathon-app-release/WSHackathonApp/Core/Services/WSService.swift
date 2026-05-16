@@ -2,7 +2,7 @@
 //  WSService.swift
 //  WSHackathonApp
 //
-//  Static now, MongoDB/REST-ready structure.
+//  Static now, Supabase-ready structure.
 //
 
 import Foundation
@@ -116,11 +116,11 @@ final class WSService {
     }
 
     func addToCart(productId: UUID, quantity: Int, color: String?, size: String?, giftWrapped: Bool) async throws {
-        // POST to MongoDB cart collection in production
+        // POST to Supabase cart table in production
     }
 
     func addToRegistry(productId: UUID) async throws {
-        // POST to MongoDB registry collection in production
+        // POST to Supabase registry table in production
     }
 }
 

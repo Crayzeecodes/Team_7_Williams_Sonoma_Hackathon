@@ -9,6 +9,14 @@ struct RegistryPlannerAnswer: Codable, Hashable, Identifiable {
     var id: String { question }
     let question: String
     var answer: String
+    var options: [String]?
+}
+
+struct RegistryPlannerQuestion: Identifiable {
+    var id: String { question }
+    let question: String
+    let options: [String]
+    let placeholder: String
 }
 
 struct CurrencyInfo: Codable, Hashable {

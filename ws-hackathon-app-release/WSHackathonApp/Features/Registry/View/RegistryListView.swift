@@ -15,9 +15,8 @@ struct RegistryListView: View {
                 filterPills
                 content
             }
-            .padding(.horizontal, 16)
             .padding(.top, 10)
-            .background(AppColors.surfaceLight.ignoresSafeArea())
+            .background(Color(uiColor: .systemBackground))
             .navigationTitle("Registry")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
@@ -39,23 +38,26 @@ struct RegistryListView: View {
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(AppColors.secondaryText)
+                .font(.system(size: 16))
+                .foregroundStyle(Color.secondary)
             TextField("Search registries", text: $viewModel.searchText)
-                .textInputAutocapitalization(.words)
+                .font(.system(size: 16))
+                .foregroundStyle(Color.primary)
             if !viewModel.searchText.isEmpty {
                 Button {
                     viewModel.searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(AppColors.mutedText)
+                        .foregroundStyle(Color.secondary)
                 }
                 .buttonStyle(.plain)
             }
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+        .background(Color(uiColor: .secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(AppColors.pureWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 25))
     }
 
     private var filterPills: some View {
@@ -67,15 +69,16 @@ struct RegistryListView: View {
                     } label: {
                         Text(filter.title)
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(viewModel.filter == filter ? Color.white : AppColors.primaryText)
+                            .foregroundStyle(viewModel.filter == filter ? Color.white : Color.primary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
-                            .background(viewModel.filter == filter ? AppColors.alwaysBlack : AppColors.pureWhite)
+                            .background(viewModel.filter == filter ? Color.black : Color(uiColor: .secondarySystemBackground))
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal, 16)
         }
     }
 
@@ -130,7 +133,8 @@ struct RegistryListView: View {
                 viewModel.isPresentingJoinRegistry = true
             } label: {
                 Image(systemName: "person.badge.plus")
-                    .foregroundStyle(AppColors.primaryText)
+                    .font(.system(size: 19))
+                    .foregroundStyle(Color.primary)
             }
 
             Menu {
@@ -138,7 +142,21 @@ struct RegistryListView: View {
                 Button("Create for Gifting") { viewModel.prepareCreate(.gifting) }
             } label: {
                 Image(systemName: "plus")
-                    .foregroundStyle(AppColors.primaryText)
+                    .font(.system(size: 19))
+                    .foregroundStyle(Color.primary)
+            }
+            
+            // Profile circle to match ShopView
+            Button(action: { /* navManager.showProfile = true */ }) {
+                Circle()
+                    .fill(Color(uiColor: .secondarySystemBackground))
+                    .frame(width: 34, height: 34)
+                    .overlay(
+                        Text("WS") // Hardcoded for now or fetch from user manager
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.primary)
+                    )
+                    .overlay(Circle().stroke(Color(uiColor: .separator), lineWidth: 0.5))
             }
         }
     }
@@ -229,72 +247,46 @@ private struct EventRegistryCard: View {
     let registry: Registry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(alignment: .top) {
-                Label {
-                    EmptyView()
-                } icon: {
+        ZStack {
+            // Thinner Ribbon border
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(AppColors.accent, lineWidth: 3) // Thinner (was 6)
+                .padding(2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 25)
+                        .stroke(AppColors.accent, lineWidth: 1) // Thinner (was 2)
+                        .padding(-2)
+                )
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
                     Image(systemName: registry.eventType.iconName)
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(AppColors.primaryText)
                         .frame(width: 52, height: 52)
-                        .background(Color.white.opacity(0.12))
+                        .background(AppColors.surfaceMedium)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
+
+                    Spacer()
                 }
 
-                Spacer()
-
-                badge(title: "EVENT")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(registry.name)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(AppColors.primaryText)
+                    Text(registry.eventType.title)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(AppColors.secondaryText)
+                    Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(AppColors.primaryText)
+                }
             }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(registry.name)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(.white)
-                Text(registry.eventType.title)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.72))
-                Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.9))
-            }
-
-            budgetPill
+            .padding(28)
         }
-        .padding(22)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#0E1628"), Color(hex: "#273247")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .background(AppColors.pureWhite)
         .clipShape(RoundedRectangle(cornerRadius: 25))
-    }
-
-    private var budgetPill: some View {
-        Label {
-            Text("\(registry.currency.symbol)\(Int(registry.budgetSnapshot.remainingAmount)) remaining")
-                .font(.system(size: 14, weight: .semibold))
-        } icon: {
-            Image(systemName: "piggybank.fill")
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Color.white.opacity(0.12))
-        .clipShape(Capsule())
-    }
-
-    private func badge(title: String) -> some View {
-        Text(title)
-            .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(Color.white.opacity(0.14))
-            .clipShape(Capsule())
     }
 }
 
@@ -302,80 +294,94 @@ private struct GiftingRegistryCard: View {
     let registry: Registry
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            RoundedRectangle(cornerRadius: 25)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "#5F1423"), Color(hex: "#A53549")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+        ZStack {
+            // Thinner Cross Ribbon
+            VStack {
+                Rectangle()
+                    .fill(AppColors.accent)
+                    .frame(width: 12) // Thinner (was 24)
+                    .frame(maxHeight: .infinity)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 60)
+
+            HStack {
+                Rectangle()
+                    .fill(AppColors.accent)
+                    .frame(height: 12) // Thinner (was 24)
+                    .frame(maxWidth: .infinity)
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top, 50)
+
+            // Ribbon Bow (Circle for simplicity, can be more complex)
+            Circle()
+                .fill(AppColors.accent)
+                .frame(width: 48, height: 48)
+                .overlay(
+                    Image(systemName: "ribbon")
+                        .font(.system(size: 24))
+                        .foregroundStyle(.white)
                 )
-
-            Image(systemName: "gift.fill")
-                .font(.system(size: 92, weight: .black))
-                .foregroundStyle(Color.white.opacity(0.12))
-                .offset(x: 20, y: 10)
-
-            VStack(alignment: .leading, spacing: 18) {
+                .offset(x: -UIScreen.main.bounds.width/2 + 72 + 60, y: -UIScreen.main.bounds.height/2 + 250) // Adjust offsets carefully
+                // Actually easier to anchor to top leading of the intersection
+            
+            // Re-anchoring Bow
+            VStack {
                 HStack {
-                    ribbonDecoration
+                    ZStack {
+                        // Thinner Bow Loops
+                        Circle()
+                            .stroke(AppColors.accent, lineWidth: 4) // Thinner (was 8)
+                            .frame(width: 34, height: 24)
+                            .rotationEffect(.degrees(-35))
+                            .offset(x: -16, y: -12)
+                        
+                        Circle()
+                            .stroke(AppColors.accent, lineWidth: 4) // Thinner (was 8)
+                            .frame(width: 34, height: 24)
+                            .rotationEffect(.degrees(35))
+                            .offset(x: 16, y: -12)
+                        
+                        // Center knot
+                        Circle()
+                            .fill(AppColors.accent)
+                            .frame(width: 20, height: 20)
+                        
+                        Image(systemName: "gift.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.white)
+                    }
+                    .offset(x: 72, y: 62)
                     Spacer()
-                    badge(title: "GIFTING")
                 }
+                Spacer()
+            }
 
-                Text(registry.name)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(.white)
-
-                VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 14) {
+                Spacer()
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(registry.name)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(AppColors.primaryText)
                     Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.92))
+                        .foregroundStyle(AppColors.primaryText)
                     Text(registry.collaboratorCountText)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.72))
+                        .foregroundStyle(AppColors.secondaryText)
                 }
-
-                Label {
-                    Text("\(registry.currency.symbol)\(Int(registry.budgetSnapshot.remainingAmount)) remaining")
-                        .font(.system(size: 14, weight: .semibold))
-                } icon: {
-                    Image(systemName: "piggybank.fill")
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(Color.white.opacity(0.14))
-                .clipShape(Capsule())
             }
-            .padding(22)
+            .padding(28)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, minHeight: 220)
-    }
-
-    private var ribbonDecoration: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white.opacity(0.16))
-                .frame(width: 58, height: 58)
-            Path { path in
-                path.move(to: CGPoint(x: 29, y: 6))
-                path.addLine(to: CGPoint(x: 29, y: 52))
-                path.move(to: CGPoint(x: 6, y: 29))
-                path.addLine(to: CGPoint(x: 52, y: 29))
-            }
-            .stroke(Color.white.opacity(0.8), lineWidth: 5)
-        }
-    }
-
-    private func badge(title: String) -> some View {
-        Text(title)
-            .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(Color.white.opacity(0.14))
-            .clipShape(Capsule())
+        .frame(maxWidth: .infinity, minHeight: 200)
+        .background(AppColors.pureWhite)
+        .clipShape(RoundedRectangle(cornerRadius: 25))
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(AppColors.border, lineWidth: 1)
+        )
     }
 }

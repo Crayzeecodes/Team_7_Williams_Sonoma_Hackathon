@@ -15,8 +15,8 @@ struct RegistryDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                if let registry = viewModel.registry {
-                    header(registry)
+                if viewModel.registry != nil {
+                    // Header card removed as requested
                     PiggyBankView(
                         budgetSnapshot: viewModel.budgetSnapshot,
                         currencySymbol: viewModel.currencySymbol,
@@ -24,6 +24,12 @@ struct RegistryDetailView: View {
                     )
                     aiSuggestionsSection
                     sharedCartSection
+                    
+                    SlidingCheckoutButton {
+                        // Action for checkout
+                    }
+                    .padding(.top, 20)
+                    .padding(.bottom, 40)
                 } else if viewModel.isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity, minHeight: 300)
@@ -36,10 +42,22 @@ struct RegistryDetailView: View {
             }
             .padding(16)
         }
-        .background(AppColors.surfaceLight.ignoresSafeArea())
-        .navigationTitle(viewModel.registry?.name ?? "Registry")
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 2) {
+                    Text(viewModel.registry?.name ?? "Registry")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(AppColors.primaryText)
+                    if let date = viewModel.registry?.eventDate {
+                        Text(date.formatted(date: .abbreviated, time: .omitted))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
+                }
+            }
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     viewModel.isPresentingCollaborators = true
@@ -61,21 +79,27 @@ struct RegistryDetailView: View {
     }
 
     private func header(_ registry: Registry) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(registry.creatorName)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(AppColors.secondaryText)
-            Text(registry.eventType.title)
-                .font(.system(size: 30, weight: .bold))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(registry.creatorName.components(separatedBy: " ").map { String($0.prefix(1)) }.joined().prefix(2).capitalized)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(AppColors.secondaryText)
+                Spacer()
+            }
+            
+            Text(registry.name)
+                .font(.system(size: 32, weight: .bold))
                 .foregroundStyle(AppColors.primaryText)
+            
             Text("Join code: \(registry.joinCode)")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(AppColors.accent)
+            
             Text(registry.eventDate.formatted(date: .complete, time: .omitted))
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(AppColors.secondaryText)
         }
-        .padding(22)
+        .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(AppColors.pureWhite)
         .clipShape(RoundedRectangle(cornerRadius: 25))

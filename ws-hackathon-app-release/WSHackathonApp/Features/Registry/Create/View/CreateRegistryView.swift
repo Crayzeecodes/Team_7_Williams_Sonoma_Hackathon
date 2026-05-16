@@ -101,53 +101,118 @@ struct CreateRegistryView: View {
     }
 
     private var plannerStep: some View {
-        FormScaffold(title: "Planner") {
-            VStack(spacing: 18) {
-                TabView(selection: $viewModel.currentQuestionIndex) {
-                    ForEach(Array(viewModel.plannerAnswers.enumerated()), id: \.offset) { index, answer in
-                        VStack(alignment: .leading, spacing: 18) {
-                            Text("Question \(index + 1)")
+        ZStack {
+            AppColors.surfaceLight.ignoresSafeArea()
+            
+            VStack(alignment: .leading, spacing: 24) {
+                // Header
+                HStack {
+                    Button {
+                        viewModel.goBackPlanner()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundStyle(AppColors.mutedText)
+                    }
+                    Spacer()
+                }
+                .padding(.bottom, 10)
+
+                Text("Step \(viewModel.currentQuestionIndex + 1)")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(AppColors.accent)
+                
+                Text(viewModel.currentQuestion.question)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundStyle(AppColors.primaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("Please select an option below or enter your own answer to help our AI give better suggestions.")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(AppColors.secondaryText)
+                
+                ScrollView {
+                    VStack(spacing: 12) {
+                        if let options = viewModel.currentQuestion.options {
+                            ForEach(options, id: \.self) { option in
+                                Button {
+                                    if option == "Other" {
+                                        viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer = ""
+                                    } else {
+                                        viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer = option
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(option)
+                                            .font(.system(size: 17, weight: .semibold))
+                                        Spacer()
+                                        if viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer == option {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(AppColors.accent)
+                                        }
+                                    }
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(AppColors.pureWhite)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer == option ? AppColors.accent : Color.clear, lineWidth: 2)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        
+                        // Custom Answer Field if "Other" or if current answer is not in options
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Custom Answer")
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(AppColors.secondaryText)
-                            Text(answer.question)
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundStyle(AppColors.primaryText)
-                            TextField(
-                                "Your answer",
-                                text: Binding(
-                                    get: { viewModel.plannerAnswers[index].answer },
-                                    set: { viewModel.plannerAnswers[index].answer = $0 }
+                                .padding(.leading, 4)
+                            
+                            TextField("Enter your custom answer here", text: $viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer)
+                                .padding()
+                                .background(AppColors.pureWhite)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(isCustomAnswer ? AppColors.accent : Color.clear, lineWidth: 2)
                                 )
-                            )
-                            .keyboardType(index == 1 ? .numberPad : .default)
-                            .textInputAutocapitalization(.sentences)
-                            .padding()
-                            .background(AppColors.pureWhite)
-                            .clipShape(RoundedRectangle(cornerRadius: 25))
-                            Spacer()
                         }
-                        .padding(.vertical, 8)
-                        .tag(index)
+                        .padding(.top, 8)
                     }
+                    .padding(.bottom, 100)
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 320)
-
-                HStack(spacing: 12) {
-                    secondaryButton(title: "Back") {
+            }
+            .padding(24)
+            
+            // Bottom Buttons
+            VStack {
+                Spacer()
+                HStack(spacing: 16) {
+                    secondaryButton(title: "Previous") {
                         viewModel.goBackPlanner()
                     }
-
-                    primaryButton(
-                        title: viewModel.currentQuestionIndex == viewModel.plannerAnswers.count - 1 ? "Next" : "Next",
-                        isEnabled: viewModel.canAdvancePlanner,
-                        isLoading: false
-                    ) {
+                    
+                    primaryButton(title: "Next", isEnabled: viewModel.canAdvancePlanner, isLoading: false) {
                         viewModel.advancePlanner()
                     }
                 }
+                .padding(24)
+                .background(
+                    LinearGradient(colors: [AppColors.surfaceLight.opacity(0), AppColors.surfaceLight], startPoint: .top, endPoint: .bottom)
+                        .padding(.top, -20)
+                )
             }
         }
+        .navigationBarHidden(true)
+    }
+
+    private var isCustomAnswer: Bool {
+        guard let options = viewModel.currentQuestion.options else { return true }
+        let currentAnswer = viewModel.plannerAnswers[viewModel.currentQuestionIndex].answer
+        return !currentAnswer.isEmpty && !options.contains(currentAnswer)
     }
 
     private var eventBudgetStep: some View {
@@ -265,6 +330,7 @@ struct CreateRegistryView: View {
                 .foregroundStyle(AppColors.primaryText)
             content()
                 .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(AppColors.pureWhite)
                 .clipShape(RoundedRectangle(cornerRadius: 25))
         }
