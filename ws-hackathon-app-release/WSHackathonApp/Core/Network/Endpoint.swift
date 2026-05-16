@@ -13,11 +13,16 @@ struct Endpoint {
     let queryParameters: [String: String]?
 
     var url: URL? {
-        guard var components = URLComponents(string: AppConstants.API.baseURL + path) else { return nil }
-        if let queryParameters = queryParameters {
-            components.queryItems = queryParameters.map { URLQueryItem(name: $0.key, value: $0.value) }
+        let fullString = AppConstants.API.baseURL + path
+        guard let url = URL(string: fullString) else { return nil }
+        
+        if let queryParameters = queryParameters, !queryParameters.isEmpty {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            components?.queryItems = queryParameters.map { URLQueryItem(name: $0.key, value: $0.value) }
+            return components?.url
         }
-        return components.url
+        
+        return url
     }
 
     init(path: String,

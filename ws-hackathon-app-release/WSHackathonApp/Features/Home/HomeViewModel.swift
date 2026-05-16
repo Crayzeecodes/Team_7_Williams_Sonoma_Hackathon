@@ -54,7 +54,7 @@ class HomeViewModel: ObservableObject {
     }
     
     func registryQuantity(for product: ProductItem) -> Int {
-        registryRepository?.currentRegistry?.items.first(where: { $0.id == product.id })?.quantity ?? 0
+        registryRepository?.quantity(for: product) ?? 0
     }
     
     var filteredProducts: [ProductItem] {

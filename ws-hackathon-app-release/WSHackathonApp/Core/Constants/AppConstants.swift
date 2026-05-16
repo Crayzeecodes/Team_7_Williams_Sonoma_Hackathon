@@ -6,11 +6,14 @@
 //
 
 import Foundation
+
 enum AppConstants {
     
     enum API {
-        static let baseURL = "http://localhost:3001"
+        // Use 127.0.0.1 for better reliability in simulator than 'localhost'
+        static let baseURL = "http://127.0.0.1:3001"
         static let imageBasePath = baseURL + "/images/"
+        static let socketURL = baseURL
         static let timeout: TimeInterval = 30
     }
 }

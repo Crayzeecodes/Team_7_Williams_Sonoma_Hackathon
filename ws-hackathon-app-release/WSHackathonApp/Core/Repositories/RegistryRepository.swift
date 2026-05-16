@@ -11,93 +11,80 @@ import Foundation
 @MainActor
 final class RegistryRepository: ObservableObject {
     
-    @Published var currentRegistry: Registry?
+    @Published var currentRegistry: RegistryModel?
+    private var cancellables = Set<AnyCancellable>()
     
-    // MARK: - Create
+    init() {
+        // For the hackathon, we load the user's registries and pick the first one as active
+        Task {
+            await loadActiveRegistry()
+        }
+    }
+    
+    // MARK: - Active Registry
     var isActiveRegistry: Bool {
         currentRegistry != nil
     }
     
-    func createRegistry(firstName: String,
-                        lastName: String,
-                        event: RegistryEvent,
-                        date: Date) {
-        
-        currentRegistry = Registry(
-            id: UUID(),
-            firstName: firstName,
-            lastName: lastName,
-            event: event,
-            date: date,
-            items: []
-        )
-    }
-    
-    // MARK: - Delete Registry
-    
-    func deleteRegistry() {
-        currentRegistry = nil
+    func loadActiveRegistry() async {
+        do {
+            let registries = try await RegistryService.shared.loadAll()
+            if let first = registries.first {
+                self.currentRegistry = first
+            }
+        } catch {
+            print("Failed to load registries for global state: \(error)")
+        }
     }
     
     // MARK: - Add Product
     
     func addProduct(_ product: ProductItem) {
-        guard var registry = currentRegistry else { return }
+        guard let registry = currentRegistry else { return }
         
-        let price = product.price ?? 0.0
-        
-        if let index = registry.items.firstIndex(where: { $0.id == product.id }) {
-            registry.items[index].quantity += 1
-        } else {
-            registry.items.append(
-                RegistryItem(
-                    id: product.id,
-                    title: product.title,
-                    price: price,
+        Task {
+            do {
+                let response = try await RegistryService.shared.addToCart(
+                    registryId: registry.id,
+                    productId: product.id,
+                    quantity: 1,
+                    price: product.price ?? 0.0,
+                    name: product.title,
                     imageUrl: product.path,
-                    quantity: 1
+                    source: .manual
                 )
-            )
+                self.currentRegistry?.cartItems = response.cartItems
+                self.currentRegistry?.budgetSnapshot = response.budgetSnapshot
+            } catch {
+                print("Failed to add product to registry: \(error)")
+            }
         }
-        
-        currentRegistry = registry
     }
     
     // MARK: - Remove Item
     
     func removeItem(_ productId: String) {
-        guard var registry = currentRegistry else { return }
-        
-        registry.items.removeAll { $0.id == productId }
-        currentRegistry = registry
-    }
-    
-    // MARK: - Update Quantity
-    
-    func increaseQty(_ productId: String) {
-        guard var registry = currentRegistry else { return }
-        
-        if let index = registry.items.firstIndex(where: { $0.id == productId }) {
-            registry.items[index].quantity += 1
-            currentRegistry = registry
+        guard let registry = currentRegistry,
+              let item = registry.cartItems?.first(where: { $0.productId == productId }),
+              let itemId = item._id else { return }
+              
+        Task {
+            do {
+                let response = try await RegistryService.shared.removeFromCart(
+                    registryId: registry.id,
+                    itemId: itemId
+                )
+                self.currentRegistry?.cartItems = response.cartItems
+                self.currentRegistry?.budgetSnapshot = response.budgetSnapshot
+            } catch {
+                print("Failed to remove product from registry: \(error)")
+            }
         }
     }
     
-    func decreaseQty(_ productId: String) {
-        guard var registry = currentRegistry else { return }
-        
-        guard let index = registry.items.firstIndex(where: { $0.id == productId }) else { return }
-        
-        if registry.items[index].quantity > 1 {
-            registry.items[index].quantity -= 1
-        } else {
-            registry.items.remove(at: index)
-        }
-        
-        currentRegistry = registry
-    }
+    // MARK: - Quantity
     
-    func quantity(for registryItem: RegistryItem) -> Int {
-        currentRegistry?.items.first(where: { $0.id == registryItem.id })?.quantity ?? 0
+    func quantity(for product: ProductItem) -> Int {
+        currentRegistry?.cartItems?.first(where: { $0.productId == product.id })?.quantity ?? 0
     }
 }
