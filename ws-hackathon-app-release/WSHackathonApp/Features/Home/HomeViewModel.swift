@@ -67,7 +67,6 @@ class HomeViewModel: ObservableObject {
     
     func fetchProducts() async {
         guard !hasLoaded else { return }
-        hasLoaded = true
         
         isLoading = true
         errorMessage = nil
@@ -75,9 +74,11 @@ class HomeViewModel: ObservableObject {
         do {
             let dtos: [ProductItemDTO] = try await APIClient.shared.request(Endpoint.products())
             self.products = dtos.map { ProductItem(from: $0) }
+            hasLoaded = true
         } catch {
             print(error)
             errorMessage = "Failed to load products"
+            hasLoaded = false
         }
         
         isLoading = false

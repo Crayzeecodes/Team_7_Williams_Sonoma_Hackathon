@@ -42,7 +42,10 @@ final class RegistryItemRowViewModel: ObservableObject {
     
     var imageURL: URL? {
         guard let url = item.imageUrl else { return nil }
-        return URL(string: AppConstants.API.imageBasePath + url)
+        if url.lowercased().hasPrefix("http") {
+            return URL(string: url)
+        }
+        return URL(string: AppConstants.API.imageBasePath + url.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
     }
     
     // MARK: - Actions

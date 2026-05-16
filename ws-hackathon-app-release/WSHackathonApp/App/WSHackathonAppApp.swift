@@ -9,16 +9,22 @@ import SwiftUI
 
 @main
 struct WSHackathonAppApp: App {
-     @StateObject private var registryRepo = RegistryRepository()
-     @StateObject private var cartRepo = CartRepository()
-     @StateObject private var tabBarVM = WSTabBarViewModel()
+    @StateObject private var registryRepo = RegistryRepository()
+    @StateObject private var cartRepo = CartRepository()
+    @StateObject private var tabBarVM = WSTabBarViewModel()
+    @StateObject private var sessionManager = SessionManager.shared
     
     var body: some Scene {
         WindowGroup {
-            WSTabView()
-                .environmentObject(registryRepo)
-                .environmentObject(cartRepo)
-                .environmentObject(tabBarVM)
+            if sessionManager.isLoggedIn {
+                WSTabView()
+                    .environmentObject(registryRepo)
+                    .environmentObject(cartRepo)
+                    .environmentObject(tabBarVM)
+                    .environmentObject(sessionManager)
+            } else {
+                AuthView()
+            }
         }
     }
 }
