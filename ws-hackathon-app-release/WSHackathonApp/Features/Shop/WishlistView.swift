@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 18.0, *)
 struct WishlistView: View {
     @Environment(WishlistManager.self) private var wishlistManager
 

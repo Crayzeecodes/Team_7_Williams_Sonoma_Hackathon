@@ -25,6 +25,7 @@ let heroBanners: [WSHeroBannerSlide] = [
     WSHeroBannerSlide(imageName: "banner_outdoor", tagline: "COLLECTION", title: "Outdoor Dining", subtitle: "Entertain with style, inside and out", ctaLabel: "EXPLORE", destination: "Outdoor"),
 ]
 
+@available(iOS 18.0, *)
 struct BannerCarousel: View {
     let allProducts: [WSProduct]
     @State private var currentBannerIndex: Int = 0

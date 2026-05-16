@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 18.0, *)
 struct ProductListView: View {
     let title: String
     let products: [WSProduct]

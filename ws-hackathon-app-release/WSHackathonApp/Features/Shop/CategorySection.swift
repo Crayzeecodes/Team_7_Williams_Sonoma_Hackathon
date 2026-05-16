@@ -22,6 +22,7 @@ let wsCategories: [WSCategory] = [
     WSCategory(id: 12, name: "Gift Ideas", icon: "gift", productCount: 40, imageAsset: nil),
 ]
 
+@available(iOS 18.0, *)
 struct CategorySection: View {
     let allProducts: [WSProduct]
     
@@ -60,6 +61,7 @@ struct CategorySection: View {
     }
 }
 
+@available(iOS 18.0, *)
 struct WSCategoryCircleItem: View {
     let category: WSCategory
     let allProducts: [WSProduct]

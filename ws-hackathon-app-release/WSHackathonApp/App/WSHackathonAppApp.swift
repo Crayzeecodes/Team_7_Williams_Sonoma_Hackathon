@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 18.0, *)
 @main
 struct WSHackathonAppApp: App {
     // MARK: - Managers (iOS 17+ @Observable)

@@ -12,5 +12,8 @@ enum AppConstants {
         static let baseURL = "http://localhost:3001"
         static let imageBasePath = baseURL + "/images/"
         static let timeout: TimeInterval = 30
+
+        // FastAPI backend for AI features (Room Scan, Claude analysis)
+        static let aiBaseURL = "http://localhost:8000"
     }
 }

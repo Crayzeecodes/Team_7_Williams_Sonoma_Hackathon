@@ -22,6 +22,7 @@ enum CarouselSlide: Identifiable {
 }
 
 // MARK: - Carousel View
+@available(iOS 18.0, *)
 struct OccasionCollectionCarousel: View {
     let occasions: [WSOccasion]
     let collections: [WSCollection]
