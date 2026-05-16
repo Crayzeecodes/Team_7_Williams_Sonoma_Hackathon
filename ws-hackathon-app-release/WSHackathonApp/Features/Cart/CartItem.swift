@@ -14,9 +14,10 @@ struct CartItem: Identifiable {
     var quantity: Int
     
     var imageURL: URL? {
-        if let imageUrl = path {
-            return URL(string: AppConstants.API.imageBasePath + imageUrl)
+        guard let imageUrl = path else { return nil }
+        if imageUrl.lowercased().hasPrefix("http") {
+            return URL(string: imageUrl)
         }
-        return nil
+        return URL(string: AppConstants.API.imageBasePath + imageUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
     }
 }
