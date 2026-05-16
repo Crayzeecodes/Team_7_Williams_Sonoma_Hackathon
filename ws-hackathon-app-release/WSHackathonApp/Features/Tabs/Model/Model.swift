@@ -8,25 +8,28 @@
 import Foundation
 
 enum TabItem: Int, CaseIterable, Identifiable {
-    case home = 0
-    case registry
+    case shop = 0
     case cart
+    case registry
+    case orders
     
     var id: Int { rawValue }
     
     var title: String {
         switch self {
-        case .home: return "Home"
-        case .registry: return "Registry"
+        case .shop: return "Shop"
         case .cart: return "Cart"
+        case .registry: return "Registry"
+        case .orders: return "Orders"
         }
     }
     
     var icon: String {
         switch self {
-        case .home: return "house"
-        case .registry: return "list.bullet"
+        case .shop: return "bag"
         case .cart: return "cart"
+        case .registry: return "list.clipboard"
+        case .orders: return "shippingbox"
         }
     }
     

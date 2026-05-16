@@ -28,12 +28,14 @@ struct WSTabView: View {
     @ViewBuilder
     private func view(for tab: TabItem) -> some View {
         switch tab {
-        case .home:
-            HomeView()
-        case .registry:
-            RegistryView()
+        case .shop:
+            HomeView() // Keeping HomeView as the 'Shop' view for now
         case .cart:
             CartView()
+        case .registry:
+            RegistryView()
+        case .orders:
+            OrdersView()
         }
     }
 }

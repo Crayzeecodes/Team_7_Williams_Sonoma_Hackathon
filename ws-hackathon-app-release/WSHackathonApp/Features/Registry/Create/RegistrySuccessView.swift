@@ -25,7 +25,7 @@ struct RegistrySuccessView: View {
             
             Button("Start Browsing") {
                 tabBarVM.resetRegistryFlow()
-                tabBarVM.selectTab(.home)
+                tabBarVM.selectTab(.shop)
             }
         }
         .padding()

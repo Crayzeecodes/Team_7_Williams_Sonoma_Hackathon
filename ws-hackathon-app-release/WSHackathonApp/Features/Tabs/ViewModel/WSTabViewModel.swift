@@ -12,7 +12,7 @@ import SwiftUI
 @MainActor
 class WSTabBarViewModel: ObservableObject {
     
-    @Published var selectedTab: TabItem = .home
+    @Published var selectedTab: TabItem = .shop
     @Published var cartItemCount: Int = 0
     @Published var registryPath: [RegistryRoute] = []
     
