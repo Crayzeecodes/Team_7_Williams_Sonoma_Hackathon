@@ -22,6 +22,7 @@ let exampleSpecs: [WSProductSpec] = [
     WSProductSpec(label: "Compatible Cooktops", value: "Gas, Electric, Induction"),
 ]
 
+@available(iOS 18.0, *)
 struct ProductDetailView: View {
     let product: WSProduct
     @Environment(WishlistManager.self) private var wishlistManager
@@ -56,6 +57,7 @@ struct ProductDetailView: View {
 
                     quantitySection
                     descriptionSection
+                    viewInARButton
                     specsSection
                     
                     if product.giftPackagingAvailable {
@@ -133,28 +135,6 @@ struct ProductDetailView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: UIScreen.main.bounds.height * 0.52)
             
-            // AR Button
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button(action: { showARView = true }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arkit")
-                                .font(.system(size: 12, weight: .semibold))
-                            Text("View in AR")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.black)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(.regularMaterial)
-                        .clipShape(Capsule())
-                    }
-                    .padding(.trailing, 14)
-                    .padding(.bottom, 14)
-                }
-            }
         }
         .frame(height: UIScreen.main.bounds.height * 0.52)
     }
@@ -290,6 +270,33 @@ struct ProductDetailView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 32)
+    }
+
+    // MARK: - View in AR Button
+    private var viewInARButton: some View {
+        Button(action: { showARView = true }) {
+            HStack(spacing: 10) {
+                Image(systemName: "arkit")
+                    .font(.system(size: 18, weight: .medium))
+                Text("View in AR")
+                    .font(.system(size: 15, weight: .semibold))
+                    .tracking(0.5)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .foregroundStyle(Color.primary)
+            .padding(16)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(uiColor: .separator), lineWidth: 0.5)
+            )
+        }
+        .buttonStyle(WSPressButtonStyle())
+        .padding(.horizontal, 16)
+        .padding(.top, 24)
     }
     
     // MARK: - 6i. Specs

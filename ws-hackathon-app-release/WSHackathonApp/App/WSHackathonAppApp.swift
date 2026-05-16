@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 18.0, *)
 @main
 struct WSHackathonAppApp: App {
     @State private var navigationManager = NavigationManager()

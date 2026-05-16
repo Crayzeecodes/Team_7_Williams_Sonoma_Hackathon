@@ -67,6 +67,7 @@ struct WSCategoryCard: View {
 }
 
 // MARK: - All Categories View (Push navigation, not sheet)
+@available(iOS 18.0, *)
 struct AllCategoriesView: View {
     let categories: [WSCategory]
     let allProducts: [WSProduct]

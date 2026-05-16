@@ -10,9 +10,22 @@
 		75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WSHackathonApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D05871892FB88649008CF430 /* Exceptions for "WSHackathonApp" folder in "WSHackathonApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 75B248F22F7FAA4E00AD2FA7 /* WSHackathonApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		75B248F52F7FAA4E00AD2FA7 /* WSHackathonApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D05871892FB88649008CF430 /* Exceptions for "WSHackathonApp" folder in "WSHackathonApp" target */,
+			);
 			path = WSHackathonApp;
 			sourceTree = "<group>";
 		};
@@ -248,12 +261,17 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2C3JK736WJ;
+				DEVELOPMENT_TEAM = ZCY34KH9VF;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WSHackathonApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "WSI Hackathon";
+				INFOPLIST_KEY_LSApplicationCategoryType = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Williams Sonoma needs camera access to scan your room for AI-powered product recommendations and to view products in augmented reality.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Williams Sonoma connects to a local server for AI room analysis.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Williams Sonoma needs photo library access so you can select room photos for AI-powered product recommendations.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -268,7 +286,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHactonApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHackathon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -292,12 +310,17 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2C3JK736WJ;
+				DEVELOPMENT_TEAM = ZCY34KH9VF;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WSHackathonApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "WSI Hackathon";
+				INFOPLIST_KEY_LSApplicationCategoryType = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Williams Sonoma needs camera access to scan your room for AI-powered product recommendations and to view products in augmented reality.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Williams Sonoma connects to a local server for AI room analysis.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Williams Sonoma needs photo library access so you can select room photos for AI-powered product recommendations.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -312,7 +335,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHactonApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHackathon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;

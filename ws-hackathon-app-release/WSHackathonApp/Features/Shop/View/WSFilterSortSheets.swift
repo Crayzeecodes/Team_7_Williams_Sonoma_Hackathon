@@ -162,6 +162,7 @@ struct WSFilterView: View {
 }
 
 // MARK: - See All Products View (Sheet — kept for search results)
+@available(iOS 18.0, *)
 struct SeeAllProductsView: View {
     let title: String
     let products: [WSProduct]

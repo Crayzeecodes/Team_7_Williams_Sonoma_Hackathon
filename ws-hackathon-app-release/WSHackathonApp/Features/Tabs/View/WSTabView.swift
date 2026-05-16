@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 18.0, *)
 struct WSTabView: View {
     @Environment(NavigationManager.self) private var navManager
     @Environment(WSCartManager.self) private var cartManager
@@ -61,9 +62,13 @@ struct WSTabView: View {
 }
 
 #Preview {
-    WSTabView()
-        .environment(NavigationManager())
-        .environment(WishlistManager())
-        .environment(WSCartManager())
-        .environment(UserManager())
+    if #available(iOS 18.0, *) {
+        WSTabView()
+            .environment(NavigationManager())
+            .environment(WishlistManager())
+            .environment(WSCartManager())
+            .environment(UserManager())
+    } else {
+        // Fallback on earlier versions
+    }
 }

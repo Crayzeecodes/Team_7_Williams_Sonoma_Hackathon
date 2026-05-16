@@ -7,6 +7,23 @@
 
 import SwiftUI
 
+
+let wsCategories: [WSCategory] = [
+    WSCategory(id: 1, name: "Cookware", icon: "flame", productCount: 15, imageAsset: nil),
+    WSCategory(id: 2, name: "Knives", icon: "scissors", productCount: 10, imageAsset: nil),
+    WSCategory(id: 3, name: "Bakeware", icon: "birthday.cake", productCount: 8, imageAsset: nil),
+    WSCategory(id: 4, name: "Electrics", icon: "bolt", productCount: 12, imageAsset: nil),
+    WSCategory(id: 5, name: "Calphalon", icon: "frying.pan", productCount: 5, imageAsset: nil),
+    WSCategory(id: 6, name: "Cutlery", icon: "fork.knife", productCount: 20, imageAsset: nil),
+    WSCategory(id: 7, name: "Coffee & Tea", icon: "cup.and.saucer", productCount: 14, imageAsset: nil),
+    WSCategory(id: 8, name: "Bartending", icon: "wineglass", productCount: 6, imageAsset: nil),
+    WSCategory(id: 9, name: "Entertaining", icon: "sparkles", productCount: 18, imageAsset: nil),
+    WSCategory(id: 10, name: "Outdoor", icon: "leaf", productCount: 22, imageAsset: nil),
+    WSCategory(id: 11, name: "Food", icon: "bag", productCount: 30, imageAsset: nil),
+    WSCategory(id: 12, name: "Gift Ideas", icon: "gift", productCount: 40, imageAsset: nil),
+]
+
+@available(iOS 18.0, *)
 struct CategorySection: View {
     let categories: [WSCategory]
     let allProducts: [WSProduct]
@@ -46,6 +63,7 @@ struct CategorySection: View {
     }
 }
 
+@available(iOS 18.0, *)
 struct WSCategoryCircleItem: View {
     let category: WSCategory
     let allProducts: [WSProduct]
