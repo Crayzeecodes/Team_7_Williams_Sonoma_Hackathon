@@ -15,27 +15,32 @@ final class WSService {
     private init() {}
 
     func fetchProducts() async throws -> [WSProduct] {
-        let skus: [RemoteSKU] = try await request(path: "/skus")
-        return skus.enumerated().map { index, sku in
-            let regularPrice = sku.price.regularPrice
-            let salePrice = sku.price.sellingPrice < regularPrice ? sku.price.sellingPrice : nil
-            let category = sku.properties.productType?.normalizedCategoryName ?? "General"
-            let imagePaths = sku.media.images.map(\.path)
-            let brand = sku.properties.brand?.formattedBrandName ?? "Williams Sonoma"
-            let specs = sku.properties.specsDictionary
+        let products: [RegistryProduct] = try await request(path: "/rest/v1/products")
+        return products.enumerated().map { index, product in
+            let regularPrice = product.price
+            let salePrice: Double? = nil // Add sale_price to schema if needed
+            let category = product.category
+            let imagePaths = product.images
+            let brand = "Williams Sonoma"
+            let specs: [String: String] = product.specs.reduce(into: [:]) { dict, spec in
+                let parts = spec.split(separator: ":", maxSplits: 1).map(String.init)
+                if parts.count == 2 {
+                    dict[parts[0].trimmingCharacters(in: .whitespaces)] = parts[1].trimmingCharacters(in: .whitespaces)
+                }
+            }
 
             return WSProduct(
-                id: Self.stableUUID(for: sku.id),
-                name: sku.name,
+                id: Self.stableUUID(for: product.id),
+                name: product.name,
                 brand: brand,
                 category: category,
-                subcategory: sku.properties.allProductTypes,
+                subcategory: product.category,
                 price: regularPrice,
                 salePrice: salePrice,
                 imageNames: imagePaths,
-                rating: 4.2 + (Double(index % 7) * 0.1),
-                reviewCount: max(12, 40 + (index * 17)),
-                description: "Availability: \(sku.availability) | Delivery: \(sku.deliveryEstimate)",
+                rating: product.stars,
+                reviewCount: 12 + (index * 5),
+                description: product.description,
                 specs: specs,
                 isOnSale: salePrice != nil,
                 isFeatured: index < 8,
@@ -158,7 +163,11 @@ private extension WSService {
 
     func request<T: Decodable>(path: String) async throws -> T {
         let endpoint = Endpoint(path: path, method: .get)
-        return try await APIClient.shared.request(endpoint)
+        // Set key decoding strategy for Supabase snake_case
+        let data: Data = try await APIClient.shared.requestData(endpoint).0
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(T.self, from: data)
     }
 }
 

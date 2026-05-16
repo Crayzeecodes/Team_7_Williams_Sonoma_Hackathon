@@ -357,18 +357,30 @@ struct CreateRegistryView: View {
     }
 
     private func submitArea(enabled: Bool) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 24) {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
             }
 
-            primaryButton(title: "Done", isEnabled: enabled, isLoading: viewModel.isSubmitting) {
-                Task { await viewModel.submit() }
+            HStack(spacing: 16) {
+                secondaryButton(title: "Previous") {
+                    viewModel.goBack()
+                }
+                
+                primaryButton(title: "Done", isEnabled: enabled, isLoading: viewModel.isSubmitting) {
+                    Task { await viewModel.submit() }
+                }
             }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
         }
+        .background(
+            LinearGradient(colors: [Color(uiColor: .systemBackground).opacity(0), Color(uiColor: .systemBackground)], startPoint: .top, endPoint: .bottom)
+                .padding(.top, -20)
+        )
     }
 
     private func formField<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {

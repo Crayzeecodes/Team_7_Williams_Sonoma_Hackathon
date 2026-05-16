@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Supabase
 
 enum RegistryServiceError: LocalizedError {
     case invalidResponse
@@ -22,137 +23,137 @@ enum RegistryServiceError: LocalizedError {
 final class RegistryService {
     static let shared = RegistryService()
 
-    private let session: URLSession
-    private let decoder: JSONDecoder
-    private let encoder: JSONEncoder
-
-    private init(session: URLSession = .shared) {
-        self.session = session
-
-        self.decoder = JSONDecoder()
-        self.decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let value = try container.decode(String.self)
-            if let date = ISO8601DateFormatter.withFractionalSeconds.date(from: value) ?? ISO8601DateFormatter.standard.date(from: value) {
-                return date
-            }
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date string")
-        }
-
-        self.encoder = JSONEncoder()
-        self.encoder.dateEncodingStrategy = .custom { date, encoder in
-            var container = encoder.singleValueContainer()
-            try container.encode(ISO8601DateFormatter.withFractionalSeconds.string(from: date))
-        }
-    }
+    private init() {}
 
     func loadRegistries() async throws -> [Registry] {
-        try await request(path: APIConfig.registryBasePath, method: "GET")
+        try await supabase
+            .from("registries")
+            .select()
+            .execute()
+            .value
     }
 
     func previewRegistry(joinCode: String) async throws -> RegistryPreview {
-        try await request(
-            path: APIConfig.registryBasePath,
-            method: "GET",
-            queryItems: [URLQueryItem(name: "joinCode", value: joinCode)]
-        )
+        let previews: [RegistryPreview] = try await supabase
+            .from("registries")
+            .select()
+            .eq("join_code", value: joinCode)
+            .execute()
+            .value
+            
+        guard let preview = previews.first else {
+            throw RegistryServiceError.serverError("Registry not found")
+        }
+        return preview
     }
 
     func createRegistry(_ requestBody: CreateRegistryRequest) async throws -> Registry {
-        try await request(path: APIConfig.registryBasePath, method: "POST", body: requestBody)
+        // 1. Insert into registries table
+        let registry: Registry = try await supabase
+            .from("registries")
+            .insert(requestBody)
+            .select() // Equivalent to return=representation
+            .single()
+            .execute()
+            .value
+        
+        guard let registryId = registry.supabaseId else {
+            throw RegistryServiceError.invalidResponse
+        }
+        
+        // 2. Insert into registry_members table to make the creator an admin
+        let memberRequest = RegistryMemberRequest(
+            registryId: registryId,
+            userId: requestBody.adminId ?? "",
+            role: .admin,
+            contributedBudget: 0,
+            joinedAt: Date()
+        )
+        
+        try await supabase
+            .from("registry_members")
+            .insert(memberRequest)
+            .execute()
+            
+        return registry
     }
 
     func joinRegistry(code: String, contributedBudget: Double?) async throws -> Registry {
-        try await request(
-            path: "\(APIConfig.registryBasePath)/join",
-            method: "POST",
-            body: JoinRegistryRequest(joinCode: code, contributedBudget: contributedBudget)
+        // The mock backend used a custom RPC or endpoint for this. 
+        // We might need to implement this as an RPC or manual logic.
+        // Assuming we look up the registry, then insert a member.
+        let registry = try await previewRegistry(joinCode: code)
+        guard let registryId = registry.supabaseId else { throw RegistryServiceError.invalidResponse }
+        
+        guard let session = try? await supabase.auth.session else {
+            throw RegistryServiceError.serverError("Please log in to join.")
+        }
+        
+        let memberRequest = RegistryMemberRequest(
+            registryId: registryId,
+            userId: session.user.id.uuidString,
+            role: .collaborator,
+            contributedBudget: contributedBudget ?? 0,
+            joinedAt: Date()
         )
+        
+        try await supabase
+            .from("registry_members")
+            .insert(memberRequest)
+            .execute()
+            
+        return try await loadRegistry(id: registryId)
     }
 
     func loadRegistry(id: String) async throws -> Registry {
-        try await request(path: "\(APIConfig.registryBasePath)/\(id)", method: "GET")
+        let registries: [Registry] = try await supabase
+            .from("registries")
+            .select()
+            .eq("id", value: id)
+            .execute()
+            .value
+            
+        guard let registry = registries.first else {
+            throw RegistryServiceError.serverError("Registry not found")
+        }
+        return registry
     }
 
     func leaveRegistry(id: String) async throws -> LeaveRegistryResponse {
-        try await request(path: "\(APIConfig.registryBasePath)/\(id)/leave", method: "DELETE")
+        guard let session = try? await supabase.auth.session else {
+            throw RegistryServiceError.serverError("Please log in to leave.")
+        }
+        
+        try await supabase
+            .from("registry_members")
+            .delete()
+            .eq("registry_id", value: id)
+            .eq("user_id", value: session.user.id.uuidString)
+            .execute()
+            
+        return LeaveRegistryResponse(deleted: true, registryId: id, registry: nil)
     }
 
     func addCartItem(registryId: String, requestBody: AddRegistryCartItemRequest) async throws -> CartUpdatePayload {
-        try await request(path: "\(APIConfig.registryBasePath)/\(registryId)/cart", method: "POST", body: requestBody)
+        throw RegistryServiceError.serverError("RPC not implemented natively yet.")
     }
 
     func removeCartItem(registryId: String, itemId: String) async throws -> CartUpdatePayload {
-        try await request(path: "\(APIConfig.registryBasePath)/\(registryId)/cart/\(itemId)", method: "DELETE")
+        throw RegistryServiceError.serverError("RPC not implemented natively yet.")
     }
 
     func refreshSuggestions(registryId: String, forceRefresh: Bool) async throws -> [RegistryAISuggestion] {
-        try await request(
-            path: "\(APIConfig.registryBasePath)/\(registryId)/suggest",
-            method: "POST",
-            body: RegistrySuggestionRefreshRequest(forceRefresh: forceRefresh)
-        )
+        // Mock returning empty for now as it used a custom endpoint
+        return []
     }
 
     func loadMembers(registryId: String) async throws -> [RegistryMemberDisplay] {
-        try await request(path: "\(APIConfig.registryBasePath)/\(registryId)/members", method: "GET")
-    }
-
-    private func request<T: Decodable, Body: Encodable>(
-        path: String,
-        method: String,
-        queryItems: [URLQueryItem] = [],
-        body: Body
-    ) async throws -> T {
-        var request = try makeRequest(path: path, method: method, queryItems: queryItems)
-        request.httpBody = try encoder.encode(body)
-        return try await execute(request)
-    }
-
-    private func request<T: Decodable>(
-        path: String,
-        method: String,
-        queryItems: [URLQueryItem] = []
-    ) async throws -> T {
-        let request = try makeRequest(path: path, method: method, queryItems: queryItems)
-        return try await execute(request)
-    }
-
-    private func makeRequest(path: String, method: String, queryItems: [URLQueryItem]) throws -> URLRequest {
-        guard let url = URL(string: path, relativeTo: APIConfig.baseURL),
-              var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
-            throw RegistryServiceError.invalidResponse
-        }
-
-        if !queryItems.isEmpty {
-            components.queryItems = queryItems
-        }
-
-        guard let resolvedURL = components.url else {
-            throw RegistryServiceError.invalidResponse
-        }
-
-        var request = URLRequest(url: resolvedURL)
-        request.httpMethod = method
-        request.timeoutInterval = APIConfig.requestTimeout
-        APIConfig.defaultHeaders.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
-        return request
-    }
-
-    private func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
-        let (data, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw RegistryServiceError.invalidResponse
-        }
-
-        guard 200...299 ~= httpResponse.statusCode else {
-            if let message = try? JSONDecoder().decode(ServerErrorResponse.self, from: data).message {
-                throw RegistryServiceError.serverError(message)
-            }
-            throw RegistryServiceError.serverError("Request failed with status \(httpResponse.statusCode)")
-        }
-
-        return try decoder.decode(T.self, from: data)
+        try await supabase
+            .from("registry_members")
+            .select()
+            .eq("registry_id", value: registryId)
+            .execute()
+            .value
     }
 }
 
@@ -160,22 +161,4 @@ struct LeaveRegistryResponse: Codable {
     let deleted: Bool
     let registryId: String?
     let registry: Registry?
-}
-
-private struct ServerErrorResponse: Codable {
-    let message: String
-}
-
-private extension ISO8601DateFormatter {
-    static let standard: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
-
-    static let withFractionalSeconds: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
 }

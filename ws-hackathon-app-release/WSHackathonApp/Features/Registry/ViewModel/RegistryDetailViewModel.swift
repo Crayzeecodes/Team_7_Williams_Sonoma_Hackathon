@@ -63,6 +63,7 @@ final class RegistryDetailViewModel: ObservableObject {
             let refreshed = try await registryService.refreshSuggestions(registryId: registryID, forceRefresh: true)
             guard let registry else { return }
             self.registry = Registry(
+                supabaseId: registry.supabaseId,
                 _id: registry._id,
                 adminId: registry.adminId,
                 name: registry.name,
@@ -164,6 +165,7 @@ final class RegistryDetailViewModel: ObservableObject {
     private func applyCartUpdate(_ payload: CartUpdatePayload) {
         guard let registry else { return }
         self.registry = Registry(
+            supabaseId: registry.supabaseId,
             _id: registry._id,
             adminId: registry.adminId,
             name: registry.name,

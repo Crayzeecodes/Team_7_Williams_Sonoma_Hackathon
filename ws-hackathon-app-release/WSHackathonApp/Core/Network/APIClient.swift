@@ -28,7 +28,7 @@ final class APIClient {
     }
     
     // MARK: - Core Request
-    private func requestData(
+    func requestData(
         _ endpoint: Endpoint,
         body: (any Encodable)? = nil
     ) async throws -> (Data, URLResponse) {
@@ -42,7 +42,10 @@ final class APIClient {
         request.timeoutInterval = AppConstants.API.timeout
         
         // Headers
-        endpoint.headers?.forEach {
+        var allHeaders = APIConfig.defaultHeaders
+        endpoint.headers?.forEach { allHeaders[$0.key] = $0.value }
+        
+        allHeaders.forEach {
             request.addValue($0.value, forHTTPHeaderField: $0.key)
         }
         

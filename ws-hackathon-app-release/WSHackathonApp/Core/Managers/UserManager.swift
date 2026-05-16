@@ -6,15 +6,21 @@
 //
 
 import Foundation
+import Supabase
 
 @Observable
 class UserManager {
-    var currentUser: WSUser? = MockData.sampleUser
+    var currentUser: WSUser? = nil
 
     var isLoggedIn: Bool { currentUser != nil }
 
     func signOut() {
-        currentUser = nil
+        Task {
+            try? await supabase.auth.signOut()
+            await MainActor.run {
+                currentUser = nil
+            }
+        }
     }
 
     func signIn(user: WSUser) {

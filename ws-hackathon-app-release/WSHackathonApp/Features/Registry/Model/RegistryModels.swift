@@ -150,6 +150,7 @@ struct RegistryUserSummary: Codable, Hashable, Identifiable {
 }
 
 struct RegistryProduct: Codable, Hashable, Identifiable {
+    let supabaseId: String?
     let _id: String?
     let skuId: String
     let name: String
@@ -164,7 +165,24 @@ struct RegistryProduct: Codable, Hashable, Identifiable {
     let arScale: Double
     let arPlacementType: String
 
-    var id: String { _id ?? skuId }
+    enum CodingKeys: String, CodingKey {
+        case supabaseId = "id"
+        case _id
+        case skuId
+        case name
+        case description
+        case price
+        case images
+        case category
+        case specs
+        case stars
+        case reviews
+        case arModelUrl
+        case arScale
+        case arPlacementType
+    }
+
+    var id: String { supabaseId ?? _id ?? skuId }
 
     var primaryImageURL: URL? {
         guard let first = images.first else { return nil }
@@ -312,6 +330,7 @@ struct RegistryBudgetSnapshot: Codable, Hashable {
 }
 
 struct Registry: Codable, Hashable, Identifiable {
+    let supabaseId: String?
     let _id: String?
     let adminId: RegistryUserReference
     let name: String
@@ -331,7 +350,12 @@ struct Registry: Codable, Hashable, Identifiable {
     let shippingAddress: String
     let createdAt: Date?
 
-    var id: String { _id ?? joinCode }
+    enum CodingKeys: String, CodingKey {
+        case supabaseId = "id"
+        case _id, adminId, name, joinCode, registryType, creatorName, eventType, eventDate, currency, eventDetails, giftingDetails, members, cartItems, aiSuggestions, polls, budgetSnapshot, shippingAddress, createdAt
+    }
+
+    var id: String { supabaseId ?? _id ?? joinCode }
 
     var isEventRegistry: Bool { registryType == .event }
 
@@ -342,6 +366,7 @@ struct Registry: Codable, Hashable, Identifiable {
 }
 
 struct RegistryPreview: Codable, Hashable, Identifiable {
+    let supabaseId: String?
     let _id: String?
     let name: String
     let joinCode: String
@@ -352,7 +377,12 @@ struct RegistryPreview: Codable, Hashable, Identifiable {
     let currency: CurrencyInfo
     let giftingDetails: RegistryGiftingDetailsPreview?
 
-    var id: String { _id ?? joinCode }
+    enum CodingKeys: String, CodingKey {
+        case supabaseId = "id"
+        case _id, name, joinCode, registryType, creatorName, eventType, eventDate, currency, giftingDetails
+    }
+
+    var id: String { supabaseId ?? _id ?? joinCode }
 }
 
 struct RegistryGiftingDetailsPreview: Codable, Hashable {
@@ -402,6 +432,7 @@ struct CreateRegistryRequest: Codable, Hashable {
 }
 
 struct RegistryMemberRequest: Codable, Hashable {
+    let registryId: String?
     let userId: String
     let role: RegistryMemberRole
     let contributedBudget: Double

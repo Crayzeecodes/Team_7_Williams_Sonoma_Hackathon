@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5E041BBF2FB9020200F31D31 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 5E041BBE2FB9020200F31D31 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WSHackathonApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,16 +40,25 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5E041BBF2FB9020200F31D31 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5E041BBD2FB9020200F31D31 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		75B248EA2F7FAA4E00AD2FA7 = {
 			isa = PBXGroup;
 			children = (
 				75B248F52F7FAA4E00AD2FA7 /* WSHackathonApp */,
+				5E041BBD2FB9020200F31D31 /* Frameworks */,
 				75B248F42F7FAA4E00AD2FA7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,6 +91,7 @@
 			);
 			name = WSHackathonApp;
 			packageProductDependencies = (
+				5E041BBE2FB9020200F31D31 /* Supabase */,
 			);
 			productName = WSHackathonApp;
 			productReference = 75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */;
@@ -108,6 +122,7 @@
 			mainGroup = 75B248EA2F7FAA4E00AD2FA7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				5E041B022FB900D000F31D31 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 75B248F42F7FAA4E00AD2FA7 /* Products */;
@@ -261,7 +276,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZCY34KH9VF;
+				DEVELOPMENT_TEAM = MV45GDP3M3;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -310,7 +325,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZCY34KH9VF;
+				DEVELOPMENT_TEAM = MV45GDP3M3;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -374,6 +389,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5E041B022FB900D000F31D31 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5E041BBE2FB9020200F31D31 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E041B022FB900D000F31D31 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 75B248EB2F7FAA4E00AD2FA7 /* Project object */;
 }

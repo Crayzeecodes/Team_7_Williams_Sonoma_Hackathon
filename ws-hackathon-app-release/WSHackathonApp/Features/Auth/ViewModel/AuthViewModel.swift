@@ -5,6 +5,7 @@
 
 import Foundation
 import Combine
+import Supabase
 
 class AuthViewModel: ObservableObject {
     @Published var name = ""
@@ -13,64 +14,61 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading = false
     
-    struct AuthResponse: Codable {
-        let token: String
-        let user: SessionManager.User
+    struct DBUser: Encodable {
+        let id: UUID
+        let email: String
+        let name: String
+        let password: String // Required by the specific public.users schema provided
     }
     
-    func login() {
+    @MainActor
+    func login() async {
         isLoading = true
         errorMessage = nil
         
-        let url = APIConfig.authBaseURL.appendingPathComponent("login")
-        let body = ["email": email, "password": password]
+        do {
+            _ = try await supabase.auth.signIn(email: email, password: password)
+            // Success! The session is handled automatically by the SDK.
+        } catch {
+            errorMessage = "Login failed: \(error.localizedDescription)"
+        }
         
-        performRequest(url: url, body: body)
+        isLoading = false
     }
     
-    func register() {
+    @MainActor
+    func register() async {
         isLoading = true
         errorMessage = nil
         
-        let url = APIConfig.authBaseURL.appendingPathComponent("register")
-        let body = ["name": name, "email": email, "password": password]
+        do {
+            // 1. Sign up in Supabase Auth
+            let response = try await supabase.auth.signUp(
+                email: email,
+                password: password,
+                data: ["name": .string(name)]
+            )
+            
+            // 2. Sync to public.users table (required for foreign keys)
+            let user = response.user
+            let dbUser = DBUser(
+                id: user.id,
+                email: email,
+                name: name.isEmpty ? "New User" : name,
+                password: password // Included to satisfy the schema's NOT NULL constraint
+            )
+            
+            try await supabase
+                .from("users")
+                .insert(dbUser)
+                .execute()
+            
+            // Success! Session is handled automatically.
+            
+        } catch {
+            errorMessage = "Signup failed: \(error.localizedDescription)"
+        }
         
-        performRequest(url: url, body: body)
-    }
-    
-    private func performRequest(url: URL, body: [String: String]) {
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONEncoder().encode(body)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                self.isLoading = false
-                
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
-                    return
-                }
-                
-                guard let data = data else {
-                    self.errorMessage = "No data received"
-                    return
-                }
-                
-                if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
-                    self.errorMessage = "Error: \(httpResponse.statusCode)"
-                    return
-                }
-                
-                do {
-                    let result = try JSONDecoder().decode(AuthResponse.self, from: data)
-                    SessionManager.shared.login(token: result.token, user: result.user)
-                    self.errorMessage = nil
-                } catch {
-                    self.errorMessage = "Failed to decode response"
-                }
-            }
-        }.resume()
+        isLoading = false
     }
 }

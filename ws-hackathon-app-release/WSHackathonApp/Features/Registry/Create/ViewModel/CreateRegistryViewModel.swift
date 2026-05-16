@@ -5,6 +5,8 @@
 
 import Foundation
 import Combine
+internal import Auth
+import Supabase
 
 @MainActor
 final class CreateRegistryViewModel: ObservableObject {
@@ -166,6 +168,17 @@ final class CreateRegistryViewModel: ObservableObject {
         isSubmitting = true
         errorMessage = nil
 
+        // 1. Get current user ID from Supabase Auth SDK
+        guard let session = try? await supabase.auth.session else {
+            errorMessage = "Please log in again."
+            isSubmitting = false
+            return
+        }
+        let userId = session.user.id.uuidString
+
+        // 2. Generate unique join code
+        let joinCode = generateJoinCode()
+
         let eventDetails = RegistryEventDetails(
             aiPlannerAnswers: registryType == .event ? plannerAnswers : [],
             targetBudget: registryType == .event ? parsedBudget : 0,
@@ -190,9 +203,9 @@ final class CreateRegistryViewModel: ObservableObject {
         )
 
         let request = CreateRegistryRequest(
-            adminId: nil,
+            adminId: userId,
             name: registryName,
-            joinCode: nil,
+            joinCode: joinCode,
             registryType: registryType,
             creatorName: creatorName,
             eventType: eventType,
@@ -221,5 +234,10 @@ final class CreateRegistryViewModel: ObservableObject {
         }
 
         isSubmitting = false
+    }
+
+    private func generateJoinCode() -> String {
+        let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return String((0..<6).map { _ in characters.randomElement()! })
     }
 }
