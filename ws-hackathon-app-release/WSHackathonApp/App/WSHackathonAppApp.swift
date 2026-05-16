@@ -2,29 +2,25 @@
 //  WSHackathonAppApp.swift
 //  WSHackathonApp
 //
-//  Created by Nilesh Mahajan on 03/04/26.
+//  Williams Sonoma iOS App — Phase 1
 //
 
 import SwiftUI
 
 @main
 struct WSHackathonAppApp: App {
-    @StateObject private var registryRepo = RegistryRepository()
-    @StateObject private var cartRepo = CartRepository()
-    @StateObject private var tabBarVM = WSTabBarViewModel()
-    @StateObject private var sessionManager = SessionManager.shared
-    
+    @State private var navigationManager = NavigationManager()
+    @State private var wishlistManager = WishlistManager()
+    @State private var cartManager = WSCartManager()
+    @State private var userManager = UserManager()
+
     var body: some Scene {
         WindowGroup {
-            if sessionManager.isLoggedIn {
-                WSTabView()
-                    .environmentObject(registryRepo)
-                    .environmentObject(cartRepo)
-                    .environmentObject(tabBarVM)
-                    .environmentObject(sessionManager)
-            } else {
-                AuthView()
-            }
+            WSTabView()
+                .environment(navigationManager)
+                .environment(wishlistManager)
+                .environment(cartManager)
+                .environment(userManager)
         }
     }
 }

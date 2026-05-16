@@ -13,9 +13,6 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading = false
     
-    // Note: Assuming running on simulator connecting to localhost (127.0.0.1)
-    let baseURL = "http://127.0.0.1:3001/auth"
-    
     struct AuthResponse: Codable {
         let token: String
         let user: SessionManager.User
@@ -25,7 +22,7 @@ class AuthViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        guard let url = URL(string: "\(baseURL)/login") else { return }
+        let url = APIConfig.authBaseURL.appendingPathComponent("login")
         let body = ["email": email, "password": password]
         
         performRequest(url: url, body: body)
@@ -35,7 +32,7 @@ class AuthViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        guard let url = URL(string: "\(baseURL)/register") else { return }
+        let url = APIConfig.authBaseURL.appendingPathComponent("register")
         let body = ["name": name, "email": email, "password": password]
         
         performRequest(url: url, body: body)
@@ -69,6 +66,7 @@ class AuthViewModel: ObservableObject {
                 do {
                     let result = try JSONDecoder().decode(AuthResponse.self, from: data)
                     SessionManager.shared.login(token: result.token, user: result.user)
+                    self.errorMessage = nil
                 } catch {
                     self.errorMessage = "Failed to decode response"
                 }

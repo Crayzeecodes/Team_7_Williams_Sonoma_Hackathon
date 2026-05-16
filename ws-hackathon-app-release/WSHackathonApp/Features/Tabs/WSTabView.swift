@@ -2,44 +2,68 @@
 //  WSTabView.swift
 //  WSHackathonApp
 //
-//  Created by Nilesh Mahajan on 03/04/26.
+//  Main tab bar: bag.fill, cart.fill, list.bullet, shippingbox.fill
 //
 
 import SwiftUI
 
-struct WSTabView: View {    
-    @EnvironmentObject var viewModel: WSTabBarViewModel
-    @EnvironmentObject var cartRepository: CartRepository
-    @EnvironmentObject var registryRepository: RegistryRepository
-    
+struct WSTabView: View {
+    @Environment(NavigationManager.self) private var navManager
+    @Environment(WSCartManager.self) private var cartManager
+
     var body: some View {
-        TabView(selection: $viewModel.selectedTab) {
-            ForEach(viewModel.tabs, id: \.rawValue) { tab in
-                view(for: tab)
-                    .tabItem {
-                        Label(tab.title, systemImage: tab.icon)
-                    }
-                    .tag(tab)
-                    .badge(tab == .cart ? (viewModel.cartItemCount > 0 ? viewModel.cartItemCount : 0) : 0)
-            }
+        @Bindable var nav = navManager
+
+        TabView(selection: $nav.selectedTab) {
+            ShopView()
+                .tabItem {
+                    Label("Shop", systemImage: "bag.fill")
+                }
+                .tag(NavigationManager.AppTab.shop)
+
+            placeholderTab(icon: "cart", title: "Cart")
+                .tabItem {
+                    Label("Cart", systemImage: "cart.fill")
+                }
+                .tag(NavigationManager.AppTab.cart)
+                .badge(cartManager.totalItems > 0 ? cartManager.totalItems : 0)
+
+            RegistryListView()
+                .tabItem {
+                    Label("Registry", systemImage: "list.bullet")
+                }
+                .tag(NavigationManager.AppTab.registry)
+
+            placeholderTab(icon: "shippingbox", title: "Orders")
+                .tabItem {
+                    Label("Orders", systemImage: "shippingbox.fill")
+                }
+                .tag(NavigationManager.AppTab.orders)
         }
+        .tint(.black)
     }
-    
-    @ViewBuilder
-    private func view(for tab: TabItem) -> some View {
-        switch tab {
-        case .shop:
-            HomeView() // Keeping HomeView as the 'Shop' view for now
-        case .cart:
-            CartView()
-        case .registry:
-            RegistryView()
-        case .orders:
-            OrdersView()
+
+    private func placeholderTab(icon: String, title: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 40, weight: .light))
+                .foregroundStyle(Color(uiColor: .tertiaryLabel))
+            Text("Coming Soon")
+                .font(.headline)
+                .foregroundStyle(Color.secondary)
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(Color(uiColor: .tertiaryLabel))
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(uiColor: .systemBackground))
     }
 }
 
 #Preview {
     WSTabView()
+        .environment(NavigationManager())
+        .environment(WishlistManager())
+        .environment(WSCartManager())
+        .environment(UserManager())
 }

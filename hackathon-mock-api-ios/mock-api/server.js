@@ -1,29 +1,37 @@
+const cors = require("cors");
+const dotenv = require("dotenv");
 const express = require("express");
 const fs = require("fs");
-const path = require("path");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const bcrypt = require("bcryptjs");
+const http = require("http");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
-const User = require("./models/User");
-const Registry = require("./models/Registry");
+const mongoose = require("mongoose");
+const path = require("path");
+const { Server } = require("socket.io");
+const auth = require("./middleware/auth");
 const Product = require("./models/Product");
+const User = require("./models/User");
+const registryRoutes = require("./routes/registry");
+const { initializeRegistrySocket } = require("./socket/registrySocket");
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "DELETE"],
+  },
+});
 
-// Middleware
+const PORT = Number(process.env.PORT || 3001);
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ws_hackathon";
+const JWT_SECRET = process.env.JWT_SECRET || "hackathon-secret";
+
+initializeRegistrySocket(io);
+
 app.use(cors());
 app.use(express.json());
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('✅ Connected to MongoDB Atlas'))
-.catch(err => console.error('❌ MongoDB Connection Error:', err));
-
-// Serve image files from the local "images" directory
-// Handles URLs like /images//img17m.jpg (double-slash from paths starting with "/")
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 function readJson(fileName) {
@@ -31,207 +39,232 @@ function readJson(fileName) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-function delayedJson(res, fileName, status = 200, delay = 500) {
+function delayedJson(res, fileName, status = 200, delay = 250) {
   setTimeout(() => {
     res.status(status).json(readJson(fileName));
   }, delay);
+}
+
+function mapSkuToProduct(sku) {
+  const price = Number(sku?.price?.sellingPrice || sku?.price?.regularPrice || 0);
+  const images = (sku?.media?.images || []).map((image) => image.path).filter(Boolean);
+  const properties = sku?.properties || {};
+  const specs = [];
+
+  Object.entries(properties).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      specs.push(`${key}: ${value}`);
+    }
+  });
+
+  return {
+    skuId: String(sku.id),
+    name: sku.name || sku.shortName || "Williams Sonoma Product",
+    description: `Availability: ${sku.availability || "unknown"} | Delivery: ${sku.deliveryEstimate || "unknown"}`,
+    price,
+    images,
+    category: properties.productType || properties.pattern || "general",
+    specs,
+    stars: 4.5,
+    reviews: [],
+    arModelUrl: "",
+    arScale: 1,
+    arPlacementType: "floor",
+  };
+}
+
+async function seedProductsIfNeeded() {
+  const existingCount = await Product.countDocuments();
+  if (existingCount > 0) {
+    return;
+  }
+
+  const skuPayload = readJson("skus.json");
+  const products = skuPayload.map(mapSkuToProduct);
+  if (products.length > 0) {
+    await Product.insertMany(products, { ordered: false });
+  }
+}
+
+async function ensureUser({ email, password, name }) {
+  let user = await User.findOne({ email });
+  if (!user) {
+    user = await User.create({
+      email,
+      password,
+      name,
+      addresses: [],
+      createdAt: new Date(),
+    });
+  }
+  return user;
+}
+
+async function ensureDemoUser() {
+  return ensureUser({
+    email: "demo@hackathon.com",
+    password: "123456",
+    name: "Demo User",
+  });
+}
+
+function issueToken(user) {
+  return jwt.sign({ userId: String(user._id) }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+}
+
+function serializeUser(user) {
+  return {
+    id: String(user._id),
+    email: user.email,
+    name: user.name,
+  };
 }
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// JWT Secret from env or fallback
-const JWT_SECRET = process.env.JWT_SECRET || 'hackathon_super_secret_key';
-
-// AUTHENTICATION ENDPOINTS
 app.post("/auth/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: "User already exists" });
+    const name = String(req.body?.name || "").trim();
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const password = String(req.body?.password || "");
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "name, email, and password are required" });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
+    }
 
-    // Create user
-    user = new User({
-      name,
+    const user = await User.create({
       email,
-      password: hashedPassword
+      password,
+      name,
+      addresses: [],
+      createdAt: new Date(),
     });
 
-    await user.save();
-
-    // Create JWT
-    const payload = { user: { id: user.id } };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    return res.status(201).json({
+      token: issueToken(user),
+      user: serializeUser(user),
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Registration failed" });
   }
 });
 
 app.post("/auth/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const password = String(req.body?.password || "");
 
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid Credentials" });
+    const user = await User.findOne({ email });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid Credentials" });
-    }
-
-    // Create JWT
-    const payload = { user: { id: user.id } };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
-  }
-});
-
-// AUTH MIDDLEWARE
-const auth = (req, res, next) => {
-  // Get token from header
-  const token = req.header("x-auth-token") || req.header("Authorization")?.replace("Bearer ", "");
-  if (!token) {
-    return res.status(401).json({ message: "No token, authorization denied" });
-  }
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded.user;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: "Token is not valid" });
-  }
-};
-
-// REGISTRY ENDPOINTS
-app.post("/registries", auth, async (req, res) => {
-  try {
-    const {
-      name,
-      joinCode,
-      registryType,
-      creatorName,
-      eventType,
-      eventDate,
-      eventDetails,
-      giftingDetails,
-      shippingAddress
-    } = req.body;
-
-    // Create the registry
-    const registry = new Registry({
-      adminId: req.user.id,
-      name,
-      joinCode,
-      registryType,
-      creatorName,
-      eventType,
-      eventDate,
-      eventDetails,
-      giftingDetails,
-      shippingAddress,
-      members: [{ userId: req.user.id, role: 'admin', contributedBudget: 0 }]
+    return res.json({
+      token: issueToken(user),
+      user: serializeUser(user),
     });
-
-    // Recalculate initial budget
-    registry.recalculateBudget();
-
-    await registry.save();
-    res.status(201).json(registry);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: "Server Error", error: err.message });
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Login failed" });
   }
 });
 
-app.get("/registries", auth, async (req, res) => {
+app.post("/login", async (req, res) => {
   try {
-    // Get registries where user is a member
-    const registries = await Registry.find({ "members.userId": req.user.id })
-                                     .populate("adminId", "name email")
-                                     .sort({ createdAt: -1 });
-    res.json(registries);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
-  }
-});
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const password = String(req.body?.password || "");
 
-// LEGACY MOCK ENDPOINTS (Kept for compatibility)
-app.post("/login", (req, res) => {
-  const { email, password } = req.body || {};
-  if (email === "demo@hackathon.com" && password === "123456") {
-    return delayedJson(res, "login_success.json", 200, 400);
+    if (email !== "demo@hackathon.com" || password !== "123456") {
+      return delayedJson(res, "error_401.json", 401, 200);
+    }
+
+    const user = await ensureDemoUser();
+    return res.json({
+      token: issueToken(user),
+      user: serializeUser(user),
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Login failed" });
   }
-  return delayedJson(res, "error_401.json", 401, 400);
 });
 
 app.get("/profile", (req, res) => {
-  return delayedJson(res, "profile.json", 200, 600);
+  return delayedJson(res, "profile.json", 200, 300);
 });
 
 app.get("/feed", (req, res) => {
-  return delayedJson(res, "feed.json", 200, 700);
+  return delayedJson(res, "feed.json", 200, 350);
 });
 
 app.get("/skus", async (req, res) => {
   try {
-    const products = await Product.find({});
-    
-    // Map MongoDB products to the structure expected by the iOS app (ProductItemDTO)
-    const dtos = products.map(p => ({
-      id: p.skuId,
-      name: p.name,
-      shortName: p.name,
-      primaryGroupId: p.skuId,
-      price: {
-        regularPrice: p.price,
-        sellingPrice: p.price,
-        retailPrice: p.price
-      },
-      properties: {
-        name: p.name,
-        shortName: p.name,
-        productType: p.category
-      },
-      media: {
-        images: (p.images || []).map(img => ({
-          type: "prodimage",
-          path: img,
-          properties: { altText: p.name }
+    const products = await Product.find({}).lean();
+    if (products.length > 0) {
+      return res.json(
+        products.map((product) => ({
+          id: product.skuId,
+          name: product.name,
+          shortName: product.name,
+          primaryGroupId: product.skuId,
+          price: {
+            regularPrice: product.price,
+            surcharge: 0,
+            retailPrice: product.price,
+            sellingPrice: product.price,
+            monogramOrPersonalizationPrice: 0,
+          },
+          properties: {
+            brand: "williams-sonoma",
+            productType: product.category,
+            allProductTypes: product.category,
+            canGiftWrap: "true",
+            isShoppable: "true",
+            name: product.name,
+            shortName: product.name,
+          },
+          media: {
+            images: (product.images || []).map((imagePath) => ({
+              type: "prodimage",
+              path: imagePath,
+              aspect: "q",
+              properties: {
+                altText: product.name,
+              },
+            })),
+          },
+          availability: "ON_HAND",
+          deliveryEstimate: "TRANSIT",
         }))
-      },
-      availability: "ON_HAND",
-      deliveryEstimate: "TRANSIT"
-    }));
+      );
+    }
 
-    res.json(dtos);
-  } catch (err) {
-    console.error("Error fetching products:", err);
-    res.status(500).json({ message: "Server Error" });
+    return delayedJson(res, "skus.json", 200, 300);
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Failed to load skus" });
   }
 });
 
+app.use("/api/registry", auth, registryRoutes);
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Mock API running on http://0.0.0.0:${PORT}`);
+async function start() {
+  await mongoose.connect(MONGODB_URI);
+  await seedProductsIfNeeded();
+  await ensureDemoUser();
+
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Mock API running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+start().catch((error) => {
+  console.error("Failed to start server", error);
+  process.exit(1);
 });

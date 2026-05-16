@@ -1,19 +1,56 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const addressSchema = new mongoose.Schema({
-  street: String,
-  city: String,
-  state: String,
-  zipCode: String,
-  isDefault: { type: Boolean, default: false }
-});
+const addressSchema = new mongoose.Schema(
+  {
+    street: {
+      type: String,
+      default: "",
+    },
+    city: {
+      type: String,
+      default: "",
+    },
+    state: {
+      type: String,
+      default: "",
+    },
+    zipCode: {
+      type: String,
+      default: "",
+    },
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false }
+);
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  name: { type: String, required: true },
-  addresses: [addressSchema],
-  createdAt: { type: Date, default: Date.now }
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  addresses: {
+    type: [addressSchema],
+    default: [],
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);
