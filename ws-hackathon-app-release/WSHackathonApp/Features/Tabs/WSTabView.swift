@@ -28,7 +28,7 @@ struct WSTabView: View {
                 .tag(NavigationManager.AppTab.cart)
                 .badge(cartManager.totalItems > 0 ? cartManager.totalItems : 0)
 
-            placeholderTab(icon: "list.bullet", title: "Registry")
+            RegistryListView()
                 .tabItem {
                     Label("Registry", systemImage: "list.bullet")
                 }

@@ -7,8 +7,11 @@
 
 import Foundation
 
-actor WSService {
+@MainActor
+final class WSService {
     static let shared = WSService()
+
+    private init() {}
 
     func fetchProducts() async throws -> [WSProduct] {
         return MockData.products
