@@ -20,7 +20,7 @@ struct CartView: View {
                 if viewModel.isEmptyCart {
                     VStack {
                         EmptyCartView {
-                            tabBarVM.selectTab(.shop)
+                            tabBarVM.selectTab(.home)
                         }
                         Spacer()
                     }

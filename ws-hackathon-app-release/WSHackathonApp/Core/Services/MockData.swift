@@ -1,0 +1,118 @@
+//
+//  MockData.swift
+//  WSHackathonApp
+//
+
+import Foundation
+
+struct MockData {
+
+    // MARK: - Sample User
+    static let sampleUser = WSUser(
+        id: UUID(), firstName: "Sarah", lastName: "Mitchell",
+        email: "sarah.mitchell@email.com", isKeyRewardsMember: true, rewardPoints: 4250
+    )
+
+    // MARK: - Categories
+    static let categories: [WSCategory] = [
+        WSCategory(id: 1,  name: "Cookware",              icon: "flame",           productCount: 142, imageAsset: nil),
+        WSCategory(id: 2,  name: "Knives & Cutlery",      icon: "scissors",        productCount: 89,  imageAsset: nil),
+        WSCategory(id: 3,  name: "Bakeware",              icon: "birthday.cake",   productCount: 76,  imageAsset: nil),
+        WSCategory(id: 4,  name: "Electrics",             icon: "bolt.circle",     productCount: 118, imageAsset: nil),
+        WSCategory(id: 5,  name: "Kitchen Tools",         icon: "fork.knife",      productCount: 203, imageAsset: nil),
+        WSCategory(id: 6,  name: "Coffee & Tea",          icon: "cup.and.saucer",  productCount: 64,  imageAsset: nil),
+        WSCategory(id: 7,  name: "Outdoor & BBQ",         icon: "flame.fill",      productCount: 55,  imageAsset: nil),
+        WSCategory(id: 8,  name: "Tabletop & Bar",        icon: "wineglass",       productCount: 97,  imageAsset: nil),
+        WSCategory(id: 9,  name: "Food & Pantry",         icon: "cart",            productCount: 81,  imageAsset: nil),
+        WSCategory(id: 10, name: "Storage & Organization",icon: "tray.2",          productCount: 45,  imageAsset: nil),
+        WSCategory(id: 11, name: "Cleaning",              icon: "sparkles",        productCount: 33,  imageAsset: nil),
+        WSCategory(id: 12, name: "Gifts & Registry",      icon: "gift",            productCount: 150, imageAsset: nil),
+    ]
+
+    // MARK: - Products
+    static let products: [WSProduct] = [
+        WSProduct(id: UUID(), name: "Signature Round Dutch Oven, 5.5 Qt.", brand: "Le Creuset", category: "Cookware", subcategory: "Dutch Ovens", price: 399.95, salePrice: nil, imageNames: ["product_dutch_oven"], rating: 4.8, reviewCount: 1243, description: "The iconic Le Creuset Dutch Oven in Williams Sonoma's exclusive colorways. Crafted from enameled cast iron for even heat distribution and superior browning.", specs: ["Material": "Enameled Cast Iron", "Capacity": "5.5 Qt.", "Oven Safe": "Up to 500°F", "Dishwasher Safe": "Yes"], isOnSale: false, isFeatured: true, isNewArrival: false, occasions: ["Holiday Entertaining", "Housewarming Gifts"], collectionName: "Le Creuset Cast Iron", stockCount: 24, giftPackagingAvailable: true, giftPackagingPrice: 12.95, colors: [WSProductColor(name: "Marseille", hex: "#1B4F8A"), WSProductColor(name: "Flame", hex: "#E8471C"), WSProductColor(name: "White", hex: "#F5F3EE")], sizes: ["2 Qt.", "3.5 Qt.", "5.5 Qt.", "7.25 Qt."], createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "D3 Stainless 10-Piece Cookware Set", brand: "All-Clad", category: "Cookware", subcategory: "Cookware Sets", price: 849.95, salePrice: 699.95, imageNames: ["product_allclad_set"], rating: 4.9, reviewCount: 876, description: "Professional-grade tri-ply stainless steel construction with superior heat conductivity. Includes essential pots and pans for the serious home cook.", specs: ["Material": "Tri-Ply Stainless Steel", "Pieces": "10", "Oven Safe": "Up to 600°F", "Induction Compatible": "Yes"], isOnSale: true, isFeatured: true, isNewArrival: false, occasions: ["Wedding Registry", "Housewarming Gifts"], collectionName: "All-Clad Stainless", stockCount: 15, giftPackagingAvailable: true, giftPackagingPrice: 14.95, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Artisan Stand Mixer, 5 Qt.", brand: "KitchenAid", category: "Electrics", subcategory: "Stand Mixers", price: 449.99, salePrice: nil, imageNames: ["product_kitchenaid"], rating: 4.7, reviewCount: 2156, description: "The iconic KitchenAid Stand Mixer with 10 speeds, planetary mixing action, and over 10 optional attachments for every culinary need.", specs: ["Motor": "325 Watts", "Capacity": "5 Qt.", "Speeds": "10", "Weight": "25 lbs"], isOnSale: false, isFeatured: true, isNewArrival: false, occasions: ["Wedding Registry", "Holiday Entertaining"], collectionName: "KitchenAid Stand Mixers", stockCount: 42, giftPackagingAvailable: true, giftPackagingPrice: 14.95, colors: [WSProductColor(name: "Empire Red", hex: "#B5342A"), WSProductColor(name: "Matte Black", hex: "#2C2C2C"), WSProductColor(name: "Contour Silver", hex: "#C0C0C0"), WSProductColor(name: "White", hex: "#F5F3EE")], sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Classic 8\" Chef's Knife", brand: "Wüsthof", category: "Knives & Cutlery", subcategory: "Chef's Knives", price: 179.95, salePrice: nil, imageNames: ["product_wusthof"], rating: 4.9, reviewCount: 934, description: "Precision-forged from a single piece of high-carbon stainless steel. Full tang design with riveted handle for perfect balance.", specs: ["Material": "High-Carbon Stainless Steel", "Blade Length": "8 inches", "Handle": "Polyoxymethylene", "Origin": "Solingen, Germany"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Housewarming Gifts"], collectionName: "Wüsthof Knives", stockCount: 67, giftPackagingAvailable: true, giftPackagingPrice: 9.95, colors: nil, sizes: ["6\"", "8\"", "10\""], createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Signature Nonstick Fry Pan, 12\"", brand: "Williams Sonoma", category: "Cookware", subcategory: "Fry Pans", price: 79.95, salePrice: nil, imageNames: ["product_ws_frypan"], rating: 4.5, reviewCount: 412, description: "Our exclusive nonstick fry pan features a durable 3-layer PFOA-free coating and a forged aluminum body for quick, even heating.", specs: ["Material": "Forged Aluminum", "Coating": "3-Layer Nonstick", "Size": "12 inches", "Oven Safe": "Up to 400°F"], isOnSale: false, isFeatured: false, isNewArrival: true, occasions: ["Back to Kitchen"], collectionName: "Williams Sonoma Signature", stockCount: 88, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: ["8\"", "10\"", "12\""], createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Breville Barista Express Espresso Machine", brand: "Breville", category: "Electrics", subcategory: "Espresso Machines", price: 749.95, salePrice: 649.95, imageNames: ["product_breville"], rating: 4.6, reviewCount: 567, description: "Bean-to-cup espresso in under a minute. Integrated conical burr grinder, precise extraction, and micro-foam milk texturing.", specs: ["Pump Pressure": "15 Bar", "Grinder": "Conical Burr", "Water Tank": "67 oz", "Material": "Brushed Stainless Steel"], isOnSale: true, isFeatured: true, isNewArrival: false, occasions: ["Holiday Entertaining", "Housewarming Gifts"], collectionName: nil, stockCount: 19, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Goldtouch Pro Nonstick Half Sheet Pan", brand: "Williams Sonoma", category: "Bakeware", subcategory: "Sheet Pans", price: 34.95, salePrice: nil, imageNames: ["product_sheetpan"], rating: 4.8, reviewCount: 1876, description: "Our best-selling commercial-grade sheet pan with superior nonstick coating for easy release and cleanup.", specs: ["Material": "Aluminized Steel", "Size": "18\" x 13\"", "Coating": "Goldtouch Nonstick", "Dishwasher Safe": "No"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Back to Kitchen"], collectionName: "Williams Sonoma Signature", stockCount: 156, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Copper Canister Set, Set of 4", brand: "Williams Sonoma", category: "Storage & Organization", subcategory: "Canisters", price: 149.95, salePrice: 119.95, imageNames: ["product_canisters"], rating: 4.4, reviewCount: 234, description: "Beautiful hammered copper canisters with airtight lids. Perfect for storing flour, sugar, coffee, and tea.", specs: ["Material": "Hammered Copper", "Pieces": "4", "Sizes": "S, M, L, XL", "Lid": "Airtight Seal"], isOnSale: true, isFeatured: false, isNewArrival: false, occasions: ["Housewarming Gifts"], collectionName: nil, stockCount: 33, giftPackagingAvailable: true, giftPackagingPrice: 12.95, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Lodge Cast Iron Skillet, 12\"", brand: "Lodge", category: "Cookware", subcategory: "Skillets", price: 44.95, salePrice: nil, imageNames: ["product_lodge"], rating: 4.7, reviewCount: 3421, description: "Pre-seasoned cast iron skillet with unmatched heat retention. American-made since 1896.", specs: ["Material": "Cast Iron", "Size": "12 inches", "Pre-Seasoned": "Yes", "Made In": "USA"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Outdoor Summer"], collectionName: nil, stockCount: 200, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: ["8\"", "10\"", "12\"", "15\""], createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Pour-Over Coffee Maker, Chemex 8-Cup", brand: "Chemex", category: "Coffee & Tea", subcategory: "Pour Over", price: 54.95, salePrice: nil, imageNames: ["product_chemex"], rating: 4.6, reviewCount: 789, description: "The iconic Chemex pour-over brewer. Borosilicate glass with polished wood collar and leather tie.", specs: ["Material": "Borosilicate Glass", "Capacity": "8 Cups", "Collar": "Polished Wood", "Dishwasher Safe": "Yes (without collar)"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Housewarming Gifts"], collectionName: nil, stockCount: 55, giftPackagingAvailable: true, giftPackagingPrice: 9.95, colors: nil, sizes: ["3-Cup", "6-Cup", "8-Cup", "10-Cup"], createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Weber Genesis Gas Grill", brand: "Weber", category: "Outdoor & BBQ", subcategory: "Gas Grills", price: 1099.00, salePrice: nil, imageNames: ["product_weber"], rating: 4.8, reviewCount: 456, description: "The ultimate backyard grill with three burners, porcelain-enameled cast iron grates, and the Weber craftsmanship you trust.", specs: ["Burners": "3", "BTUs": "39,000", "Cooking Area": "513 sq. in.", "Fuel": "Propane/Natural Gas"], isOnSale: false, isFeatured: true, isNewArrival: true, occasions: ["Outdoor Summer"], collectionName: nil, stockCount: 8, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Marble & Wood Cheese Board", brand: "Williams Sonoma", category: "Tabletop & Bar", subcategory: "Cheese Boards", price: 89.95, salePrice: nil, imageNames: ["product_cheeseboard"], rating: 4.5, reviewCount: 678, description: "Stunning marble and acacia wood serving board, perfect for charcuterie and cheese presentations.", specs: ["Material": "Marble + Acacia Wood", "Size": "16\" x 10\"", "Care": "Hand Wash", "Weight": "6 lbs"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Holiday Entertaining", "Housewarming Gifts"], collectionName: nil, stockCount: 45, giftPackagingAvailable: true, giftPackagingPrice: 12.95, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Italian Olive Oil Gift Set", brand: "Williams Sonoma", category: "Food & Pantry", subcategory: "Oils & Vinegars", price: 59.95, salePrice: nil, imageNames: ["product_oliveoil"], rating: 4.3, reviewCount: 312, description: "A curated collection of three premium Italian extra virgin olive oils from Tuscany, Sicily, and Puglia.", specs: ["Contents": "3 Bottles", "Volume": "8.5 oz each", "Origin": "Italy", "Type": "Extra Virgin"], isOnSale: false, isFeatured: false, isNewArrival: true, occasions: ["Holiday Entertaining", "Housewarming Gifts"], collectionName: nil, stockCount: 72, giftPackagingAvailable: true, giftPackagingPrice: 9.95, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Le Creuset Braiser, 3.5 Qt.", brand: "Le Creuset", category: "Cookware", subcategory: "Braisers", price: 329.95, salePrice: 279.95, imageNames: ["product_braiser"], rating: 4.7, reviewCount: 543, description: "Wide, shallow design ideal for braising, roasting, and baking. Enameled cast iron with a self-basting lid.", specs: ["Material": "Enameled Cast Iron", "Capacity": "3.5 Qt.", "Oven Safe": "Up to 500°F", "Shape": "Round"], isOnSale: true, isFeatured: false, isNewArrival: false, occasions: ["Holiday Entertaining"], collectionName: "Le Creuset Cast Iron", stockCount: 17, giftPackagingAvailable: true, giftPackagingPrice: 12.95, colors: [WSProductColor(name: "Cerise", hex: "#C41E3A"), WSProductColor(name: "Deep Teal", hex: "#1A6B5C"), WSProductColor(name: "Oyster", hex: "#D4CFC7")], sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Vitamix A3500 Blender", brand: "Vitamix", category: "Electrics", subcategory: "Blenders", price: 649.95, salePrice: nil, imageNames: ["product_vitamix"], rating: 4.9, reviewCount: 1102, description: "Smart blender with touchscreen controls, five program settings, and a self-cleaning cycle. Built to last.", specs: ["Motor": "2.2 HP", "Container": "64 oz", "Programs": "5", "Warranty": "10 Years"], isOnSale: false, isFeatured: true, isNewArrival: false, occasions: ["Wedding Registry"], collectionName: nil, stockCount: 22, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: [WSProductColor(name: "Brushed Stainless", hex: "#C0C0C0"), WSProductColor(name: "Black", hex: "#2C2C2C"), WSProductColor(name: "White", hex: "#F5F3EE")], sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Cleaning Essentials Kit", brand: "Mrs. Meyer's", category: "Cleaning", subcategory: "Cleaning Kits", price: 29.95, salePrice: nil, imageNames: ["product_cleaning"], rating: 4.2, reviewCount: 198, description: "Plant-derived cleaning kit with dish soap, hand soap, and multi-surface cleaner in Lavender scent.", specs: ["Scent": "Lavender", "Pieces": "3", "Type": "Plant-Derived", "Cruelty Free": "Yes"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Housewarming Gifts"], collectionName: nil, stockCount: 120, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Silicone Spatula Set, 5-Piece", brand: "Williams Sonoma", category: "Kitchen Tools", subcategory: "Spatulas", price: 39.95, salePrice: nil, imageNames: ["product_spatulas"], rating: 4.6, reviewCount: 867, description: "Heat-resistant silicone spatulas with comfortable wooden handles. Includes mini, small, medium, large, and spoonula.", specs: ["Material": "Silicone + Wood", "Pieces": "5", "Heat Safe": "Up to 600°F", "Dishwasher Safe": "Yes"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Back to Kitchen"], collectionName: "Williams Sonoma Signature", stockCount: 95, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Crystal Wine Glass Set, 4-Piece", brand: "Riedel", category: "Tabletop & Bar", subcategory: "Wine Glasses", price: 69.95, salePrice: nil, imageNames: ["product_wineglass"], rating: 4.4, reviewCount: 445, description: "Lead-free crystal wine glasses designed to enhance the bouquet and flavor of your favorite wines.", specs: ["Material": "Lead-Free Crystal", "Pieces": "4", "Capacity": "22 oz", "Dishwasher Safe": "Yes"], isOnSale: false, isFeatured: false, isNewArrival: true, occasions: ["Holiday Entertaining", "Wedding Registry"], collectionName: nil, stockCount: 60, giftPackagingAvailable: true, giftPackagingPrice: 9.95, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Peugeot Paris Salt & Pepper Mill Set", brand: "Peugeot", category: "Kitchen Tools", subcategory: "Salt & Pepper", price: 119.95, salePrice: nil, imageNames: ["product_peugeot"], rating: 4.7, reviewCount: 623, description: "Iconic French-made mills with precision grinding mechanisms. Beechwood construction with a lifetime guarantee on the mechanism.", specs: ["Material": "Beechwood", "Height": "9 inches", "Mechanism": "Steel (Pepper) / Stainless (Salt)", "Guarantee": "Lifetime"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Housewarming Gifts", "Wedding Registry"], collectionName: nil, stockCount: 38, giftPackagingAvailable: true, giftPackagingPrice: 9.95, colors: nil, sizes: ["7\"", "9\"", "12\""], createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Emile Henry Pizza Stone, 14\"", brand: "Emile Henry", category: "Bakeware", subcategory: "Pizza Stones", price: 59.95, salePrice: nil, imageNames: ["product_pizzastone"], rating: 4.5, reviewCount: 341, description: "Burgundy clay pizza stone for crispy, evenly baked pizza. Resists thermal shock and can go from freezer to oven.", specs: ["Material": "Burgundy Clay", "Size": "14 inches", "Oven Safe": "Up to 500°F", "Made In": "France"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Outdoor Summer"], collectionName: nil, stockCount: 47, giftPackagingAvailable: false, giftPackagingPrice: nil, colors: nil, sizes: nil, createdAt: Date()),
+
+        WSProduct(id: UUID(), name: "Le Creuset Signature Saucepan, 1.75 Qt.", brand: "Le Creuset", category: "Cookware", subcategory: "Saucepans", price: 219.95, salePrice: nil, imageNames: ["product_saucepan"], rating: 4.6, reviewCount: 389, description: "Versatile enameled cast iron saucepan with a helper handle and tight-fitting lid for simmering and sauce making.", specs: ["Material": "Enameled Cast Iron", "Capacity": "1.75 Qt.", "Oven Safe": "Up to 500°F", "Lid": "Stainless Steel Knob"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Holiday Entertaining"], collectionName: "Le Creuset Cast Iron", stockCount: 29, giftPackagingAvailable: true, giftPackagingPrice: 12.95, colors: [WSProductColor(name: "Flame", hex: "#E8471C"), WSProductColor(name: "White", hex: "#F5F3EE")], sizes: ["1.75 Qt.", "2.25 Qt.", "3.5 Qt."], createdAt: Date()),
+    ]
+
+    // MARK: - Recommendations
+    static var recommendations: [WSProduct] {
+        Array(products.filter { $0.isFeatured || $0.rating >= 4.6 }.prefix(8))
+    }
+
+    // MARK: - Occasions
+    static let occasions: [WSOccasion] = [
+        WSOccasion(id: UUID(), name: "Holiday Entertaining", subtitle: "Everything for the perfect gathering", backgroundColor: "#8B1A1A", imageAsset: nil, tags: ["Holiday Entertaining"]),
+        WSOccasion(id: UUID(), name: "Wedding Registry", subtitle: "Build your dream kitchen together", backgroundColor: "#5C6B5C", imageAsset: nil, tags: ["Wedding Registry"]),
+        WSOccasion(id: UUID(), name: "Housewarming Gifts", subtitle: "Thoughtful gifts they'll love", backgroundColor: "#6B5C4A", imageAsset: nil, tags: ["Housewarming Gifts"]),
+        WSOccasion(id: UUID(), name: "Outdoor Summer", subtitle: "Grills, tools & al fresco dining", backgroundColor: "#4A6B7A", imageAsset: nil, tags: ["Outdoor Summer"]),
+        WSOccasion(id: UUID(), name: "Back to Kitchen", subtitle: "Fresh start, fresh recipes", backgroundColor: "#7A6B4A", imageAsset: nil, tags: ["Back to Kitchen"]),
+    ]
+
+    // MARK: - Collections
+    static let collections: [WSCollection] = [
+        WSCollection(id: UUID(), name: "Le Creuset Cast Iron", brand: "Le Creuset", tagline: "Timeless French craftsmanship", imageAsset: nil, productIds: []),
+        WSCollection(id: UUID(), name: "All-Clad Stainless", brand: "All-Clad", tagline: "Professional-grade performance", imageAsset: nil, productIds: []),
+        WSCollection(id: UUID(), name: "KitchenAid Stand Mixers", brand: "KitchenAid", tagline: "Make something wonderful", imageAsset: nil, productIds: []),
+        WSCollection(id: UUID(), name: "Wüsthof Knives", brand: "Wüsthof", tagline: "Precision since 1814", imageAsset: nil, productIds: []),
+        WSCollection(id: UUID(), name: "Williams Sonoma Signature", brand: "Williams Sonoma", tagline: "Our finest, curated for you", imageAsset: nil, productIds: []),
+    ]
+
+    // MARK: - Deals
+    static var deals: [WSDeal] {
+        products.filter { $0.isOnSale }.map { product in
+            WSDeal(id: UUID(), product: product, discountType: "percentage",
+                   discountValue: product.salePrice != nil ? round((1 - product.salePrice! / product.price) * 100) : 15,
+                   validUntil: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
+                   couponCode: nil)
+        }
+    }
+
+    // MARK: - Reviews
+    static let reviews: [WSReview] = [
+        WSReview(id: UUID(), productId: products[0].id, userId: UUID(), userName: "Julia C.", rating: 5, comment: "Absolutely love this Dutch oven! The heat distribution is perfect and the color is stunning.", createdAt: Calendar.current.date(byAdding: .day, value: -5, to: Date()), verifiedPurchase: true),
+        WSReview(id: UUID(), productId: products[0].id, userId: UUID(), userName: "Michael R.", rating: 5, comment: "Best kitchen investment I've ever made. Makes incredible soups, stews, and bread.", createdAt: Calendar.current.date(byAdding: .day, value: -12, to: Date()), verifiedPurchase: true),
+        WSReview(id: UUID(), productId: products[0].id, userId: UUID(), userName: "Amanda P.", rating: 4, comment: "Beautiful and functional. A bit heavy but that's expected with cast iron.", createdAt: Calendar.current.date(byAdding: .day, value: -20, to: Date()), verifiedPurchase: true),
+        WSReview(id: UUID(), productId: products[2].id, userId: UUID(), userName: "David L.", rating: 5, comment: "This mixer changed my baking game. So powerful and the attachments are amazing.", createdAt: Calendar.current.date(byAdding: .day, value: -3, to: Date()), verifiedPurchase: true),
+        WSReview(id: UUID(), productId: products[2].id, userId: UUID(), userName: "Rachel K.", rating: 4, comment: "Great mixer, just wish the bowl was a little bigger for large batches of dough.", createdAt: Calendar.current.date(byAdding: .day, value: -15, to: Date()), verifiedPurchase: false),
+    ]
+}
