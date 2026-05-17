@@ -63,6 +63,9 @@ class AuthViewModel: ObservableObject {
                 .insert(dbUser)
                 .execute()
             
+            // 3. Force sign in to trigger the `.signedIn` event and update app state
+            _ = try? await supabase.auth.signIn(email: email, password: password)
+            
             // Success! Session is handled automatically.
             
         } catch {

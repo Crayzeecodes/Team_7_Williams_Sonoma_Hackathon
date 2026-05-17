@@ -29,13 +29,13 @@ struct WSHackathonAppApp: App {
             }
             .task {
                 // Initial check
-                if let session = try? await supabase.auth.session {
+                if (try? await supabase.auth.session) != nil {
                     self.isAuthenticated = true
                 }
 
                 for await state in supabase.auth.authStateChanges {
                     if [.initialSession, .signedIn, .passwordRecovery].contains(state.event) {
-                        self.isAuthenticated = true
+                        self.isAuthenticated = state.session != nil
                     } else if [.signedOut, .userDeleted].contains(state.event) {
                         self.isAuthenticated = false
                         userManager.signOut() // Sync local manager

@@ -129,7 +129,7 @@ struct RegistryDetailView: View {
     }
 
     private func suggestionCard(_ suggestion: RegistryAISuggestion) -> some View {
-        let product = suggestion.productId.product
+        let product = suggestion.productRef.product
         return VStack(alignment: .leading, spacing: 12) {
             AsyncImage(url: product?.primaryImageURL) { image in
                 image.resizable().scaledToFill()
@@ -204,7 +204,7 @@ struct RegistryDetailView: View {
                             .font(.system(size: 16, weight: .bold))
                         Text("\(viewModel.currencySymbol)\(item.price, specifier: "%.0f") × \(item.quantity)")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Added by \(item.addedByUserId.user?.name ?? "Member")")
+                        Text("Added by \(item.addedByUserId)")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(AppColors.secondaryText)
                     }

@@ -5,7 +5,6 @@
 
 import Foundation
 import Combine
-internal import Auth
 import Supabase
 
 @MainActor
@@ -213,13 +212,8 @@ final class CreateRegistryViewModel: ObservableObject {
             currency: selectedCurrency,
             eventDetails: eventDetails,
             giftingDetails: giftingDetails,
-            members: [],
-            cartItems: [],
-            aiSuggestions: [],
-            polls: [],
             budgetSnapshot: budgetSnapshot,
-            shippingAddress: "",
-            createdAt: Date()
+            shippingAddress: ""
         )
 
         do {

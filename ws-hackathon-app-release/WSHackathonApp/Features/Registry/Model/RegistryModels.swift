@@ -9,7 +9,7 @@ struct RegistryPlannerAnswer: Codable, Hashable, Identifiable {
     var id: String { question }
     let question: String
     var answer: String
-    var answers: Set<String> = [] // New for multiple selection
+    var answers: Set<String> = []
     var options: [String]?
     var allowsMultiple: Bool = false
 }
@@ -130,6 +130,9 @@ struct RegistryEventDetails: Codable, Hashable {
     var aiPlannerAnswers: [RegistryPlannerAnswer]
     var targetBudget: Double
     var paymentSplitType: RegistryPaymentSplitType
+
+    // The JSONB blob in Supabase is stored with camelCase keys (as inserted by the app)
+    // so no snake_case CodingKeys needed here.
 }
 
 struct RegistryGiftingDetails: Codable, Hashable {
@@ -142,16 +145,16 @@ struct RegistryGiftingDetails: Codable, Hashable {
 }
 
 struct RegistryUserSummary: Codable, Hashable, Identifiable {
-    let _id: String?
+    let id: String?
     let email: String?
     let name: String?
 
-    var id: String { _id ?? email ?? UUID().uuidString }
+    var stableId: String { id ?? email ?? UUID().uuidString }
 }
 
+// MARK: - RegistryProduct (maps to public.products table)
 struct RegistryProduct: Codable, Hashable, Identifiable {
     let supabaseId: String?
-    let _id: String?
     let skuId: String
     let name: String
     let description: String
@@ -160,15 +163,13 @@ struct RegistryProduct: Codable, Hashable, Identifiable {
     let category: String
     let specs: [String]
     let stars: Double
-    let reviews: [RegistryProductReview]
-    let arModelUrl: String
-    let arScale: Double
-    let arPlacementType: String
+    let arModelUrl: String?
+    let arScale: Double?
+    let arPlacementType: String?
 
     enum CodingKeys: String, CodingKey {
         case supabaseId = "id"
-        case _id
-        case skuId
+        case skuId = "sku_id"
         case name
         case description
         case price
@@ -176,13 +177,12 @@ struct RegistryProduct: Codable, Hashable, Identifiable {
         case category
         case specs
         case stars
-        case reviews
-        case arModelUrl
-        case arScale
-        case arPlacementType
+        case arModelUrl = "ar_model_url"
+        case arScale = "ar_scale"
+        case arPlacementType = "ar_placement_type"
     }
 
-    var id: String { supabaseId ?? _id ?? skuId }
+    var id: String { supabaseId ?? skuId }
 
     var primaryImageURL: URL? {
         guard let first = images.first else { return nil }
@@ -190,39 +190,6 @@ struct RegistryProduct: Codable, Hashable, Identifiable {
             return URL(string: first)
         }
         return APIConfig.baseURL.appendingPathComponent(first.hasPrefix("/") ? String(first.dropFirst()) : first)
-    }
-}
-
-struct RegistryProductReview: Codable, Hashable, Identifiable {
-    var id: String { "\(userId.rawValue)-\(createdAt?.timeIntervalSince1970 ?? 0)" }
-    let userId: RegistryUserReference
-    let rating: Int
-    let comment: String
-    let createdAt: Date?
-}
-
-struct RegistryUserReference: Codable, Hashable {
-    let rawValue: String
-    let user: RegistryUserSummary?
-
-    init(rawValue: String, user: RegistryUserSummary? = nil) {
-        self.rawValue = rawValue
-        self.user = user
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let value = try? container.decode(String.self) {
-            self = .init(rawValue: value, user: nil)
-        } else {
-            let user = try container.decode(RegistryUserSummary.self)
-            self = .init(rawValue: user._id ?? user.email ?? "", user: user)
-        }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(rawValue)
     }
 }
 
@@ -241,7 +208,7 @@ struct RegistryProductReference: Codable, Hashable {
             self = .init(rawValue: value, product: nil)
         } else {
             let product = try container.decode(RegistryProduct.self)
-            self = .init(rawValue: product._id ?? product.skuId, product: product)
+            self = .init(rawValue: product.supabaseId ?? product.skuId, product: product)
         }
     }
 
@@ -251,22 +218,76 @@ struct RegistryProductReference: Codable, Hashable {
     }
 }
 
+// MARK: - Registry (maps to public.registries table)
+struct Registry: Codable, Hashable, Identifiable {
+    let supabaseId: String?
+    // adminId is a UUID stored as text in DB
+    let adminId: String
+    let name: String
+    let joinCode: String
+    let registryType: RegistryType
+    let creatorName: String
+    let eventType: RegistryEventType
+    let eventDate: Date
+    let currency: CurrencyInfo
+    let eventDetails: RegistryEventDetails
+    let giftingDetails: RegistryGiftingDetails
+    // JSONB arrays stored as embedded JSON in the registries row
+    let members: [RegistryMember]
+    let cartItems: [RegistryCartItem]
+    let aiSuggestions: [RegistryAISuggestion]
+    let polls: [RegistryPoll]
+    let budgetSnapshot: RegistryBudgetSnapshot
+    let shippingAddress: String
+    let createdAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case supabaseId = "id"
+        case adminId = "admin_id"
+        case name
+        case joinCode = "join_code"
+        case registryType = "registry_type"
+        case creatorName = "creator_name"
+        case eventType = "event_type"
+        case eventDate = "event_date"
+        case currency
+        case eventDetails = "event_details"
+        case giftingDetails = "gifting_details"
+        case members
+        case cartItems = "cart_items"
+        case aiSuggestions = "ai_suggestions"
+        case polls
+        case budgetSnapshot = "budget_snapshot"
+        case shippingAddress = "shipping_address"
+        case createdAt = "created_at"
+    }
+
+    var id: String { supabaseId ?? joinCode }
+
+    var isEventRegistry: Bool { registryType == .event }
+
+    var collaboratorCountText: String {
+        let count = max(0, members.count - 1)
+        return "\(count) contributor\(count == 1 ? "" : "s")"
+    }
+}
+
+// MARK: - RegistryMember (embedded in registries.members JSONB)
 struct RegistryMember: Codable, Hashable, Identifiable {
-    var id: String { userId.rawValue }
-    let userId: RegistryUserReference
+    var id: String { userId }
+    let userId: String
     let role: RegistryMemberRole
     let contributedBudget: Double
     let joinedAt: Date?
 
-    var displayName: String {
-        userId.user?.name ?? "Member"
-    }
+    var displayName: String { "Member" }
 }
 
+// MARK: - RegistryCartItem (embedded in registries.cart_items JSONB)
 struct RegistryCartItem: Codable, Hashable, Identifiable {
     let id: String
-    let productId: RegistryProductReference
-    let addedByUserId: RegistryUserReference
+    let productId: String
+    let addedByUserId: String
     let quantity: Int
     let price: Double
     let name: String
@@ -274,19 +295,6 @@ struct RegistryCartItem: Codable, Hashable, Identifiable {
     let source: RegistryCartItemSource
     let status: RegistryCartItemStatus
     let addedAt: Date?
-
-    enum CodingKeys: String, CodingKey {
-        case id = "_id"
-        case productId
-        case addedByUserId
-        case quantity
-        case price
-        case name
-        case imageUrl
-        case source
-        case status
-        case addedAt
-    }
 
     var imageURL: URL? {
         if imageUrl.hasPrefix("http") {
@@ -298,19 +306,22 @@ struct RegistryCartItem: Codable, Hashable, Identifiable {
 }
 
 struct RegistryAISuggestion: Codable, Hashable, Identifiable {
-    var id: String { "\(productId.rawValue)-\(generatedAt?.timeIntervalSince1970 ?? 0)" }
-    let productId: RegistryProductReference
+    var id: String { "\(productId)-\(generatedAt?.timeIntervalSince1970 ?? 0)" }
+    let productId: String
     let score: Double
     let reasoning: String
     let generatedAt: Date?
+
+    // productId.product is used in RegistryDetailViewModel – keep a nil product ref for compat
+    var productRef: RegistryProductReference { RegistryProductReference(rawValue: productId) }
 }
 
 struct RegistryPollVote: Codable, Hashable {
-    let userId: RegistryUserReference
+    let userId: String
 }
 
 struct RegistryPollOption: Codable, Hashable {
-    let productId: RegistryProductReference
+    let productId: String
     let votes: [RegistryPollVote]
 }
 
@@ -329,45 +340,9 @@ struct RegistryBudgetSnapshot: Codable, Hashable {
     let lastUpdated: Date?
 }
 
-struct Registry: Codable, Hashable, Identifiable {
-    let supabaseId: String?
-    let _id: String?
-    let adminId: RegistryUserReference
-    let name: String
-    let joinCode: String
-    let registryType: RegistryType
-    let creatorName: String
-    let eventType: RegistryEventType
-    let eventDate: Date
-    let currency: CurrencyInfo
-    let eventDetails: RegistryEventDetails
-    let giftingDetails: RegistryGiftingDetails
-    let members: [RegistryMember]
-    let cartItems: [RegistryCartItem]
-    let aiSuggestions: [RegistryAISuggestion]
-    let polls: [RegistryPoll]
-    let budgetSnapshot: RegistryBudgetSnapshot
-    let shippingAddress: String
-    let createdAt: Date?
-
-    enum CodingKeys: String, CodingKey {
-        case supabaseId = "id"
-        case _id, adminId, name, joinCode, registryType, creatorName, eventType, eventDate, currency, eventDetails, giftingDetails, members, cartItems, aiSuggestions, polls, budgetSnapshot, shippingAddress, createdAt
-    }
-
-    var id: String { supabaseId ?? _id ?? joinCode }
-
-    var isEventRegistry: Bool { registryType == .event }
-
-    var collaboratorCountText: String {
-        let count = max(0, members.count - 1)
-        return "\(count) contributor\(count == 1 ? "" : "s")"
-    }
-}
-
+// MARK: - RegistryPreview (lightweight decode for join preview)
 struct RegistryPreview: Codable, Hashable, Identifiable {
     let supabaseId: String?
-    let _id: String?
     let name: String
     let joinCode: String
     let registryType: RegistryType
@@ -375,21 +350,40 @@ struct RegistryPreview: Codable, Hashable, Identifiable {
     let eventType: RegistryEventType
     let eventDate: Date
     let currency: CurrencyInfo
-    let giftingDetails: RegistryGiftingDetailsPreview?
+    let giftingDetails: RegistryGiftingDetails?
 
     enum CodingKeys: String, CodingKey {
         case supabaseId = "id"
-        case _id, name, joinCode, registryType, creatorName, eventType, eventDate, currency, giftingDetails
+        case name
+        case joinCode = "join_code"
+        case registryType = "registry_type"
+        case creatorName = "creator_name"
+        case eventType = "event_type"
+        case eventDate = "event_date"
+        case currency
+        case giftingDetails = "gifting_details"
     }
 
-    var id: String { supabaseId ?? _id ?? joinCode }
+    var id: String { supabaseId ?? joinCode }
 }
 
-struct RegistryGiftingDetailsPreview: Codable, Hashable {
-    let budgetStatus: RegistryGiftingBudgetStatus
-    let splitType: RegistryPaymentSplitType
+// MARK: - RegistryMemberDisplay (from registry_members table)
+struct RegistryMemberDisplay: Codable, Hashable, Identifiable {
+    var id: String { userId }
+    let userId: String
+    let joinedAt: Date?
+    let contributedBudget: Double
+    let role: RegistryMemberRole
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case joinedAt = "joined_at"
+        case contributedBudget = "contributed_budget"
+        case role
+    }
 }
 
+// MARK: - Cart/Payload types
 struct CartUpdatePayload: Codable, Hashable {
     let registryId: String
     let cartItems: [RegistryCartItem]
@@ -402,19 +396,11 @@ struct MemberPayload: Codable, Hashable {
     let userId: String?
 }
 
-struct RegistryMemberDisplay: Codable, Hashable, Identifiable {
-    var id: String { userId }
-    let userId: String
-    let name: String
-    let joinedAt: Date?
-    let contributedBudget: Double
-    let role: RegistryMemberRole
-}
-
+// MARK: - CreateRegistryRequest (only columns in the registries table)
 struct CreateRegistryRequest: Codable, Hashable {
-    let adminId: String?
+    let adminId: String
     let name: String
-    let joinCode: String?
+    let joinCode: String
     let registryType: RegistryType
     let creatorName: String
     let eventType: RegistryEventType
@@ -422,21 +408,39 @@ struct CreateRegistryRequest: Codable, Hashable {
     let currency: CurrencyInfo
     let eventDetails: RegistryEventDetails
     let giftingDetails: RegistryGiftingDetails
-    let members: [RegistryMemberRequest]
-    let cartItems: [RegistryCartItemRequest]
-    let aiSuggestions: [RegistryAISuggestionRequest]
-    let polls: [RegistryPollRequest]
     let budgetSnapshot: RegistryBudgetSnapshot
     let shippingAddress: String
-    let createdAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case adminId = "admin_id"
+        case name
+        case joinCode = "join_code"
+        case registryType = "registry_type"
+        case creatorName = "creator_name"
+        case eventType = "event_type"
+        case eventDate = "event_date"
+        case currency
+        case eventDetails = "event_details"
+        case giftingDetails = "gifting_details"
+        case budgetSnapshot = "budget_snapshot"
+        case shippingAddress = "shipping_address"
+    }
 }
 
 struct RegistryMemberRequest: Codable, Hashable {
-    let registryId: String?
+    let registryId: String
     let userId: String
     let role: RegistryMemberRole
     let contributedBudget: Double
     let joinedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case registryId = "registry_id"
+        case userId = "user_id"
+        case role
+        case contributedBudget = "contributed_budget"
+        case joinedAt = "joined_at"
+    }
 }
 
 struct RegistryCartItemRequest: Codable, Hashable {
@@ -451,34 +455,6 @@ struct RegistryCartItemRequest: Codable, Hashable {
     let addedAt: Date
 }
 
-struct RegistryAISuggestionRequest: Codable, Hashable {
-    let productId: String
-    let score: Double
-    let reasoning: String
-    let generatedAt: Date
-}
-
-struct RegistryPollVoteRequest: Codable, Hashable {
-    let userId: String
-}
-
-struct RegistryPollOptionRequest: Codable, Hashable {
-    let productId: String
-    let votes: [RegistryPollVoteRequest]
-}
-
-struct RegistryPollRequest: Codable, Hashable {
-    let question: String
-    let options: [RegistryPollOptionRequest]
-    let status: RegistryPollStatus
-    let createdAt: Date
-}
-
-struct JoinRegistryRequest: Codable, Hashable {
-    let joinCode: String
-    let contributedBudget: Double?
-}
-
 struct AddRegistryCartItemRequest: Codable, Hashable {
     let productId: String
     let quantity: Int
@@ -487,6 +463,11 @@ struct AddRegistryCartItemRequest: Codable, Hashable {
     let imageUrl: String?
     let source: RegistryCartItemSource
     let status: RegistryCartItemStatus
+}
+
+struct JoinRegistryRequest: Codable, Hashable {
+    let joinCode: String
+    let contributedBudget: Double?
 }
 
 struct RegistrySuggestionRefreshRequest: Codable, Hashable {

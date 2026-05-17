@@ -64,7 +64,6 @@ final class RegistryDetailViewModel: ObservableObject {
             guard let registry else { return }
             self.registry = Registry(
                 supabaseId: registry.supabaseId,
-                _id: registry._id,
                 adminId: registry.adminId,
                 name: registry.name,
                 joinCode: registry.joinCode,
@@ -89,16 +88,16 @@ final class RegistryDetailViewModel: ObservableObject {
     }
 
     func addSuggestionToCart(_ suggestion: RegistryAISuggestion) async {
-        guard let product = suggestion.productId.product else { return }
+        let product = suggestion.productRef.product
         do {
             let payload = try await registryService.addCartItem(
                 registryId: registryID,
                 requestBody: AddRegistryCartItemRequest(
-                    productId: suggestion.productId.rawValue,
+                    productId: suggestion.productId,
                     quantity: 1,
-                    price: product.price,
-                    name: product.name,
-                    imageUrl: product.images.first,
+                    price: product?.price,
+                    name: product?.name,
+                    imageUrl: product?.images.first,
                     source: .ai,
                     status: .inCart
                 )
@@ -166,7 +165,6 @@ final class RegistryDetailViewModel: ObservableObject {
         guard let registry else { return }
         self.registry = Registry(
             supabaseId: registry.supabaseId,
-            _id: registry._id,
             adminId: registry.adminId,
             name: registry.name,
             joinCode: registry.joinCode,

@@ -2,11 +2,38 @@
 //  WSService.swift
 //  WSHackathonApp
 //
-//  Static now, Supabase-ready structure.
+//  Fetches data from Supabase using the shared SDK client.
 //
 
 import Foundation
 import CryptoKit
+
+// MARK: - Internal DTO matching public.products table exactly
+private struct SupabaseProduct: Decodable {
+    let id: String
+    let skuId: String
+    let name: String
+    let description: String
+    let price: Double
+    let images: [String]
+    let category: String
+    let specs: [String]
+    let stars: Double
+    let arModelUrl: String?
+    let arScale: Double?
+    let arPlacementType: String?
+    let createdAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case skuId = "sku_id"
+        case name, description, price, images, category, specs, stars
+        case arModelUrl = "ar_model_url"
+        case arScale = "ar_scale"
+        case arPlacementType = "ar_placement_type"
+        case createdAt = "created_at"
+    }
+}
 
 @MainActor
 final class WSService {
@@ -15,13 +42,8 @@ final class WSService {
     private init() {}
 
     func fetchProducts() async throws -> [WSProduct] {
-        let products: [RegistryProduct] = try await request(path: "/rest/v1/products")
-        return products.enumerated().map { index, product in
-            let regularPrice = product.price
-            let salePrice: Double? = nil // Add sale_price to schema if needed
-            let category = product.category
-            let imagePaths = product.images
-            let brand = "Williams Sonoma"
+        let supabaseProducts: [SupabaseProduct] = try await request(path: "/rest/v1/products")
+        return supabaseProducts.enumerated().map { index, product in
             let specs: [String: String] = product.specs.reduce(into: [:]) { dict, spec in
                 let parts = spec.split(separator: ":", maxSplits: 1).map(String.init)
                 if parts.count == 2 {
@@ -32,21 +54,21 @@ final class WSService {
             return WSProduct(
                 id: Self.stableUUID(for: product.id),
                 name: product.name,
-                brand: brand,
-                category: category,
+                brand: "Williams Sonoma",
+                category: product.category,
                 subcategory: product.category,
-                price: regularPrice,
-                salePrice: salePrice,
-                imageNames: imagePaths,
+                price: product.price,
+                salePrice: nil,
+                imageNames: product.images,
                 rating: product.stars,
                 reviewCount: 12 + (index * 5),
                 description: product.description,
                 specs: specs,
-                isOnSale: salePrice != nil,
+                isOnSale: false,
                 isFeatured: index < 8,
                 isNewArrival: index % 3 == 0,
-                occasions: Self.occasions(for: category),
-                collectionName: brand,
+                occasions: Self.occasions(for: product.category),
+                collectionName: "Williams Sonoma",
                 stockCount: 25 + (index % 12) * 3,
                 giftPackagingAvailable: true,
                 giftPackagingPrice: 9.95,
@@ -121,7 +143,7 @@ final class WSService {
     }
 
     func addToCart(productId: UUID, quantity: Int, color: String?, size: String?, giftWrapped: Bool) async throws {
-        // POST to Supabase cart table in production
+        // POST to Supabase cart_items table in production
     }
 
     func addToRegistry(productId: UUID) async throws {
@@ -133,7 +155,8 @@ private extension WSService {
     static func stableUUID(for rawValue: String) -> UUID {
         let digest = SHA256.hash(data: Data(rawValue.utf8))
         let bytes = Array(digest.prefix(16))
-        let uuid = uuid_t(bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15])
+        let uuid = uuid_t(bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+                          bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15])
         return UUID(uuid: uuid)
     }
 
@@ -163,68 +186,9 @@ private extension WSService {
 
     func request<T: Decodable>(path: String) async throws -> T {
         let endpoint = Endpoint(path: path, method: .get)
-        // Set key decoding strategy for Supabase snake_case
         let data: Data = try await APIClient.shared.requestData(endpoint).0
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return try decoder.decode(T.self, from: data)
-    }
-}
-
-private struct RemoteSKU: Decodable {
-    let id: String
-    let name: String
-    let price: Price
-    let properties: Properties
-    let media: Media
-    let availability: String
-    let deliveryEstimate: String
-
-    struct Price: Decodable {
-        let regularPrice: Double
-        let sellingPrice: Double
-    }
-
-    struct Properties: Decodable {
-        let brand: String?
-        let productType: String?
-        let allProductTypes: String?
-
-        var specsDictionary: [String: String] {
-            var values: [String: String] = [:]
-            if let productType {
-                values["Category"] = productType.normalizedCategoryName
-            }
-            if let allProductTypes {
-                values["Collection"] = allProductTypes
-            }
-            if let brand {
-                values["Brand"] = brand.formattedBrandName
-            }
-            return values
-        }
-    }
-
-    struct Media: Decodable {
-        let images: [Image]
-
-        struct Image: Decodable {
-            let path: String
-        }
-    }
-}
-
-private extension String {
-    var formattedBrandName: String {
-        split(separator: "-")
-            .map { $0.capitalized }
-            .joined(separator: " ")
-    }
-
-    var normalizedCategoryName: String {
-        replacingOccurrences(of: "_", with: " ")
-            .split(separator: " ")
-            .map { $0.capitalized }
-            .joined(separator: " ")
     }
 }
