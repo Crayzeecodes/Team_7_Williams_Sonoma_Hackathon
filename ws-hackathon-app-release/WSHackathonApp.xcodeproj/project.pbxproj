@@ -7,10 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2669DEE50C2F70A34897DB2D /* .env in Resources */ = {isa = PBXBuildFile; fileRef = 59A2E9387E649C8212D39108 /* .env */; };
 		5E041BBF2FB9020200F31D31 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 5E041BBE2FB9020200F31D31 /* Supabase */; };
+		D0ACD65E2FB99595007AD891 /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = D0ACD65D2FB99595007AD891 /* GoogleGenerativeAI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		59A2E9387E649C8212D39108 /* .env */ = {isa = PBXFileReference; includeInIndex = 1; path = .env; sourceTree = "<group>"; };
 		75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WSHackathonApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -41,6 +44,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5E041BBF2FB9020200F31D31 /* Supabase in Frameworks */,
+				D0ACD65E2FB99595007AD891 /* GoogleGenerativeAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,6 +64,7 @@
 				75B248F52F7FAA4E00AD2FA7 /* WSHackathonApp */,
 				5E041BBD2FB9020200F31D31 /* Frameworks */,
 				75B248F42F7FAA4E00AD2FA7 /* Products */,
+				59A2E9387E649C8212D39108 /* .env */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,6 +97,7 @@
 			name = WSHackathonApp;
 			packageProductDependencies = (
 				5E041BBE2FB9020200F31D31 /* Supabase */,
+				D0ACD65D2FB99595007AD891 /* GoogleGenerativeAI */,
 			);
 			productName = WSHackathonApp;
 			productReference = 75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */;
@@ -123,6 +129,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				5E041B022FB900D000F31D31 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				D0ACD65C2FB99595007AD891 /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 75B248F42F7FAA4E00AD2FA7 /* Products */;
@@ -139,6 +146,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2669DEE50C2F70A34897DB2D /* .env in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -399,6 +407,14 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		D0ACD65C2FB99595007AD891 /* XCRemoteSwiftPackageReference "generative-ai-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/generative-ai-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -406,6 +422,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5E041B022FB900D000F31D31 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		D0ACD65D2FB99595007AD891 /* GoogleGenerativeAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0ACD65C2FB99595007AD891 /* XCRemoteSwiftPackageReference "generative-ai-swift" */;
+			productName = GoogleGenerativeAI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
