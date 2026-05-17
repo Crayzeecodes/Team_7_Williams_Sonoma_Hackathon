@@ -29,9 +29,15 @@ struct ProfileModalView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.black)
+                    Button { dismiss() } label: {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundStyle(Color.black)
+                            .frame(width: 44, height: 36)
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Done")
                 }
             }
         }
@@ -85,13 +91,9 @@ struct ProfileModalView: View {
 
     private var menuSection: some View {
         VStack(spacing: 0) {
-            menuRow(icon: "shippingbox", title: "My Orders") { navManager.showOrders = true }
-            menuRow(icon: "gift", title: "My Registry") { }
-            menuRow(icon: "heart", title: "My Wishlist")
-            menuRow(icon: "mappin.circle", title: "Saved Addresses")
-            menuRow(icon: "creditcard", title: "Payment Methods")
-            menuRow(icon: "gearshape", title: "Preferences")
-            menuRow(icon: "questionmark.circle", title: "Help & Support")
+            menuRow(icon: "shippingbox", title: "My Orders", showsDivider: false) {
+                navManager.showOrders = true
+            }
         }
         .background(Color(uiColor: .systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -99,7 +101,12 @@ struct ProfileModalView: View {
         .padding(.top, 16)
     }
 
-    private func menuRow(icon: String, title: String, action: @escaping () -> Void = { }) -> some View {
+    private func menuRow(
+        icon: String,
+        title: String,
+        showsDivider: Bool = true,
+        action: @escaping () -> Void = { }
+    ) -> some View {
         Button(action: action) {
             HStack(spacing: 14) {
                 Image(systemName: icon)
@@ -119,7 +126,9 @@ struct ProfileModalView: View {
             .contentShape(Rectangle())
         }
         .overlay(alignment: .bottom) {
-            Divider().padding(.leading, 54)
+            if showsDivider {
+                Divider().padding(.leading, 54)
+            }
         }
     }
 

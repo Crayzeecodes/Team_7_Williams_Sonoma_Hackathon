@@ -18,6 +18,7 @@ struct ShopView: View {
     @State private var searchText = ""
     @State private var showSearchResults = false
     @State private var showScanner = false
+    @State private var showWishlist = false
 
     var body: some View {
         NavigationStack {
@@ -54,6 +55,26 @@ struct ShopView: View {
             .fullScreenCover(isPresented: $showScanner) {
                 ScannerView()
             }
+            .sheet(isPresented: $showWishlist) {
+                NavigationStack {
+                    WishlistView()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button {
+                                    showWishlist = false
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundStyle(Color.primary)
+                                        .padding(8)
+                                        .background(Color(uiColor: .secondarySystemBackground))
+                                        .clipShape(Circle())
+                                }
+                                .accessibilityLabel("Close wishlist")
+                            }
+                        }
+                }
+            }
             .sheet(isPresented: Bindable(navManager).showProfile) {
                 ProfileModalView()
             }
@@ -67,10 +88,10 @@ struct ShopView: View {
         ToolbarItemGroup(placement: .topBarTrailing) {
 
             // 2. Wishlist button
-            NavigationLink(destination: WishlistView()) {
-                Image(systemName: "heart")
+            Button(action: { showWishlist = true }) {
+                Image(systemName: wishlistManager.items.isEmpty ? "heart" : "heart.fill")
                     .font(.system(size: 19))
-                    .foregroundStyle(Color.primary)
+                    .foregroundStyle(wishlistManager.items.isEmpty ? Color.primary : Color.red)
             }
             .accessibilityLabel("Wishlist")
 

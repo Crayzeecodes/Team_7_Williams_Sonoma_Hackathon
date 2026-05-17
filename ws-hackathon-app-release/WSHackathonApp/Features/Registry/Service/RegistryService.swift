@@ -148,8 +148,71 @@ final class RegistryService {
 
     // MARK: - Cart item ops (stored as JSONB in registries.cart_items)
     func addCartItem(registryId: String, requestBody: AddRegistryCartItemRequest) async throws -> CartUpdatePayload {
-        // Fetch current registry, append item to JSONB array via RPC or manual update
-        throw RegistryServiceError.serverError("Cart item operations require a Supabase RPC function.")
+        guard let session = try? await supabase.auth.session else {
+            throw RegistryServiceError.notAuthenticated
+        }
+
+        let registry = try await loadRegistry(id: registryId)
+        let userId = session.user.id.uuidString
+        let quantity = max(1, requestBody.quantity)
+        let price = requestBody.price ?? 0
+        let productName = requestBody.name ?? "Registry item"
+        let productImage = requestBody.imageUrl ?? ""
+        var updatedItems = registry.cartItems
+
+        if let existingIndex = updatedItems.firstIndex(where: {
+            $0.productId == requestBody.productId &&
+            $0.addedByUserId == userId &&
+            $0.status == .inCart
+        }) {
+            let existingItem = updatedItems[existingIndex]
+            updatedItems[existingIndex] = RegistryCartItem(
+                id: existingItem.id,
+                productId: existingItem.productId,
+                addedByUserId: existingItem.addedByUserId,
+                quantity: existingItem.quantity + quantity,
+                price: price,
+                name: productName,
+                imageUrl: productImage,
+                source: requestBody.source,
+                status: requestBody.status,
+                addedAt: existingItem.addedAt
+            )
+        } else {
+            updatedItems.append(
+                RegistryCartItem(
+                    id: UUID().uuidString,
+                    productId: requestBody.productId,
+                    addedByUserId: userId,
+                    quantity: quantity,
+                    price: price,
+                    name: productName,
+                    imageUrl: productImage,
+                    source: requestBody.source,
+                    status: requestBody.status,
+                    addedAt: Date()
+                )
+            )
+        }
+
+        let budgetSnapshot = recalculateBudgetSnapshot(for: registry, cartItems: updatedItems)
+        let updateBody = RegistryCartUpdateRequest(
+            cartItems: updatedItems,
+            budgetSnapshot: budgetSnapshot,
+            updatedAt: Date()
+        )
+
+        try await supabase
+            .from("registries")
+            .update(updateBody)
+            .eq("id", value: registryId)
+            .execute()
+
+        return CartUpdatePayload(
+            registryId: registryId,
+            cartItems: updatedItems,
+            budgetSnapshot: budgetSnapshot
+        )
     }
 
     func removeCartItem(registryId: String, itemId: String) async throws -> CartUpdatePayload {
@@ -228,6 +291,44 @@ final class RegistryService {
             .select()
             .execute()
             .value
+    }
+
+    private func recalculateBudgetSnapshot(
+        for registry: Registry,
+        cartItems: [RegistryCartItem]
+    ) -> RegistryBudgetSnapshot {
+        let totalBudget: Double
+        if registry.registryType == .event {
+            totalBudget = registry.eventDetails.targetBudget
+        } else if registry.giftingDetails.splitType == .dutch {
+            totalBudget = registry.giftingDetails.pooledBudget
+        } else {
+            totalBudget = registry.giftingDetails.creatorBudget
+        }
+
+        let spentAmount = cartItems.reduce(0) { partialResult, item in
+            guard item.status == .inCart else { return partialResult }
+            return partialResult + (item.price * Double(item.quantity))
+        }
+
+        return RegistryBudgetSnapshot(
+            totalBudget: totalBudget,
+            spentAmount: spentAmount,
+            remainingAmount: max(0, totalBudget - spentAmount),
+            lastUpdated: Date()
+        )
+    }
+}
+
+private struct RegistryCartUpdateRequest: Encodable {
+    let cartItems: [RegistryCartItem]
+    let budgetSnapshot: RegistryBudgetSnapshot
+    let updatedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case cartItems = "cart_items"
+        case budgetSnapshot = "budget_snapshot"
+        case updatedAt = "updated_at"
     }
 }
 

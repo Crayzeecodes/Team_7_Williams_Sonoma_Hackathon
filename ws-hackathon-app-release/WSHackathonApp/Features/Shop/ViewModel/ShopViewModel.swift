@@ -169,9 +169,15 @@ class ShopViewModel {
         if normalized.contains("bake") { return "birthday.cake" }
         if normalized.contains("electric") { return "bolt.circle" }
         if normalized.contains("coffee") || normalized.contains("tea") { return "cup.and.saucer" }
-        if normalized.contains("food") { return "bag" }
-        if normalized.contains("outdoor") { return "tree" }
-        if normalized.contains("furniture") || normalized.contains("home") { return "sofa" }
-        return "fork.knife"
+        if normalized.contains("food") { return "fork.knife" }
+        if normalized.contains("outdoor") || normalized.contains("garden") { return "tree" }
+        if normalized.contains("furniture") { return "sofa" }
+        if normalized.contains("gift") { return "gift" }
+        if normalized.contains("holiday") { return "snowflake" }
+        if normalized.contains("home essential") || normalized.contains("home") { return "house" }
+        if normalized.contains("new") { return "sparkles" }
+        if normalized.contains("sale") { return "tag.fill" }
+        if normalized.contains("tabletop") || normalized.contains("bar") { return "wineglass" }
+        return "tag"
     }
 }

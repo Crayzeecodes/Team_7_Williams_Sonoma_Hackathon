@@ -31,7 +31,7 @@ struct WSProductCardGrid: View {
                     Button(action: onWishlistToggle) {
                         Image(systemName: isWishlisted ? "heart.fill" : "heart")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(isWishlisted ? Color.black : Color.primary)
+                            .foregroundStyle(isWishlisted ? Color.red : Color.primary)
                             .padding(8)
                             .background(
                                 Circle()
@@ -125,7 +125,7 @@ struct WSProductCardGrid: View {
                         Button(action: onWishlistToggle) {
                             Image(systemName: isWishlisted ? "heart.fill" : "heart")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(isWishlisted ? Color.black : Color.primary)
+                                .foregroundStyle(isWishlisted ? Color.red : Color.primary)
                                 .padding(7)
                                 .background(Circle().fill(Color(uiColor: .systemBackground).opacity(0.9)))
                         }
@@ -190,4 +190,3 @@ struct WSProductCardGrid: View {
             }
         }
     }
-

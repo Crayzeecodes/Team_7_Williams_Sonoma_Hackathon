@@ -16,6 +16,7 @@ struct CartView: View {
     @State private var promoCode = ""
     @State private var showCheckout = false
     @State private var selectedProduct: WSProduct?
+    @State private var recommendationProducts: [UUID: [WSProduct]] = [:]
 
     var body: some View {
         NavigationStack {
@@ -44,6 +45,9 @@ struct CartView: View {
                 if let userId = userManager.currentUser?.id {
                     await cartManager.loadCartIfNeeded(userId: userId)
                 }
+            }
+            .task(id: cartRecommendationSignature) {
+                await loadCartRecommendations()
             }
         }
     }
@@ -76,15 +80,29 @@ struct CartView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 ForEach(cartManager.items) { item in
-                    CartItemCell(
-                        item: item,
-                        onUpdateQuantity: { newQuantity in
-                            cartManager.updateQuantity(itemId: item.id, quantity: newQuantity)
+                    VStack(alignment: .leading, spacing: 10) {
+                        CartItemCell(
+                            item: item,
+                            onUpdateQuantity: { newQuantity in
+                                cartManager.updateQuantity(itemId: item.id, quantity: newQuantity)
+                            }
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedProduct = item.product
                         }
-                    )
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedProduct = item.product
+
+                        if let suggestions = recommendationProducts[item.product.id], !suggestions.isEmpty {
+                            CartBundleRecommendationSection(
+                                products: suggestions,
+                                onSelectProduct: { product in
+                                    selectedProduct = product
+                                },
+                                onAddProduct: { product in
+                                    cartManager.add(product: product)
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -188,6 +206,45 @@ struct CartView: View {
 
     private func formattedCurrency(_ value: Double) -> String {
         String(format: "$%.2f", value)
+    }
+
+    private var cartRecommendationSignature: String {
+        cartManager.items
+            .map { $0.product.id.uuidString }
+            .sorted()
+            .joined(separator: "|")
+    }
+
+    private func loadCartRecommendations() async {
+        let items = cartManager.items
+        let signature = cartRecommendationSignature
+
+        guard !items.isEmpty else {
+            recommendationProducts = [:]
+            return
+        }
+
+        do {
+            let catalog = try await WSService.shared.fetchProducts()
+            let cartProducts = items.map(\.product)
+            var nextRecommendations: [UUID: [WSProduct]] = [:]
+
+            for item in items {
+                let recommendations = await CartAIRecommendationService.shared.recommendations(
+                    for: item.product,
+                    cartProducts: cartProducts,
+                    catalog: catalog,
+                    limit: 4
+                )
+                nextRecommendations[item.product.id] = recommendations
+            }
+
+            if signature == cartRecommendationSignature {
+                recommendationProducts = nextRecommendations
+            }
+        } catch {
+            recommendationProducts = [:]
+        }
     }
 }
 
@@ -309,6 +366,113 @@ private struct CartItemCell: View {
             }
         }
         .foregroundStyle(Color.primary)
+    }
+}
+
+private struct CartBundleRecommendationSection: View {
+    let products: [WSProduct]
+    let onSelectProduct: (WSProduct) -> Void
+    let onAddProduct: (WSProduct) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("You'll need this")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.primary)
+                .padding(.horizontal, 2)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(products) { product in
+                        CartBundleProductCard(
+                            product: product,
+                            onSelect: {
+                                onSelectProduct(product)
+                            },
+                            onAdd: {
+                                onAddProduct(product)
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, 1)
+            }
+        }
+    }
+}
+
+private struct CartBundleProductCard: View {
+    let product: WSProduct
+    let onSelect: () -> Void
+    let onAdd: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button(action: onSelect) {
+                VStack(alignment: .leading, spacing: 8) {
+                    productImage
+
+                    Text(product.name)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.primary)
+                        .lineLimit(2)
+                        .frame(height: 34, alignment: .topLeading)
+                }
+            }
+            .buttonStyle(.plain)
+
+            HStack(spacing: 8) {
+                Text("$\(product.salePrice ?? product.price, specifier: "%.2f")")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.primary)
+                    .lineLimit(1)
+
+                Spacer(minLength: 4)
+
+                Button(action: onAdd) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                        .frame(width: 28, height: 28)
+                        .background(Color.black)
+                        .foregroundStyle(Color.white)
+                        .clipShape(Circle())
+                }
+                .accessibilityLabel("Add \(product.name) to cart")
+            }
+        }
+        .padding(10)
+        .frame(width: 148, alignment: .leading)
+        .background(Color(uiColor: .systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color(uiColor: .separator), lineWidth: 0.5)
+        )
+    }
+
+    private var productImage: some View {
+        ZStack {
+            Rectangle()
+                .fill(Color(uiColor: .secondarySystemBackground))
+
+            if let imageURL = product.primaryImageURL {
+                CustomAsyncImage(url: imageURL)
+            } else if let assetName = product.imageNames.first, !assetName.hasPrefix("/") {
+                Image(assetName)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image(systemName: "photo")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundStyle(Color(uiColor: .tertiaryLabel))
+            }
+        }
+        .frame(width: 128, height: 96)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color(uiColor: .separator), lineWidth: 0.5)
+        )
     }
 }
 
@@ -483,5 +647,3 @@ private struct SummaryRow: View {
         }
     }
 }
-
-
