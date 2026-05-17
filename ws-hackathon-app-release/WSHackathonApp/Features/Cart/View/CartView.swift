@@ -125,9 +125,9 @@ struct CartView: View {
         }
         .padding(14)
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }
@@ -152,9 +152,9 @@ struct CartView: View {
         }
         .padding(14)
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }
@@ -239,9 +239,9 @@ private struct CartItemCell: View {
         .padding(.top, 12)
         .padding(.bottom, 12)
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }
@@ -329,7 +329,15 @@ private final class CheckoutViewModel {
 }
 
 private struct CheckoutView: View {
+    @Environment(WSCartManager.self) private var cartManager
+    @Environment(UserManager.self) private var userManager
+    @Environment(NavigationManager.self) private var navManager
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var viewModel: CheckoutViewModel
+    @State private var isPlacingOrder = false
+    @State private var orderError: String? = nil
+    @State private var showSuccess = false
 
     init(subtotal: Double) {
         _viewModel = State(initialValue: CheckoutViewModel(subtotal: subtotal))
@@ -372,7 +380,17 @@ private struct CheckoutView: View {
                     }
                 )
 
-                WSPrimaryButton(title: "Place Order") { }
+                WSPrimaryButton(title: isPlacingOrder ? "Placing..." : "Place Order") {
+                    placeOrder()
+                }
+                .disabled(isPlacingOrder)
+                
+                if let error = orderError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
@@ -381,6 +399,49 @@ private struct CheckoutView: View {
         .background(Color(uiColor: .systemBackground))
         .navigationTitle("Checkout")
         .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(isPresented: $showSuccess) {
+            OrderSuccessView {
+                dismiss() // close checkout
+                navManager.selectedTab = .shop
+                navManager.showProfile = true
+                navManager.showOrders = true // route to orders view
+            }
+        }
+    }
+
+    private func placeOrder() {
+        guard let userId = userManager.currentUser?.id else {
+            orderError = "User not logged in."
+            return
+        }
+        guard !cartManager.items.isEmpty else {
+            orderError = "Cart is empty."
+            return
+        }
+
+        isPlacingOrder = true
+        orderError = nil
+
+        let items = cartManager.items
+        let total = viewModel.total
+
+        Task {
+            do {
+                _ = try await WSOrderService.shared.placeOrder(
+                    userId: userId,
+                    cartItems: items,
+                    totalAmount: total,
+                    shippingAddress: ["address": "123 Market St, San Francisco, CA"],
+                    paymentMethod: viewModel.paymentMethod
+                )
+
+                cartManager.clear()
+                showSuccess = true
+            } catch {
+                orderError = error.localizedDescription
+            }
+            isPlacingOrder = false
+        }
     }
 
     private func checkoutSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {

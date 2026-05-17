@@ -18,11 +18,11 @@ struct WSHeroBannerSlide: Identifiable {
 }
 
 let heroBanners: [WSHeroBannerSlide] = [
-    WSHeroBannerSlide(imageName: "banner_cookware", tagline: "NEW ARRIVALS", title: "Signature Cookware", subtitle: "Discover our finest Le Creuset & All-Clad", ctaLabel: "SHOP NOW", destination: "Cookware"),
-    WSHeroBannerSlide(imageName: "banner_holiday", tagline: "SEASONAL", title: "Holiday Gifting", subtitle: "Thoughtfully curated for every occasion", ctaLabel: "EXPLORE", destination: "Gift Ideas"),
-    WSHeroBannerSlide(imageName: "banner_knives", tagline: "BESTSELLERS", title: "Knife Collection", subtitle: "Precision-crafted for the home chef", ctaLabel: "SHOP NOW", destination: "Knives"),
-    WSHeroBannerSlide(imageName: "banner_bakeware", tagline: "TRENDING", title: "Bakeware Edit", subtitle: "Everything you need to bake beautifully", ctaLabel: "SHOP NOW", destination: "Bakeware"),
-    WSHeroBannerSlide(imageName: "banner_outdoor", tagline: "COLLECTION", title: "Outdoor Dining", subtitle: "Entertain with style, inside and out", ctaLabel: "EXPLORE", destination: "Outdoor"),
+    WSHeroBannerSlide(imageName: "1_fathersday", tagline: "OCCASION", title: "Celebrate dad.", subtitle: "Father’s day is June 21.", ctaLabel: "SHOP GIFTS", destination: "Gifts"),
+    WSHeroBannerSlide(imageName: "2_summerdining", tagline: "COLLECTION", title: "Summer Dining", subtitle: "Make the most of life outdoors and pieces designed for open-air dining and easy entertaining.", ctaLabel: "EXPLORE", destination: "Outdoor"),
+    WSHeroBannerSlide(imageName: "3_luccilambrusco", tagline: "INTRODUCING", title: "Lucci Lambrusco", subtitle: "Raise a glass to Lucci Lambrusco, Ashley Graham's fresh, modern take on Italy's original sparkling red.", ctaLabel: "SHOP NOW", destination: "Wine"),
+    WSHeroBannerSlide(imageName: "4_oakvile", tagline: "NEW ARRIVAL", title: "The Taste of Oakville", subtitle: "Created in collaboration with Oakville Grocery, this collection brings the flavors of the Napa Valley to your table.", ctaLabel: "SHOP NOW", destination: "Food"),
+    WSHeroBannerSlide(imageName: "5_stanleytucci", tagline: "COLLECTION", title: "GreenPan Stanley Tucci Collection", subtitle: "From ceramic nonstick cookware to pizza-night essentials, Stanley's collection brings his Italian American style to your kitchen.", ctaLabel: "SHOP NOW", destination: "Cookware")
 ]
 
 @available(iOS 18.0, *)
@@ -47,7 +47,7 @@ struct BannerCarousel: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: 210)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
             .padding(.horizontal, 16)
             
             HStack(spacing: 6) {
@@ -87,43 +87,49 @@ struct WSHeroBannerCard: View {
     let banner: WSHeroBannerSlide
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            Rectangle()
-                .fill(Color(uiColor: .secondarySystemBackground))
-            
-            LinearGradient(
-                colors: [Color.black.opacity(0.6), Color.clear],
-                startPoint: .bottom,
-                endPoint: .center
-            )
-            
-            VStack(alignment: .leading, spacing: 6) {
-                Text(banner.tagline)
-                    .font(.system(size: 10, weight: .semibold))
-                    .tracking(2)
-                    .foregroundStyle(.white.opacity(0.8))
+        GeometryReader { geo in
+            ZStack(alignment: .bottomLeading) {
+                Image(banner.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                
+                LinearGradient(
+                    colors: [Color.black.opacity(0.8), Color.clear],
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(banner.tagline)
+                        .font(.system(size: 10, weight: .semibold))
+                        .tracking(2)
+                        .foregroundStyle(.white.opacity(0.8))
 
-                Text(banner.title)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.white)
+                    Text(banner.title)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(.white)
 
-                Text(banner.subtitle)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.85))
-                    .lineLimit(1)
+                    Text(banner.subtitle)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(1)
 
-                Text(banner.ctaLabel)
-                    .font(.system(size: 12, weight: .semibold))
-                    .tracking(1)
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color.white)
-                    .clipShape(Capsule())
-                    .padding(.top, 4)
+                    Text(banner.ctaLabel)
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(1)
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.white)
+                        .clipShape(Capsule())
+                        .padding(.top, 4)
+                }
+                .padding(18)
+                .frame(width: geo.size.width, alignment: .bottomLeading)
             }
-            .padding(18)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
     }
 }

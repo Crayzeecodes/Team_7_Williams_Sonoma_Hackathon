@@ -29,13 +29,17 @@ struct WSHackathonAppApp: App {
             }
             .task {
                 // Initial check
-                if (try? await supabase.auth.session) != nil {
+                if let session = try? await supabase.auth.session {
                     self.isAuthenticated = true
+                    await loadUserProfile(userId: session.user.id)
                 }
 
                 for await state in supabase.auth.authStateChanges {
                     if [.initialSession, .signedIn, .passwordRecovery].contains(state.event) {
                         self.isAuthenticated = state.session != nil
+                        if let userId = state.session?.user.id {
+                            await loadUserProfile(userId: userId)
+                        }
                     } else if [.signedOut, .userDeleted].contains(state.event) {
                         self.isAuthenticated = false
                         userManager.signOut() // Sync local manager
@@ -46,6 +50,44 @@ struct WSHackathonAppApp: App {
             .environment(wishlistManager)
             .environment(cartManager)
             .environment(userManager)
+        }
+    }
+
+    /// Fetches the user row from public.users and populates UserManager
+    private func loadUserProfile(userId: UUID) async {
+        // Avoid re-loading if already set to the same user
+        if userManager.currentUser?.id == userId { return }
+
+        do {
+            struct UserRow: Decodable {
+                let id: UUID
+                let email: String
+                let name: String
+            }
+            let rows: [UserRow] = try await supabase
+                .from("users")
+                .select("id, email, name")
+                .eq("id", value: userId.uuidString)
+                .execute()
+                .value
+
+            if let row = rows.first {
+                // Split name into first/last for WSUser
+                let parts = row.name.split(separator: " ", maxSplits: 1).map(String.init)
+                let firstName = parts.first ?? row.name
+                let lastName = parts.count > 1 ? parts[1] : ""
+                let wsUser = WSUser(
+                    id: row.id,
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: row.email,
+                    isKeyRewardsMember: false,
+                    rewardPoints: 0
+                )
+                userManager.signIn(user: wsUser)
+            }
+        } catch {
+            print("Failed to load user profile: \(error)")
         }
     }
 }
