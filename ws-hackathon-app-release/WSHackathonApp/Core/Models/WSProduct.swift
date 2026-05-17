@@ -193,7 +193,7 @@ struct WSUser: Codable {
 
 // MARK: - Cart Item (new WS-specific)
 struct WSCartItem: Identifiable, Codable {
-    let id: UUID
+    var id: UUID
     let product: WSProduct
     var quantity: Int
     var selectedColor: String?

@@ -22,7 +22,7 @@ struct WSTabView: View {
                 }
                 .tag(NavigationManager.AppTab.shop)
 
-            placeholderTab(icon: "cart", title: "Cart")
+            CartView()
                 .tabItem {
                     Label("Cart", systemImage: "cart.fill")
                 }
