@@ -160,37 +160,13 @@ struct ARViewContainer: UIViewRepresentable {
             let clonedEntity = entity.clone(recursive: true)
             clonedEntity.generateCollisionShapes(recursive: true)
 
-            // 1. Calculate the bounds of the raw model
-            let bounds = clonedEntity.visualBounds(relativeTo: nil)
+            arView.installGestures(.all, for: clonedEntity)
             
-            // 2. Fix floating/off-center origins by moving the model so its bottom-center is at (0,0,0)
-            clonedEntity.position = SIMD3<Float>(
-                -bounds.center.x,
-                -(bounds.center.y - (bounds.extents.y / 2.0)),
-                -bounds.center.z
-            )
-            
-            // 3. Create a wrapper entity to act as the new centered pivot
-            let wrapper = ModelEntity()
-            wrapper.addChild(clonedEntity)
-            
-            // 4. Scale the wrapper so the sofa is exactly 2 meters wide
-            let maxDimension = max(bounds.extents.x, max(bounds.extents.y, bounds.extents.z))
-            if maxDimension > 0 {
-                wrapper.scale = SIMD3<Float>(repeating: 2.0 / maxDimension)
-            } else {
-                wrapper.scale = SIMD3<Float>(repeating: 0.002) // Fallback for mm scale
-            }
-            
-            // 5. Install gestures and add to anchor
-            wrapper.generateCollisionShapes(recursive: true)
-            arView.installGestures(.all, for: wrapper)
-            
-            anchor.addChild(wrapper)
+            anchor.addChild(clonedEntity)
             arView.scene.addAnchor(anchor)
 
             currentAnchor = anchor
-            placedEntity = wrapper
+            placedEntity = clonedEntity
 
             DispatchQueue.main.async {
                 self.viewModel.onModelPlaced()

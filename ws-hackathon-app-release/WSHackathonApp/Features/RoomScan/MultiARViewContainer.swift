@@ -159,33 +159,12 @@ struct MultiARViewContainer: UIViewRepresentable {
                 }
                 
                 entity.generateCollisionShapes(recursive: true)
-                
-                // Bounds-based scaling to realistic furniture size (~2m wide)
-                let bounds = entity.visualBounds(relativeTo: nil)
-                entity.position = SIMD3<Float>(
-                    -bounds.center.x,
-                    -(bounds.center.y - (bounds.extents.y / 2.0)),
-                    -bounds.center.z
-                )
-                
-                let wrapper = ModelEntity()
-                wrapper.addChild(entity)
-                
-                let maxDimension = max(bounds.extents.x, max(bounds.extents.y, bounds.extents.z))
-                if maxDimension > 0 {
-                    wrapper.scale = SIMD3<Float>(repeating: 2.0 / maxDimension)
-                } else {
-                    wrapper.scale = SIMD3<Float>(repeating: 0.002)
-                }
-                
-                wrapper.generateCollisionShapes(recursive: true)
-                
                 let anchor = AnchorEntity(world: result.worldTransform)
-                anchor.addChild(wrapper)
+                anchor.addChild(entity)
                 
                 await MainActor.run {
                     arView.scene.addAnchor(anchor)
-                    arView.installGestures(.all, for: wrapper)
+                    arView.installGestures(.all, for: entity)
                     self.viewModel.modelLoadingState = .success
                     self.viewModel.placedCount += 1
                 }

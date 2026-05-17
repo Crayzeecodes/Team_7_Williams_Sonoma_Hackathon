@@ -164,7 +164,7 @@ struct MultiARView: View {
                 Image(systemName: "xmark")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(12)
+                    .frame(width: 44, height: 44)
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
             }
@@ -176,7 +176,7 @@ struct MultiARView: View {
                 Image(systemName: "camera.fill")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(18)
+                    .frame(width: 64, height: 64)
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
             }
@@ -187,13 +187,12 @@ struct MultiARView: View {
                 saveProductsToRoom()
                 dismiss() 
             }) {
-                Text("Done")
-                    .font(.system(size: 17, weight: .bold))
+                Image(systemName: "checkmark")
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(.black)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .frame(width: 44, height: 44)
                     .background(.white)
-                    .clipShape(Capsule())
+                    .clipShape(Circle())
             }
         }
         .padding(.horizontal, 20)
@@ -215,6 +214,7 @@ struct MultiARView: View {
                         CustomAsyncImage(url: imgURL)
                             .frame(width: 50, height: 50)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .id(selected.id)
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -376,6 +376,7 @@ struct MultiARView: View {
                                 }
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
+                                .contentShape(Rectangle())
                             }
                             Divider().padding(.leading, 90)
                         }

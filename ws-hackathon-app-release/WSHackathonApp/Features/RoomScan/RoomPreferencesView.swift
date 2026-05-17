@@ -100,7 +100,7 @@ struct RoomPreferencesView: View {
                 .disabled(viewModel.currentAnswer.isEmpty)
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 24)
+            .padding(.bottom, 100)
         }
         .animation(.easeInOut(duration: 0.35), value: viewModel.currentQuestionIndex)
     }

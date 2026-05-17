@@ -63,8 +63,6 @@ struct RoomScanFlowView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.backward")
                                 .font(.system(size: 17, weight: .semibold))
-                            Text("Back")
-                                .font(.system(size: 17))
                         }
                         .foregroundStyle(Color.primary)
                     }
