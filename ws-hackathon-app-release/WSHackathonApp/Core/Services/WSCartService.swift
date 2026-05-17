@@ -1,9 +1,3 @@
-//
-//  WSCartService.swift
-//  WSHackathonApp
-//
-//  Supabase cart service for loading and persisting cart items.
-//
 
 import Foundation
 

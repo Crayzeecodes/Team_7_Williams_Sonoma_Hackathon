@@ -1,13 +1,6 @@
-//
-//  WSButtons.swift
-//  WSHackathonApp
-//
-//  Reusable button styles and section header.
-//
 
 import SwiftUI
 
-// MARK: - Primary Button (Black fill, white text)
 struct WSPrimaryButton: View {
     let title: String
     var isCompact: Bool = false
@@ -28,7 +21,6 @@ struct WSPrimaryButton: View {
     }
 }
 
-// MARK: - Secondary Button (White fill, black border)
 struct WSSecondaryButton: View {
     let title: String
     var isCompact: Bool = false
@@ -53,7 +45,6 @@ struct WSSecondaryButton: View {
     }
 }
 
-// MARK: - Press Button Style
 struct WSPressButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -63,7 +54,6 @@ struct WSPressButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Section Header
 struct WSSectionHeader<Destination: View>: View {
     let title: String
     var destination: Destination? = nil
@@ -102,7 +92,6 @@ struct WSSectionHeader<Destination: View>: View {
     }
 }
 
-// MARK: - Star Rating View
 struct StarRatingView: View {
     let rating: Double
     var maxRating: Int = 5

@@ -1,7 +1,3 @@
-//
-//  CurrencyDetectionService.swift
-//  WSHackathonApp
-//
 
 import CoreLocation
 import Foundation

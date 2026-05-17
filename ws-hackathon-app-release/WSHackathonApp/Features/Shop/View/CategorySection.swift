@@ -1,12 +1,5 @@
-//
-//  CategorySection.swift
-//  WSHackathonApp
-//
-//  Category circles horizontal scroll layout.
-//
 
 import SwiftUI
-
 
 let wsCategories: [WSCategory] = [
     WSCategory(id: 1, name: "Cookware", icon: "flame", productCount: 15, imageAsset: nil),
@@ -27,7 +20,7 @@ let wsCategories: [WSCategory] = [
 struct CategorySection: View {
     let categories: [WSCategory]
     let allProducts: [WSProduct]
-    
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -49,7 +42,7 @@ struct CategorySection: View {
             .padding(.horizontal, 16)
             .padding(.top, 20)
             .padding(.bottom, 4)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(categories) { category in

@@ -1,9 +1,3 @@
-//
-//  RoomPreferencesView.swift
-//  WSHackathonApp
-//
-//  Animated card-based preference questions (4 steps).
-//
 
 import SwiftUI
 
@@ -12,14 +6,13 @@ struct RoomPreferencesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress Indicator
+
             progressBar
                 .padding(.top, 8)
                 .padding(.horizontal, 16)
 
             Spacer().frame(height: 16)
 
-            // Question Card
             VStack(spacing: 8) {
                 Text("Q\(viewModel.currentQuestionIndex + 1) of 4")
                     .font(.system(size: 13, weight: .medium))
@@ -41,7 +34,6 @@ struct RoomPreferencesView: View {
 
             Spacer().frame(height: 24)
 
-            // Answer Options
             VStack(spacing: 8) {
                 ForEach(viewModel.currentQuestionOptions, id: \.self) { option in
                     optionButton(option)
@@ -56,7 +48,6 @@ struct RoomPreferencesView: View {
 
             Spacer()
 
-            // Navigation Buttons
             HStack(spacing: 12) {
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.35)) {
@@ -105,7 +96,6 @@ struct RoomPreferencesView: View {
         .animation(.easeInOut(duration: 0.35), value: viewModel.currentQuestionIndex)
     }
 
-    // MARK: - Progress Bar
     private var progressBar: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
@@ -125,7 +115,6 @@ struct RoomPreferencesView: View {
         .frame(height: 6)
     }
 
-    // MARK: - Option Button
     private func optionButton(_ option: String) -> some View {
         let isSelected = viewModel.currentAnswer == option
 

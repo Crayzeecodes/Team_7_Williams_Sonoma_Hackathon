@@ -1,22 +1,14 @@
-//
-//  WSProductCards.swift
-//  WSHackathonApp
-//
-//  Product card components for grid and horizontal layouts.
-//
 
 import SwiftUI
 
-// MARK: - Product Card Grid (2-column, equal height)
 struct WSProductCardGrid: View {
     let product: WSProduct
     var onWishlistToggle: (() -> Void)? = nil
     var isWishlisted: Bool = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            
-            // Image area — 1:1 square
+
             ZStack(alignment: .topTrailing) {
                 Rectangle()
                     .fill(Color(uiColor: .secondarySystemBackground))
@@ -25,8 +17,7 @@ struct WSProductCardGrid: View {
                         productImage(size: 28)
                     )
                     .clipped()
-                
-                // Wishlist heart
+
                 if let onWishlistToggle {
                     Button(action: onWishlistToggle) {
                         Image(systemName: isWishlisted ? "heart.fill" : "heart")
@@ -42,21 +33,20 @@ struct WSProductCardGrid: View {
                     .accessibilityLabel(isWishlisted ? "Remove from wishlist" : "Add to wishlist")
                 }
             }
-            
-            // Text area — fixed minimum height so all cards align
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(product.brand.uppercased())
                     .font(.system(size: 10, weight: .medium))
                     .tracking(0.8)
                     .foregroundStyle(Color.secondary)
                     .lineLimit(1)
-                
+
                 Text(product.name)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Color.primary)
                     .lineLimit(2)
-                    .frame(minHeight: 36, alignment: .topLeading)  // reserves 2-line space always
-                
+                    .frame(minHeight: 36, alignment: .topLeading)
+
                 if let salePrice = product.salePrice {
                     HStack(spacing: 6) {
                         Text("$\(salePrice, specifier: "%.2f")")
@@ -85,7 +75,7 @@ struct WSProductCardGrid: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(product.brand) \(product.name), \(product.price) dollars")
     }
-        
+
     @ViewBuilder
         private func productImage(size: CGFloat) -> some View {
             if let imageURL = product.primaryImageURL {
@@ -101,17 +91,15 @@ struct WSProductCardGrid: View {
             }
         }
     }
-    
-    // MARK: - Product Card Horizontal
+
     struct WSProductCardHorizontal: View {
         let product: WSProduct
         var isWishlisted: Bool = false
         var onWishlistToggle: (() -> Void)? = nil
-        
+
         var body: some View {
             VStack(alignment: .leading, spacing: 0) {
-                
-                // Image — fixed size
+
                 ZStack(alignment: .topTrailing) {
                     Rectangle()
                         .fill(Color(uiColor: .secondarySystemBackground))
@@ -120,7 +108,7 @@ struct WSProductCardGrid: View {
                             productImage(size: 26)
                         )
                         .clipped()
-                    
+
                     if let onWishlistToggle {
                         Button(action: onWishlistToggle) {
                             Image(systemName: isWishlisted ? "heart.fill" : "heart")
@@ -132,21 +120,20 @@ struct WSProductCardGrid: View {
                         .padding(8)
                     }
                 }
-                
-                // Text block
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(product.brand.uppercased())
                         .font(.system(size: 10, weight: .medium))
                         .tracking(0.8)
                         .foregroundStyle(Color.secondary)
                         .lineLimit(1)
-                    
+
                     Text(product.name)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.primary)
                         .lineLimit(2)
                         .frame(minHeight: 36, alignment: .topLeading)
-                    
+
                     if let salePrice = product.salePrice {
                         HStack(spacing: 6) {
                             Text("$\(salePrice, specifier: "%.2f")")
@@ -174,7 +161,7 @@ struct WSProductCardGrid: View {
                     .stroke(Color(uiColor: .separator), lineWidth: 0.5)
             )
         }
-            
+
         @ViewBuilder
         private func productImage(size: CGFloat) -> some View {
             if let imageURL = product.primaryImageURL {

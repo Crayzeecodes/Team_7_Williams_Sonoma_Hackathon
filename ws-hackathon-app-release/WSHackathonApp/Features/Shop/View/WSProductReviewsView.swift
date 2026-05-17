@@ -1,9 +1,3 @@
-//
-//  WSProductReviewsView.swift
-//  WSHackathonApp
-//
-//  Redesigned reviews: header, list of simple rows separated by dividers.
-//
 
 import SwiftUI
 
@@ -14,7 +8,7 @@ struct WSProductReviewsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
+
             VStack(alignment: .leading, spacing: 4) {
                 Text("CUSTOMER REVIEWS")
                     .font(.system(size: 11, weight: .semibold))
@@ -29,7 +23,6 @@ struct WSProductReviewsView: View {
             .padding(.top, 24)
             .padding(.bottom, 16)
 
-            // Review List
             if reviews.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "text.bubble")
@@ -56,7 +49,6 @@ struct WSProductReviewsView: View {
     }
 }
 
-// MARK: - Individual Review Row
 struct ReviewRowView: View {
     let review: WSReview
 
@@ -74,7 +66,6 @@ struct ReviewRowView: View {
                 }
             }
 
-            // Stars directly under name (like screenshot)
             HStack(spacing: 3) {
                 ForEach(1...5, id: \.self) { star in
                     Image(systemName: star <= review.rating ? "star.fill" : "star")

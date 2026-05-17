@@ -1,7 +1,3 @@
-//
-//  RegistryListView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 
@@ -187,7 +183,7 @@ struct RegistryListView: View {
                     .font(.system(size: 19))
                     .foregroundStyle(Color.primary)
             }
-            
+
             Button {
                 withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
                     viewModel.isEditing.toggle()
@@ -325,22 +321,20 @@ private struct EventRegistryCard: View {
 
 private struct EventIntricateBorder: View {
     let color: Color
-    
+
     private let lineWidth: CGFloat = 2.5
     private let innerGap: CGFloat = 3
-    
+
     var body: some View {
         ZStack {
-            // Outer frame
+
             Rectangle()
                 .stroke(color, lineWidth: lineWidth)
-            
-            // Inner frame
+
             Rectangle()
                 .stroke(color, lineWidth: lineWidth)
                 .padding(lineWidth + innerGap)
-            
-            // Corners overlay
+
             VStack(spacing: 0) {
                 HStack(spacing: 0) {
                     CornerKnot(color: color, lineWidth: lineWidth, innerGap: innerGap)
@@ -365,29 +359,26 @@ private struct CornerKnot: View {
     let color: Color
     let lineWidth: CGFloat
     let innerGap: CGFloat
-    
+
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // Background mask
+
             Rectangle()
                 .fill(Color.white)
                 .frame(width: 24, height: 24)
-            
-            // Knot Path
+
             Path { p in
-                // Outer loop
+
                 p.move(to: CGPoint(x: 24, y: 0))
                 p.addLine(to: CGPoint(x: 0, y: 0))
                 p.addLine(to: CGPoint(x: 0, y: 24))
-                
+
                 let i = lineWidth + innerGap
-                
-                // Inner loop
+
                 p.move(to: CGPoint(x: 24, y: i))
                 p.addLine(to: CGPoint(x: i, y: i))
                 p.addLine(to: CGPoint(x: i, y: 24))
-                
-                // Interlocking square
+
                 let sq = i + lineWidth + innerGap
                 p.move(to: CGPoint(x: 0, y: sq))
                 p.addLine(to: CGPoint(x: sq, y: sq))
@@ -413,7 +404,6 @@ private struct GiftingRegistryCard: View {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white)
 
-            // Horizontal Ribbon
             VStack(spacing: 0) {
                 Rectangle()
                     .fill(ribbonColor)
@@ -423,7 +413,6 @@ private struct GiftingRegistryCard: View {
                 Spacer(minLength: 0)
             }
 
-            // Vertical Ribbon
             HStack(spacing: 0) {
                 Rectangle()
                     .fill(ribbonColor)
@@ -433,7 +422,6 @@ private struct GiftingRegistryCard: View {
                 Spacer(minLength: 0)
             }
 
-            // Knot / Bow
             VStack(spacing: 0) {
                 HStack(spacing: 0) {
                     ZStack {
@@ -447,13 +435,12 @@ private struct GiftingRegistryCard: View {
                     .frame(width: ribbonWidth, height: ribbonWidth)
                     .padding(.leading, verticalRibbonOffset)
                     .padding(.top, horizontalRibbonOffset)
-                    
+
                     Spacer(minLength: 0)
                 }
                 Spacer(minLength: 0)
             }
 
-            // Text Content (Left aligned with good breathing space)
             VStack(spacing: 0) {
                 Spacer()
                     .frame(height: horizontalRibbonOffset + ribbonWidth)
@@ -466,11 +453,11 @@ private struct GiftingRegistryCard: View {
                             .foregroundStyle(Color.primary)
                             .multilineTextAlignment(.leading)
                             .lineLimit(2)
-                        
+
                         Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(Color.primary)
-                        
+
                         Text(registry.collaboratorCountText)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(Color.secondary)

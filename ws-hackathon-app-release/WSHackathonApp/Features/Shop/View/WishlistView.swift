@@ -1,9 +1,3 @@
-//
-//  WishlistView.swift
-//  WSHackathonApp
-//
-//  2-column grid of wishlisted products with empty state.
-//
 
 import SwiftUI
 

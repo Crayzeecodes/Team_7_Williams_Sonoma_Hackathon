@@ -1,7 +1,3 @@
-//
-//  PiggyBankView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 
@@ -57,7 +53,7 @@ struct PiggyBankView: View {
         .clipShape(RoundedRectangle(cornerRadius: 25))
         .shadow(color: Color.black.opacity(0.08), radius: 18, x: 0, y: 8)
         .onAppear {
-            animatedProgress = progress
+            animateProgress()
         }
         .onChange(of: budgetSnapshot.remainingAmount) { _, _ in
             animateProgress()

@@ -1,7 +1,3 @@
-//
-//  APIConfig.swift
-//  WSHackathonApp
-//
 
 import Foundation
 
@@ -28,7 +24,7 @@ enum APIConfig {
         baseURL
     }
 
-    static let registryBasePath = "/rest/v1/registries" // Standard Supabase REST path
+    static let registryBasePath = "/rest/v1/registries"
     static let requestTimeout: TimeInterval = 30
 
     static var authToken: String? {

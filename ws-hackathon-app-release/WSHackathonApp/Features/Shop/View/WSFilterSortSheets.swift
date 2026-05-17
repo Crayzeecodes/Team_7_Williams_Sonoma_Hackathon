@@ -1,13 +1,6 @@
-//
-//  WSFilterSortSheets.swift
-//  WSHackathonApp
-//
-//  Filter and Sort bottom sheet views + SeeAllProductsView.
-//
 
 import SwiftUI
 
-// MARK: - Sort Sheet
 struct WSSortSheet: View {
     @Binding var selectedSort: ShopViewModel.SortOption
     @Environment(\.dismiss) private var dismiss
@@ -55,7 +48,6 @@ struct WSSortSheet: View {
     }
 }
 
-// MARK: - Filter View
 struct WSFilterView: View {
     @Binding var maxBudget: Double
     @Binding var selectedBrands: Set<String>
@@ -66,7 +58,7 @@ struct WSFilterView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    // Budget Slider
+
                     VStack(alignment: .leading, spacing: 12) {
                         Text("BUDGET")
                             .font(.system(size: 11, weight: .semibold))
@@ -90,7 +82,6 @@ struct WSFilterView: View {
 
                     Divider()
 
-                    // Brands
                     VStack(alignment: .leading, spacing: 12) {
                         Text("BRANDS")
                             .font(.system(size: 11, weight: .semibold))
@@ -156,7 +147,6 @@ struct WSFilterView: View {
     }
 }
 
-// MARK: - See All Products View (Sheet — kept for search results)
 @available(iOS 18.0, *)
 struct SeeAllProductsView: View {
     let title: String

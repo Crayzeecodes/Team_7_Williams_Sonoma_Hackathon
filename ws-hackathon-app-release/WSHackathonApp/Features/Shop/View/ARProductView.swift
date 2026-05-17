@@ -1,10 +1,3 @@
-//
-//  ARProductView.swift
-//  WSHackathonApp
-//
-//  Fullscreen AR experience for viewing products in augmented reality.
-//  Uses RealityKit + ARKit on device, shows friendly placeholder on simulator.
-//
 
 import SwiftUI
 
@@ -36,7 +29,6 @@ struct ARProductView: View {
         #endif
     }
 
-    // MARK: - Simulator Fallback
     private var simulatorFallback: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -63,7 +55,6 @@ struct ARProductView: View {
                     .padding(.top, 8)
             }
 
-            // Dismiss button
             VStack {
                 HStack {
                     Spacer()
@@ -74,17 +65,15 @@ struct ARProductView: View {
         }
     }
 
-    // MARK: - AR Experience (Device Only)
     #if !targetEnvironment(simulator)
     private var arExperience: some View {
         ZStack {
-            // AR View
+
             ARViewContainer(viewModel: viewModel, modelEntity: loadedModel)
                 .ignoresSafeArea()
 
-            // UI Overlay
             VStack {
-                // Top bar
+
                 HStack {
                     dismissButton
                     Spacer()
@@ -97,7 +86,6 @@ struct ARProductView: View {
 
                 Spacer()
 
-                // Coaching hint
                 if viewModel.placementState == .scanning && !viewModel.isCoachingActive {
                     coachingHint("Point at a flat surface")
                         .transition(.opacity)
@@ -110,13 +98,11 @@ struct ARProductView: View {
                         .allowsHitTesting(false)
                 }
 
-                // Bottom product info card
                 productInfoCard
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
             }
 
-            // Loading overlay
             if viewModel.modelLoadingState == .loading {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()
@@ -137,12 +123,11 @@ struct ARProductView: View {
             loadedModel = await viewModel.loadModel()
         }
         .onDisappear {
-            // Session cleanup handled by ARViewContainer.dismantleUIView
+
         }
     }
     #endif
 
-    // MARK: - Dismiss Button
     private var dismissButton: some View {
         Button(action: { dismiss() }) {
             Image(systemName: "xmark")
@@ -155,7 +140,6 @@ struct ARProductView: View {
         .padding(20)
     }
 
-    // MARK: - Reset Button
     private var resetButton: some View {
         Button(action: {
             viewModel.resetPlacement()
@@ -180,7 +164,6 @@ struct ARProductView: View {
         }
     }
 
-    // MARK: - Coaching Hint
     private func coachingHint(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 15, weight: .medium))
@@ -191,7 +174,6 @@ struct ARProductView: View {
             .clipShape(Capsule())
     }
 
-    // MARK: - Product Info Card (Bottom)
     private var productInfoCard: some View {
         HStack(spacing: 12) {
             if let imgURL = product.primaryImageURL {
@@ -203,17 +185,17 @@ struct ARProductView: View {
                     .fill(Color.white.opacity(0.2))
                     .frame(width: 50, height: 50)
             }
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(product.name)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
-                
+
                 Text(product.brand.uppercased())
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.white.opacity(0.7))
-                
+
                 if let salePrice = product.salePrice {
                     Text("$\(salePrice, specifier: "%.2f")")
                         .font(.system(size: 14, weight: .bold))
@@ -227,7 +209,6 @@ struct ARProductView: View {
 
             Spacer()
 
-            // Placement status indicator
             VStack(alignment: .trailing, spacing: 4) {
                 HStack(spacing: 4) {
                     Circle()

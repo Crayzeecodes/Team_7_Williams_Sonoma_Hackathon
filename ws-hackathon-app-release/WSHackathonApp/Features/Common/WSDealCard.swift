@@ -1,13 +1,6 @@
-//
-//  WSDealCard.swift
-//  WSHackathonApp
-//
-//  Deal card component for horizontal scroll.
-//
 
 import SwiftUI
 
-// MARK: - Deal Card
 struct WSDealCard: View {
     let deal: WSDeal
 
@@ -23,7 +16,6 @@ struct WSDealCard: View {
                 .frame(width: 180, height: 160)
                 .clipped()
 
-                // Discount badge
                 Text(deal.discountLabel)
                     .font(.system(size: 10, weight: .bold))
                     .tracking(0.5)

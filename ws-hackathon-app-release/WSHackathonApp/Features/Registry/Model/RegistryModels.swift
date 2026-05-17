@@ -1,7 +1,3 @@
-//
-//  RegistryModels.swift
-//  WSHackathonApp
-//
 
 import Foundation
 
@@ -131,8 +127,6 @@ struct RegistryEventDetails: Codable, Hashable {
     var targetBudget: Double
     var paymentSplitType: RegistryPaymentSplitType
 
-    // The JSONB blob in Supabase is stored with camelCase keys (as inserted by the app)
-    // so no snake_case CodingKeys needed here.
 }
 
 struct RegistryGiftingDetails: Codable, Hashable {
@@ -152,7 +146,6 @@ struct RegistryUserSummary: Codable, Hashable, Identifiable {
     var stableId: String { id ?? email ?? UUID().uuidString }
 }
 
-// MARK: - RegistryProduct (maps to public.products table)
 struct RegistryProduct: Codable, Hashable, Identifiable {
     let supabaseId: String?
     let skuId: String
@@ -218,10 +211,9 @@ struct RegistryProductReference: Codable, Hashable {
     }
 }
 
-// MARK: - Registry (maps to public.registries table)
 struct Registry: Codable, Hashable, Identifiable {
     let supabaseId: String?
-    // adminId is a UUID stored as text in DB
+
     let adminId: String
     let name: String
     let joinCode: String
@@ -232,7 +224,7 @@ struct Registry: Codable, Hashable, Identifiable {
     let currency: CurrencyInfo
     let eventDetails: RegistryEventDetails
     let giftingDetails: RegistryGiftingDetails
-    // JSONB arrays stored as embedded JSON in the registries row
+
     let members: [RegistryMember]
     let cartItems: [RegistryCartItem]
     let aiSuggestions: [RegistryAISuggestion]
@@ -272,7 +264,6 @@ struct Registry: Codable, Hashable, Identifiable {
     }
 }
 
-// MARK: - RegistryMember (embedded in registries.members JSONB)
 struct RegistryMember: Codable, Hashable, Identifiable {
     var id: String { userId }
     let userId: String
@@ -283,7 +274,6 @@ struct RegistryMember: Codable, Hashable, Identifiable {
     var displayName: String { "Member" }
 }
 
-// MARK: - RegistryCartItem (embedded in registries.cart_items JSONB)
 struct RegistryCartItem: Codable, Hashable, Identifiable {
     let id: String
     let productId: String
@@ -312,7 +302,6 @@ struct RegistryAISuggestion: Codable, Hashable, Identifiable {
     let reasoning: String
     let generatedAt: Date?
 
-    // productId.product is used in RegistryDetailViewModel – keep a nil product ref for compat
     var productRef: RegistryProductReference { RegistryProductReference(rawValue: productId) }
 }
 
@@ -350,7 +339,6 @@ struct RegistryBudgetSnapshot: Codable, Hashable {
     let lastUpdated: Date?
 }
 
-// MARK: - RegistryPreview (lightweight decode for join preview)
 struct RegistryPreview: Codable, Hashable, Identifiable {
     let supabaseId: String?
     let name: String
@@ -377,7 +365,6 @@ struct RegistryPreview: Codable, Hashable, Identifiable {
     var id: String { supabaseId ?? joinCode }
 }
 
-// MARK: - RegistryMemberDisplay (from registry_members table)
 struct RegistryMemberDisplay: Codable, Hashable, Identifiable {
     var id: String { userId }
     let userId: String
@@ -403,7 +390,6 @@ struct RegistryMemberDisplay: Codable, Hashable, Identifiable {
     }
 }
 
-// MARK: - Cart/Payload types
 struct CartUpdatePayload: Codable, Hashable {
     let registryId: String
     let cartItems: [RegistryCartItem]
@@ -416,7 +402,6 @@ struct MemberPayload: Codable, Hashable {
     let userId: String?
 }
 
-// MARK: - CreateRegistryRequest (only columns in the registries table)
 struct CreateRegistryRequest: Codable, Hashable {
     let adminId: String
     let name: String

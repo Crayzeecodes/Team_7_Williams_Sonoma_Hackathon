@@ -1,9 +1,3 @@
-//
-//  RoomScanViewModel.swift
-//  WSHackathonApp
-//
-//  ViewModel managing the entire Room Scan → Analysis → Results flow.
-//
 
 import Foundation
 import UIKit
@@ -11,7 +5,6 @@ import UIKit
 @Observable
 class RoomScanViewModel {
 
-    // MARK: - State
     enum ViewState: Equatable {
         case capturing
         case questioning
@@ -21,7 +14,7 @@ class RoomScanViewModel {
     }
 
     var capturedImages: [UIImage] = []
-    var scannedImageUrls: [String] = [] // NEW: For displaying history images
+    var scannedImageUrls: [String] = []
     var preferences = RoomScanPreferences()
     var currentQuestionIndex: Int = 0
     var analysisResult: RoomAnalysisResult? = nil
@@ -29,7 +22,6 @@ class RoomScanViewModel {
     var viewState: ViewState = .capturing
     private var analysisTask: Task<Void, Never>? = nil
 
-    // MARK: - Computed
     var canAnalyze: Bool { !capturedImages.isEmpty }
 
     var currentQuestionTitle: String {
@@ -57,7 +49,7 @@ class RoomScanViewModel {
         case 0: return preferences.category
         case 1: return preferences.size
         case 2:
-            // Reverse-map budgetMax to display string
+
             switch preferences.budgetMax {
             case 100: return "Under $100"
             case 300: return "$100–$300"
@@ -70,7 +62,6 @@ class RoomScanViewModel {
         }
     }
 
-    // MARK: - Image Management
     func addImage(_ image: UIImage) {
         guard capturedImages.count < 4 else { return }
         capturedImages.append(image)
@@ -86,7 +77,6 @@ class RoomScanViewModel {
         viewState = .questioning
     }
 
-    // MARK: - Question Navigation
     func selectAnswer(_ answer: String) {
         switch currentQuestionIndex {
         case 0: preferences.category = answer
@@ -113,7 +103,6 @@ class RoomScanViewModel {
         }
     }
 
-    // MARK: - Analysis
     func analyzeRoom() {
         viewState = .analyzing
         analysisTask = Task { @MainActor in
@@ -123,11 +112,10 @@ class RoomScanViewModel {
                     preferences: preferences
                 )
                 self.analysisResult = result
-                // Fallback to empty array if decoding gives nil, though we expect RoomScanService to populate it locally.
+
                 self.recommendedProducts = result.recommendedProducts ?? []
                 self.viewState = .results
-                
-                // Save to history asynchronously in the background
+
                 Task {
                     do {
                         try await RoomScanHistoryService.shared.saveScanResult(
@@ -140,7 +128,7 @@ class RoomScanViewModel {
                     }
                 }
             } catch is CancellationError {
-                // Task was cancelled — do nothing
+
             } catch {
                 self.viewState = .error(
                     error.localizedDescription

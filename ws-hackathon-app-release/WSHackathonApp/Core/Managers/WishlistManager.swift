@@ -1,9 +1,3 @@
-//
-//  WishlistManager.swift
-//  WSHackathonApp
-//
-//  Manages the user's wishlist of saved products.
-//
 
 import Foundation
 

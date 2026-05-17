@@ -1,7 +1,3 @@
-//
-//  RegistryListViewModel.swift
-//  WSHackathonApp
-//
 
 import Foundation
 import Combine

@@ -1,9 +1,3 @@
-//
-//  WSCartManager.swift
-//  WSHackathonApp
-//
-//  Manages the shopping cart for Williams Sonoma products.
-//
 
 import Foundation
 

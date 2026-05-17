@@ -1,9 +1,3 @@
-//
-//  RoomAnalysisLoadingView.swift
-//  WSHackathonApp
-//
-//  Skeleton loading screen shown while Claude analyses room images.
-//
 
 import SwiftUI
 
@@ -14,7 +8,6 @@ struct RoomAnalysisLoadingView: View {
         VStack(spacing: 0) {
             Spacer().frame(height: 60)
 
-            // AI Animation
             ZStack {
                 Circle()
                     .fill(
@@ -50,7 +43,6 @@ struct RoomAnalysisLoadingView: View {
 
             Spacer().frame(height: 48)
 
-            // Skeleton Cards
             skeletonGrid
                 .padding(.horizontal, 16)
 
@@ -61,7 +53,6 @@ struct RoomAnalysisLoadingView: View {
         }
     }
 
-    // MARK: - Skeleton Grid
     private var skeletonGrid: some View {
         let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -102,7 +93,6 @@ struct RoomAnalysisLoadingView: View {
     }
 }
 
-// MARK: - Shimmer Effect
 struct ShimmerModifier: ViewModifier {
     @State private var phase: CGFloat = 0
 

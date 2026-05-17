@@ -1,7 +1,3 @@
-//
-//  RegistryService.swift
-//  WSHackathonApp
-//
 
 import Foundation
 import Supabase
@@ -29,7 +25,6 @@ final class RegistryService {
 
     private init() {}
 
-    // MARK: - Load all registries for the current user
     func loadRegistries() async throws -> [Registry] {
         guard let session = try? await supabase.auth.session else {
             throw RegistryServiceError.notAuthenticated
@@ -38,14 +33,14 @@ final class RegistryService {
         let ownedRegistries: [Registry] = try await supabase
             .from("registries")
             .select()
-            .eq("admin_id", value: session.user.id.uuidString)
+            .eq("admin_id", value: session.user.id.uuidString.lowercased())
             .execute()
             .value
 
         let memberships: [RegistryMemberRequest] = try await supabase
             .from("registry_members")
             .select()
-            .eq("user_id", value: session.user.id.uuidString)
+            .eq("user_id", value: session.user.id.uuidString.lowercased())
             .execute()
             .value
 
@@ -65,7 +60,6 @@ final class RegistryService {
         return ownedRegistries + joinedRegistries
     }
 
-    // MARK: - Preview a registry by join code (no auth required)
     func previewRegistry(joinCode: String) async throws -> RegistryPreview {
         let previews: [RegistryPreview] = try await supabase
             .from("registries")
@@ -80,7 +74,6 @@ final class RegistryService {
         return preview
     }
 
-    // MARK: - Create a registry
     func createRegistry(_ requestBody: CreateRegistryRequest) async throws -> Registry {
         let registry: Registry = try await supabase
             .from("registries")
@@ -94,7 +87,6 @@ final class RegistryService {
             throw RegistryServiceError.invalidResponse
         }
 
-        // Insert the creator as admin in registry_members
         let memberRequest = RegistryMemberRequest(
             registryId: registryId,
             userId: requestBody.adminId,
@@ -111,7 +103,6 @@ final class RegistryService {
         return registry
     }
 
-    // MARK: - Join a registry
     func joinRegistry(code: String, contributedBudget: Double?) async throws -> Registry {
         guard let session = try? await supabase.auth.session else {
             throw RegistryServiceError.notAuthenticated
@@ -126,7 +117,7 @@ final class RegistryService {
             .from("registry_members")
             .select()
             .eq("registry_id", value: registryId)
-            .eq("user_id", value: session.user.id.uuidString)
+            .eq("user_id", value: session.user.id.uuidString.lowercased())
             .execute()
             .value
 
@@ -136,7 +127,7 @@ final class RegistryService {
 
         let memberRequest = RegistryMemberRequest(
             registryId: registryId,
-            userId: session.user.id.uuidString,
+            userId: session.user.id.uuidString.lowercased(),
             role: .collaborator,
             contributedBudget: contributedBudget ?? 0,
             joinedAt: Date()
@@ -157,7 +148,6 @@ final class RegistryService {
         return registry
     }
 
-    // MARK: - Load a single registry by ID
     func loadRegistry(id: String) async throws -> Registry {
         let registries: [Registry] = try await supabase
             .from("registries")
@@ -172,20 +162,66 @@ final class RegistryService {
         return registry
     }
 
-    // MARK: - Leave a registry
     func leaveRegistry(id: String) async throws -> LeaveRegistryResponse {
         guard let session = try? await supabase.auth.session else {
             throw RegistryServiceError.notAuthenticated
+        }
+
+        let userId = session.user.id.uuidString.lowercased()
+
+        let members: [RegistryMemberRequest] = try await supabase
+            .from("registry_members")
+            .select()
+            .eq("registry_id", value: id)
+            .eq("user_id", value: userId)
+            .execute()
+            .value
+
+        guard let member = members.first else {
+            return LeaveRegistryResponse(deleted: true, registryId: id, registry: nil)
         }
 
         try await supabase
             .from("registry_members")
             .delete()
             .eq("registry_id", value: id)
-            .eq("user_id", value: session.user.id.uuidString)
+            .eq("user_id", value: userId)
             .execute()
 
-        return LeaveRegistryResponse(deleted: true, registryId: id, registry: nil)
+        let registry = try? await loadRegistry(id: id)
+        if let registry = registry,
+           registry.registryType == .gifting,
+           registry.giftingDetails.splitType == .dutch {
+            let updatedGiftingDetails = RegistryGiftingDetails(
+                collaboratorCount: registry.giftingDetails.collaboratorCount,
+                aiPlannerAnswers: registry.giftingDetails.aiPlannerAnswers,
+                splitType: registry.giftingDetails.splitType,
+                creatorBudget: registry.giftingDetails.creatorBudget,
+                pooledBudget: max(0, registry.giftingDetails.pooledBudget - member.contributedBudget),
+                budgetStatus: registry.giftingDetails.budgetStatus
+            )
+
+            let spent = registry.cartItems
+                .filter { $0.status == .inCart || $0.status == .purchased }
+                .reduce(0) { $0 + ($1.price * Double($1.quantity)) }
+            let updatedBudget = RegistryBudgetSnapshot(
+                totalBudget: updatedGiftingDetails.pooledBudget,
+                spentAmount: spent,
+                remainingAmount: max(0, updatedGiftingDetails.pooledBudget - spent),
+                lastUpdated: Date()
+            )
+
+            try? await supabase
+                .from("registries")
+                .update(RegistryBudgetPatch(giftingDetails: updatedGiftingDetails, budgetSnapshot: updatedBudget))
+                .eq("id", value: id)
+                .execute()
+
+            let finalRegistry = try? await loadRegistry(id: id)
+            return LeaveRegistryResponse(deleted: true, registryId: id, registry: finalRegistry)
+        }
+
+        return LeaveRegistryResponse(deleted: true, registryId: id, registry: registry)
     }
 
     func deleteRegistry(id: String) async throws {
@@ -202,7 +238,6 @@ final class RegistryService {
             .execute()
     }
 
-    // MARK: - Cart item ops (stored as JSONB in registries.cart_items)
     func addCartItem(registryId: String, requestBody: AddRegistryCartItemRequest) async throws -> CartUpdatePayload {
         guard let session = try? await supabase.auth.session else {
             throw RegistryServiceError.notAuthenticated
@@ -210,7 +245,7 @@ final class RegistryService {
 
         let registry = try await loadRegistry(id: registryId)
         let product = try await loadProducts(productIDs: [requestBody.productId]).first
-        let userId = session.user.id.uuidString
+        let userId = session.user.id.uuidString.lowercased()
         let quantity = max(1, requestBody.quantity)
         let price = requestBody.price ?? product?.price ?? 0
         let productName = requestBody.name ?? product?.name ?? "Registry item"
@@ -379,7 +414,7 @@ final class RegistryService {
         }
 
         let registry = try await loadRegistry(id: registryId)
-        let currentUserId = session.user.id.uuidString
+        let currentUserId = session.user.id.uuidString.lowercased()
         let updatedPolls = registry.polls.map { poll in
             guard poll.id == pollId, poll.status == .active else { return poll }
             let options = poll.options.map { option in
@@ -410,7 +445,6 @@ final class RegistryService {
         return try await loadRegistry(id: registryId)
     }
 
-    // MARK: - AI suggestions
     func refreshSuggestions(registryId: String, forceRefresh: Bool) async throws -> [RegistryAISuggestion] {
         let registry = try await loadRegistry(id: registryId)
 
@@ -483,7 +517,6 @@ final class RegistryService {
         return try await loadRegistry(id: registryId)
     }
 
-    // MARK: - Load members from registry_members table
     func loadMembers(registryId: String) async throws -> [RegistryMemberDisplay] {
         var members: [RegistryMemberDisplay] = try await supabase
             .from("registry_members")
@@ -554,7 +587,7 @@ final class RegistryService {
         } else {
             configuredBudget = registry.giftingDetails.creatorBudget
         }
-        let total = max(configuredBudget, registry.budgetSnapshot.totalBudget)
+        let total = configuredBudget
         return RegistryBudgetSnapshot(
             totalBudget: total,
             spentAmount: spent,

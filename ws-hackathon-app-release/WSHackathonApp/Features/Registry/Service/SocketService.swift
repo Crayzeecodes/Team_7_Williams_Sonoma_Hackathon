@@ -1,7 +1,3 @@
-//
-//  SocketService.swift
-//  WSHackathonApp
-//
 
 import Foundation
 import Combine
@@ -18,25 +14,13 @@ final class SocketService: ObservableObject {
     private var memberHandler: ((MemberPayload) -> Void)?
     private var registryId: String?
 
-    // TODO: Replace with Supabase Realtime (RealtimeChannel)
-    /*
-    #if canImport(SocketIO)
-    private let manager = SocketManager(socketURL: APIConfig.socketURL, config: [.log(false), .compress])
-    private lazy var socket = manager.defaultSocket
-    #endif
-    */
-
     private init() {
-        /*
-        #if canImport(SocketIO)
-        registerEvents()
-        #endif
-        */
+
     }
 
     func connect(registryId: String) {
         self.registryId = registryId
-        // Supabase Realtime connection logic goes here
+
         print("SocketService: Ready for Supabase Realtime for registry \(registryId)")
     }
 
@@ -53,11 +37,4 @@ final class SocketService: ObservableObject {
         memberHandler = handler
     }
 
-    /*
-    #if canImport(SocketIO)
-    private func registerEvents() {
-        // ... Socket.io implementation removed for Supabase migration ...
-    }
-    #endif
-    */
 }

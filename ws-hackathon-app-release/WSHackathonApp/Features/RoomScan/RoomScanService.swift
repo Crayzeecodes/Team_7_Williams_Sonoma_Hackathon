@@ -28,7 +28,7 @@ actor RoomScanService {
                 }
             }
         }
-        
+
         return "AIzaSyCr_-XV8F9RkYdAZK9WieCFCN9MP5azYbE"
     }
 
@@ -127,17 +127,17 @@ actor RoomScanService {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             var aiResult = try decoder.decode(RoomAnalysisResult.self, from: jsonData)
-            
+
             let wsService = await WSService.shared
             let allProducts = try await wsService.fetchProducts()
             let recommendedCategories = aiResult.recommendedCategories
-            
+
             let matchedProducts = allProducts.filter { product in
                 recommendedCategories.contains(product.category)
             }
-            
+
             aiResult.recommendedProducts = Array(matchedProducts.prefix(20))
-            
+
             return aiResult
         } catch {
             print("Room analysis decoding error: \(error)")

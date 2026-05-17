@@ -1,16 +1,10 @@
-//
-//  RoomResultsView.swift
-//  WSHackathonApp
-//
-//  Product results grid after room analysis, with Add to Cart / Registry actions.
-//
 
 import SwiftUI
 
 enum ResultGalleryState: Identifiable, Equatable {
     case remote(index: Int)
     case local(index: Int)
-    
+
     var id: String {
         switch self {
         case .remote(let idx): return "remote_\(idx)"
@@ -34,7 +28,7 @@ struct RoomResultsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Scanned Images
+
                 if !viewModel.scannedImageUrls.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
@@ -70,15 +64,13 @@ struct RoomResultsView: View {
                     }
                     .padding(.top, 8)
                 }
-                
-                // AI Insight Card
+
                 if let result = viewModel.analysisResult {
                     insightCard(result)
                         .padding(.horizontal, 16)
                         .padding(.top, 8)
                 }
 
-                // Results Count
                 Text("\(viewModel.recommendedProducts.count) curated picks for your room")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Color.secondary)
@@ -87,7 +79,7 @@ struct RoomResultsView: View {
                 if viewModel.recommendedProducts.isEmpty {
                     emptyState
                 } else {
-                    // Product Grid
+
                     LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(viewModel.recommendedProducts) { product in
                             NavigationLink(destination: ProductDetailView(product: product)) {
@@ -112,7 +104,6 @@ struct RoomResultsView: View {
         }
     }
 
-    // MARK: - AI Insight Card
     private func insightCard(_ result: RoomAnalysisResult) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
@@ -132,7 +123,6 @@ struct RoomResultsView: View {
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
 
-            // Style Tags
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     styleTag(result.detectedStyle, icon: "paintpalette")
@@ -167,10 +157,9 @@ struct RoomResultsView: View {
         .clipShape(Capsule())
     }
 
-    // MARK: - Product Card with Actions
     private func roomProductCard(_ product: WSProduct) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Image
+
             ZStack(alignment: .topTrailing) {
                 Rectangle()
                     .fill(Color(uiColor: .secondarySystemBackground))
@@ -192,7 +181,6 @@ struct RoomResultsView: View {
                     )
                     .clipped()
 
-                // Style Match Badge
                 if let result = viewModel.analysisResult {
                     Text("Matches your \(result.detectedStyle) style")
                         .font(.system(size: 9, weight: .semibold))
@@ -206,7 +194,6 @@ struct RoomResultsView: View {
                 }
             }
 
-            // Info
             VStack(alignment: .leading, spacing: 4) {
                 Text(product.brand.uppercased())
                     .font(.system(size: 10, weight: .medium))
@@ -236,7 +223,6 @@ struct RoomResultsView: View {
                         .foregroundStyle(Color.primary)
                 }
 
-                // Action Buttons
                 HStack(spacing: 6) {
                     Button(action: {
                         cartManager.add(product: product)
@@ -255,7 +241,7 @@ struct RoomResultsView: View {
                     }
 
                     Button(action: {
-                        // Registry uses the RegistryManager pattern
+
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: "list.bullet.clipboard")
@@ -273,7 +259,7 @@ struct RoomResultsView: View {
                     }
                 }
                 .padding(.top, 6)
-                
+
                 Spacer(minLength: 0)
             }
             .padding(10)
@@ -287,7 +273,6 @@ struct RoomResultsView: View {
         )
     }
 
-    // MARK: - Empty State
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
@@ -325,17 +310,17 @@ struct AsyncFullScreenGalleryView: View {
     let initialIndex: Int
     @State private var selectedIndex: Int
     @Environment(\.dismiss) private var dismiss
-    
+
     init(urls: [String], initialIndex: Int) {
         self.urls = urls
         self.initialIndex = initialIndex
         _selectedIndex = State(initialValue: initialIndex)
     }
-    
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             TabView(selection: $selectedIndex) {
                 ForEach(urls.indices, id: \.self) { idx in
                     if let url = URL(string: urls[idx]) {
@@ -346,7 +331,7 @@ struct AsyncFullScreenGalleryView: View {
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-            
+
             VStack {
                 HStack {
                     Button(action: { dismiss() }) {
@@ -368,17 +353,17 @@ struct UIImageFullScreenGalleryView: View {
     let initialIndex: Int
     @State private var selectedIndex: Int
     @Environment(\.dismiss) private var dismiss
-    
+
     init(images: [UIImage], initialIndex: Int) {
         self.images = images
         self.initialIndex = initialIndex
         _selectedIndex = State(initialValue: initialIndex)
     }
-    
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             TabView(selection: $selectedIndex) {
                 ForEach(images.indices, id: \.self) { idx in
                     Image(uiImage: images[idx])
@@ -388,7 +373,7 @@ struct UIImageFullScreenGalleryView: View {
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-            
+
             VStack {
                 HStack {
                     Button(action: { dismiss() }) {

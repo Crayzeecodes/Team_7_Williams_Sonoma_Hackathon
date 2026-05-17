@@ -1,9 +1,3 @@
-//
-//  ImagePickerRepresentable.swift
-//  WSHackathonApp
-//
-//  UIImagePickerController wrapper for camera capture.
-//
 
 import SwiftUI
 import UIKit

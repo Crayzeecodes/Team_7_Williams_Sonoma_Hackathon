@@ -1,13 +1,6 @@
-//
-//  WSCategoryComponents.swift
-//  WSHackathonApp
-//
-//  Category chip and card components + AllCategoriesView (push nav).
-//
 
 import SwiftUI
 
-// MARK: - Category Chip (Pill style for Shop tab)
 struct WSCategoryChip: View {
     let category: WSCategory
     let isSelected: Bool
@@ -31,7 +24,6 @@ struct WSCategoryChip: View {
     }
 }
 
-// MARK: - Category Card (uniform size for AllCategoriesView)
 struct WSCategoryCard: View {
     let category: WSCategory
 
@@ -66,7 +58,6 @@ struct WSCategoryCard: View {
     }
 }
 
-// MARK: - All Categories View (Push navigation, not sheet)
 @available(iOS 18.0, *)
 struct AllCategoriesView: View {
     let categories: [WSCategory]

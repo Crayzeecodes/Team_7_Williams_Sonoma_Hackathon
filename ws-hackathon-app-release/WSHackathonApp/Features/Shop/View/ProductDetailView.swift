@@ -1,9 +1,3 @@
-//
-//  ProductDetailView.swift
-//  WSHackathonApp
-//
-//  Product detail matching v4 screenshot layout with full bleed image.
-//
 
 import SwiftUI
 import UIKit
@@ -48,8 +42,7 @@ struct ProductDetailView: View {
     @State private var reviews: [WSReview] = []
     @State private var isAddedToCart = false
     @State private var showingRegistryPicker = false
-    
-    // For related products
+
     @State private var viewModel = ShopViewModel()
 
     var body: some View {
@@ -58,26 +51,26 @@ struct ProductDetailView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     imageCarousel
                     pageDots
-                    
+
                     productInfoBlock
                         .padding(.top, 32)
 
                     descriptionSection
                     viewInARButton
                     specsSection
-                    
+
                     if product.giftPackagingAvailable {
                         premiumPackagingCard
                     }
-                    
+
                     reviewsSection
-                    
+
                     relatedProductsSection
                 }
             }
-            .ignoresSafeArea(edges: .top) // Full bleed image
+            .ignoresSafeArea(edges: .top)
             .background(Color(uiColor: .systemBackground))
-            
+
             stickyBottomBar
         }
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -125,7 +118,6 @@ struct ProductDetailView: View {
         }
     }
 
-    // MARK: - 6b. Image Carousel
     private var imageCarousel: some View {
         ZStack(alignment: .top) {
             TabView(selection: $selectedImageIndex) {
@@ -140,12 +132,11 @@ struct ProductDetailView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: UIScreen.main.bounds.height * 0.52)
-            
+
         }
         .frame(height: UIScreen.main.bounds.height * 0.52)
     }
 
-    // MARK: - Page Dots
     private var pageDots: some View {
         HStack(spacing: 6) {
             let count = max(1, product.imageNames.count)
@@ -159,7 +150,6 @@ struct ProductDetailView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - 6c & 6d & 6e. Product Info
     private var productInfoBlock: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(product.brand.uppercased())
@@ -173,7 +163,7 @@ struct ProductDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             Button(action: {
-                // withAnimation { scrollToReviews = true }
+
             }) {
                 HStack(spacing: 6) {
                     ForEach(1...5, id: \.self) { star in
@@ -208,11 +198,6 @@ struct ProductDetailView: View {
         .padding(.top, 16)
     }
 
-
-
-    // Removed quantitySection
-
-    // MARK: - 6h. Description
     private var descriptionSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Description")
@@ -236,7 +221,6 @@ struct ProductDetailView: View {
         .padding(.top, 32)
     }
 
-    // MARK: - View in AR Button
     private var viewInARButton: some View {
         Button(action: { showARView = true }) {
             HStack(spacing: 10) {
@@ -261,8 +245,7 @@ struct ProductDetailView: View {
         .padding(.horizontal, 16)
         .padding(.top, 24)
     }
-    
-    // MARK: - 6i. Specs
+
     private var specsSection: some View {
         VStack(spacing: 0) {
             Button(action: {
@@ -284,7 +267,7 @@ struct ProductDetailView: View {
                 .frame(height: optionCardHeight)
             }
             .buttonStyle(.plain)
-            
+
             if isSpecsExpanded {
                 VStack(spacing: 0) {
                     let specs = product.productSpecs.isEmpty ? exampleSpecs : product.productSpecs
@@ -293,7 +276,7 @@ struct ProductDetailView: View {
                             Text(spec.label)
                                 .font(.system(size: 14))
                                 .foregroundStyle(Color.secondary)
-                                .frame(width: 120, alignment: .leading) // Adjusted width slightly for better proportion
+                                .frame(width: 120, alignment: .leading)
                             Text(spec.value)
                                 .font(.system(size: 14))
                                 .foregroundStyle(Color.primary)
@@ -319,14 +302,13 @@ struct ProductDetailView: View {
         .padding(.top, 24)
     }
 
-    // MARK: - 6k. Customer Reviews
     private var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("CUSTOMER REVIEWS")
                 .font(.system(size: 11, weight: .semibold))
                 .tracking(1)
                 .foregroundStyle(Color.secondary)
-            
+
             HStack {
                 Text("\(product.reviewCount) Reviews")
                     .font(.system(size: 24, weight: .bold))
@@ -336,8 +318,7 @@ struct ProductDetailView: View {
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(Color.secondary)
             }
-            
-            // Fake Review
+
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     ForEach(0..<5) { _ in
@@ -350,12 +331,12 @@ struct ProductDetailView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(Color.secondary)
                 }
-                
+
                 Text("Excellent quality, totally worth the price! Williams Sonoma never disappoints with their collections.")
                     .font(.system(size: 15))
                     .foregroundStyle(Color.primary)
                     .lineLimit(3)
-                
+
                 Text("Sarah J.")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.secondary)
@@ -373,7 +354,6 @@ struct ProductDetailView: View {
         .padding(.top, 32)
     }
 
-    // MARK: - 6j. Premium Packaging
     private var premiumPackagingCard: some View {
         Button(action: {
             withAnimation(.spring()) {
@@ -414,15 +394,14 @@ struct ProductDetailView: View {
         .padding(.horizontal, 16)
         .padding(.top, 32)
     }
-    
-    // MARK: - 6l. Related Products
+
     private var relatedProductsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Similar Items")
                 .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(Color.primary)
                 .padding(.horizontal, 16)
-            
+
             let relatedProducts = viewModel.products
                 .filter { $0.category == product.category && $0.id != product.id }
                 .prefix(6)
@@ -441,15 +420,14 @@ struct ProductDetailView: View {
             }
         }
         .padding(.top, 24)
-        .padding(.bottom, 100)   // clearance above sticky bottom bar
+        .padding(.bottom, 100)
     }
 
-    // MARK: - 6n. Sticky Bottom Bar
     private var stickyBottomBar: some View {
         VStack(spacing: 0) {
             Divider()
             HStack(spacing: 12) {
-                // Add to Cart — outline pill
+
                 Button(action: {
                     if isAddedToCart {
                         navManager.selectedTab = .cart
@@ -489,7 +467,6 @@ struct ProductDetailView: View {
                     .overlay(RoundedRectangle(cornerRadius: 100).stroke(Color.black, lineWidth: 1.5))
                 }
 
-                // Add to Registry — filled pill
                 Button(action: {
                     showingRegistryPicker = true
                 }) {
@@ -576,9 +553,9 @@ private struct RegistryPickerSheet: View {
     let product: WSProduct
     let variant: WSProductColor?
     let registryManager: RegistryManager
-    
+
     var onAdded: ((String) -> Void)?
-    
+
     @State private var registries: [Registry] = []
     @State private var isLoading = true
     @State private var errorMessage: String? = nil

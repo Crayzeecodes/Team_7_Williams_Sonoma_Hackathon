@@ -1,14 +1,7 @@
-//
-//  WSProduct.swift
-//  WSHackathonApp
-//
-//  Data models for Williams Sonoma products and related entities.
-//
 
 import Foundation
 import SwiftUI
 
-// MARK: - Product
 struct WSProduct: Identifiable, Codable, Hashable {
     let id: UUID
     let name: String
@@ -54,13 +47,11 @@ struct WSProduct: Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - Product Color
 struct WSProductColor: Codable, Hashable {
     let name: String
     let hex: String
 }
 
-// MARK: - Category
 struct WSCategory: Identifiable, Codable, Hashable {
     let id: Int
     let name: String
@@ -75,7 +66,6 @@ struct WSCategory: Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - Occasion
 struct WSOccasion: Identifiable, Codable {
     let id: UUID
     let name: String
@@ -92,7 +82,6 @@ struct WSOccasion: Identifiable, Codable {
     }
 }
 
-// MARK: - Collection
 struct WSCollection: Identifiable, Codable {
     let id: UUID
     let name: String
@@ -108,7 +97,6 @@ struct WSCollection: Identifiable, Codable {
     }
 }
 
-// MARK: - Deal
 struct WSDeal: Identifiable, Codable {
     let id: UUID
     let product: WSProduct
@@ -142,7 +130,6 @@ struct WSDeal: Identifiable, Codable {
     }
 }
 
-// MARK: - Review
 struct WSReview: Identifiable, Codable {
     let id: UUID?
     let productId: UUID
@@ -164,7 +151,6 @@ struct WSReview: Identifiable, Codable {
     }
 }
 
-// MARK: - User
 struct WSUser: Codable {
     let id: UUID
     let firstName: String
@@ -191,7 +177,6 @@ struct WSUser: Codable {
     }
 }
 
-// MARK: - Cart Item (new WS-specific)
 struct WSCartItem: Identifiable, Codable {
     var id: UUID
     let product: WSProduct

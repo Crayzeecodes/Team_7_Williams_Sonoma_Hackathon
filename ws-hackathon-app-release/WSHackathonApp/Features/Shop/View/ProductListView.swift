@@ -1,9 +1,3 @@
-//
-//  ProductListView.swift
-//  WSHackathonApp
-//
-//  Reusable pushed product listing screen.
-//
 
 import SwiftUI
 

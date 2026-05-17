@@ -1,7 +1,3 @@
-//
-//  WSOrderService.swift
-//  WSHackathonApp
-//
 
 import Foundation
 import Supabase
@@ -12,7 +8,7 @@ final class WSOrderService {
     private init() {}
 
     func placeOrder(userId: UUID, cartItems: [WSCartItem], totalAmount: Double, shippingAddress: [String: String], paymentMethod: String) async throws -> WSOrder {
-        // 1. Create the order
+
         let newOrder = WSOrder(
             id: UUID(),
             userId: userId,
@@ -33,7 +29,6 @@ final class WSOrderService {
             .execute()
             .value
 
-        // 2. Create the order items
         let orderItems = cartItems.map { item in
             WSOrderItem(
                 id: UUID(),

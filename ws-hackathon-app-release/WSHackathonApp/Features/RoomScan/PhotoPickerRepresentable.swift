@@ -1,9 +1,3 @@
-//
-//  PhotoPickerRepresentable.swift
-//  WSHackathonApp
-//
-//  PHPickerViewController wrapper for multi-photo selection.
-//
 
 import SwiftUI
 import PhotosUI

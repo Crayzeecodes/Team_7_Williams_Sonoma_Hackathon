@@ -1,7 +1,3 @@
-//
-//  WSThemePrimitives.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 

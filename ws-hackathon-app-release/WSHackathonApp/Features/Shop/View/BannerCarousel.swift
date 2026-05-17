@@ -1,9 +1,3 @@
-//
-//  BannerCarousel.swift
-//  WSHackathonApp
-//
-//  Hero banner carousel with full-width cards.
-//
 
 import SwiftUI
 
@@ -30,7 +24,7 @@ struct BannerCarousel: View {
     let allProducts: [WSProduct]
     @State private var currentBannerIndex: Int = 0
     @State private var bannerTimer: Timer? = nil
-    
+
     var body: some View {
         VStack(spacing: 8) {
             TabView(selection: $currentBannerIndex) {
@@ -49,7 +43,7 @@ struct BannerCarousel: View {
             .frame(height: 210)
             .clipShape(RoundedRectangle(cornerRadius: 25))
             .padding(.horizontal, 16)
-            
+
             HStack(spacing: 6) {
                 ForEach(0..<heroBanners.count, id: \.self) { i in
                     Capsule()
@@ -69,7 +63,7 @@ struct BannerCarousel: View {
             bannerTimer = nil
         }
     }
-    
+
     private func startBannerTimer() {
         bannerTimer?.invalidate()
         bannerTimer = Timer.scheduledTimer(withTimeInterval: 6.0, repeats: true) { _ in
@@ -94,13 +88,13 @@ struct WSHeroBannerCard: View {
                     .scaledToFill()
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
-                
+
                 LinearGradient(
                     colors: [Color.black.opacity(0.8), Color.clear],
                     startPoint: .bottom,
                     endPoint: .top
                 )
-                
+
                 VStack(alignment: .leading, spacing: 6) {
                     Text(banner.tagline)
                         .font(.system(size: 10, weight: .semibold))

@@ -1,19 +1,12 @@
-//
-//  MyRoomsListView.swift
-//  WSHackathonApp
-//
-//  Displays the user's custom rooms for AR placement.
-//
 
 import SwiftUI
 
 struct MyRoom: Identifiable, Codable {
     let id: UUID
     var name: String
-    var screenshotData: [Data] // Store screenshot JPEG data locally
+    var screenshotData: [Data]
     var productIds: [String]
-    
-    // Legacy compat
+
     var screenshotUrls: [String] { [] }
 }
 
@@ -58,16 +51,16 @@ struct MyRoomsListView: View {
                         .padding(.bottom, 16)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
-                        
+
                         ForEach(MyRoomStorage.shared.rooms) { room in
                         ZStack {
                             NavigationLink(destination: MyRoomDetailView(roomId: room.id)) {
                                 EmptyView()
                             }
                             .opacity(0)
-                            
+
                             HStack(spacing: 14) {
-                                // Thumbnail
+
                                 if let firstScreenshot = room.screenshotData.first,
                                    let uiImage = UIImage(data: firstScreenshot) {
                                     Image(uiImage: uiImage)
@@ -85,7 +78,7 @@ struct MyRoomsListView: View {
                                                 .foregroundStyle(.secondary)
                                         )
                                 }
-                                
+
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(room.name)
                                         .font(.system(size: 17, weight: .semibold))
@@ -97,9 +90,9 @@ struct MyRoomsListView: View {
                                     .font(.system(size: 12))
                                     .foregroundStyle(Color.secondary)
                                 }
-                                
+
                                 Spacer()
-                                
+
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundStyle(Color(uiColor: .tertiaryLabel))

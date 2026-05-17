@@ -1,9 +1,3 @@
-//
-//  RoomScanHistoryModels.swift
-//  WSHackathonApp
-//
-//  Models for saving and fetching room scan history from Supabase.
-//
 
 import Foundation
 

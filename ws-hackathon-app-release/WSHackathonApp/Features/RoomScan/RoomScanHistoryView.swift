@@ -1,9 +1,3 @@
-//
-//  RoomScanHistoryView.swift
-//  WSHackathonApp
-//
-//  Displays the list of past room scans.
-//
 
 import SwiftUI
 
@@ -12,7 +6,7 @@ struct RoomScanHistoryView: View {
     @State private var historyRecords: [RoomScanHistoryRecord] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
-    
+
     var body: some View {
         Group {
             if isLoading {
@@ -38,7 +32,7 @@ struct RoomScanHistoryView: View {
                             EmptyView()
                         }
                         .opacity(0)
-                        
+
                         HStack(spacing: 16) {
                             if let firstImage = record.imageUrls.first, let url = URL(string: firstImage) {
                                 CustomAsyncImage(url: url)
@@ -50,7 +44,7 @@ struct RoomScanHistoryView: View {
                                     .frame(width: 60, height: 60)
                                     .overlay(Image(systemName: "photo").foregroundStyle(.secondary))
                             }
-                            
+
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("\(record.detectedStyle) \(record.roomType.capitalized)")
                                     .font(.headline)
@@ -58,7 +52,7 @@ struct RoomScanHistoryView: View {
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
-                            
+
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 14, weight: .semibold))
@@ -82,7 +76,7 @@ struct RoomScanHistoryView: View {
             await loadHistory()
         }
     }
-    
+
     private func loadHistory() async {
         do {
             isLoading = true
@@ -100,7 +94,7 @@ struct RoomScanHistoryDetailWrapper: View {
     let record: RoomScanHistoryRecord
     @State private var viewModel = RoomScanViewModel()
     @State private var isReady = false
-    
+
     var body: some View {
         Group {
             if isReady {
@@ -115,34 +109,33 @@ struct RoomScanHistoryDetailWrapper: View {
             await setupViewModel()
         }
     }
-    
+
     private func setupViewModel() async {
-        // Construct the AI result object from history
+
         let result = RoomAnalysisResult(
             roomType: record.roomType,
             detectedStyle: record.detectedStyle,
             dominantColors: record.dominantColors,
             dominantMaterials: record.dominantMaterials,
             recommendedStyleTags: [],
-            recommendedCategories: [], // We only need the products for the view
+            recommendedCategories: [],
             priceMax: 0,
             sizePreference: "",
             reasoning: record.reasoning,
             negativeCategories: [],
             recommendedProducts: []
         )
-        
-        // Fetch the full products from WSService
+
         do {
             let allProducts = try await WSService.shared.fetchProducts()
             let recommendedIdsLower = Set(record.recommendedProductIds.map { $0.lowercased() })
             let matchedProducts = allProducts.filter { recommendedIdsLower.contains($0.id.uuidString.lowercased()) }
-            
+
             viewModel.analysisResult = result
             viewModel.recommendedProducts = matchedProducts
             viewModel.scannedImageUrls = record.imageUrls
-            viewModel.viewState = .results // Trick the view model
-            
+            viewModel.viewState = .results
+
             isReady = true
         } catch {
             print("Error loading products for history: \\(error)")

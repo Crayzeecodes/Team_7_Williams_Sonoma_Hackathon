@@ -1,7 +1,3 @@
-//
-//  CollaboratorsView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 
@@ -16,7 +12,7 @@ struct CollaboratorsView: View {
                     Text("Join Code")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(AppColors.secondaryText)
-                    
+
                     Text(viewModel.registry?.joinCode ?? "------")
                         .font(.system(size: 48, weight: .bold))
                         .tracking(4)
@@ -27,7 +23,7 @@ struct CollaboratorsView: View {
                 .background(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 25))
                 .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 8)
-                
+
                 Button {
                     UIPasteboard.general.string = viewModel.registry?.joinCode
                 } label: {

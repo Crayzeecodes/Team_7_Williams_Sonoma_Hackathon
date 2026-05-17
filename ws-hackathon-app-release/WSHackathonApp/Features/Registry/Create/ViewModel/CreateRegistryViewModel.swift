@@ -1,7 +1,3 @@
-//
-//  CreateRegistryViewModel.swift
-//  WSHackathonApp
-//
 
 import Foundation
 import Combine
@@ -51,8 +47,7 @@ final class CreateRegistryViewModel: ObservableObject {
         self.registryService = .shared
         self.currencyService = .shared
         self.userManager = userManager ?? UserManager()
-        
-        // Pre-fill creator name
+
         if let user = self.userManager.currentUser {
             self.creatorName = "\(user.firstName) \(user.lastName)"
         }
@@ -160,9 +155,9 @@ final class CreateRegistryViewModel: ObservableObject {
         isSubmitting = true
         errorMessage = nil
 
-        var adminId = userManager.currentUser?.id.uuidString
+        var adminId = userManager.currentUser?.id.uuidString.lowercased()
         if adminId == nil, let session = try? await supabase.auth.session {
-            adminId = session.user.id.uuidString
+            adminId = session.user.id.uuidString.lowercased()
         }
         guard let adminId else {
             errorMessage = "Please log in to continue."

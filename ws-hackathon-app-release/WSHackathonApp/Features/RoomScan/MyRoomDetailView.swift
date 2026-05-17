@@ -1,16 +1,10 @@
-//
-//  MyRoomDetailView.swift
-//  WSHackathonApp
-//
-//  Details of a specific room: snapshots, products used, and AR entry.
-//
 
 import SwiftUI
 
 enum RoomDetailFullScreen: Identifiable, Equatable {
     case arMode
     case gallery(index: Int)
-    
+
     var id: String {
         switch self {
         case .arMode: return "arMode"
@@ -25,19 +19,19 @@ struct MyRoomDetailView: View {
     @State private var activeSheet: RoomDetailFullScreen?
     @State private var products: [WSProduct] = []
     @Environment(WSCartManager.self) private var cartManager
-    
+
     init(roomId: UUID) {
         self.roomId = roomId
     }
-    
+
     private var room: MyRoom? {
         MyRoomStorage.shared.rooms.first(where: { $0.id == roomId })
     }
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // AR Entry Button
+
                 Button(action: { activeSheet = .arMode }) {
                     HStack(spacing: 8) {
                         Image(systemName: "arkit")
@@ -51,8 +45,7 @@ struct MyRoomDetailView: View {
                     .background(Color.black)
                     .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
-                
-                // Snapshots Section
+
                 if let room = room, !room.screenshotData.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -67,8 +60,7 @@ struct MyRoomDetailView: View {
                                 .foregroundStyle(.blue)
                             }
                         }
-                        
-                        // Show max 2 images side-by-side
+
                         HStack(spacing: 12) {
                             ForEach(Array(room.screenshotData.prefix(2).enumerated()), id: \.offset) { offset, data in
                                 if let uiImage = UIImage(data: data) {
@@ -101,13 +93,12 @@ struct MyRoomDetailView: View {
                     .background(Color(uiColor: .secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
-                
-                // Products Used Section
+
                 if !products.isEmpty {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Products Used")
                             .font(.system(size: 20, weight: .bold))
-                        
+
                         ForEach(products) { product in
                             VStack(spacing: 16) {
                                 HStack(alignment: .top, spacing: 16) {
@@ -120,7 +111,7 @@ struct MyRoomDetailView: View {
                                             .fill(Color(uiColor: .tertiarySystemFill))
                                             .frame(width: 80, height: 80)
                                     }
-                                    
+
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(product.brand.uppercased())
                                             .font(.system(size: 11, weight: .semibold))
@@ -134,7 +125,7 @@ struct MyRoomDetailView: View {
                                     }
                                     Spacer()
                                 }
-                                
+
                                 HStack(spacing: 12) {
                                     Button(action: { cartManager.add(product: product) }) {
                                         Text("Add to Cart")
@@ -145,8 +136,8 @@ struct MyRoomDetailView: View {
                                             .background(Color.black)
                                             .clipShape(RoundedRectangle(cornerRadius: 25))
                                     }
-                                    
-                                    Button(action: { /* Registry action */ }) {
+
+                                    Button(action: {  }) {
                                         Text("Add to Registry")
                                             .font(.system(size: 14, weight: .bold))
                                             .foregroundStyle(.primary)
@@ -191,7 +182,7 @@ struct MyRoomDetailView: View {
             }
         }
     }
-    
+
     private func loadProducts() async {
         guard let room = room, !room.productIds.isEmpty else {
             products = []
@@ -208,17 +199,17 @@ struct FullScreenGalleryView: View {
     let initialIndex: Int
     @State private var selectedIndex: Int
     @Environment(\.dismiss) private var dismiss
-    
+
     init(imagesData: [Data], initialIndex: Int) {
         self.imagesData = imagesData
         self.initialIndex = initialIndex
         _selectedIndex = State(initialValue: initialIndex)
     }
-    
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             TabView(selection: $selectedIndex) {
                 ForEach(imagesData.indices, id: \.self) { idx in
                     if let uiImage = UIImage(data: imagesData[idx]) {
@@ -230,7 +221,7 @@ struct FullScreenGalleryView: View {
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-            
+
             VStack {
                 HStack {
                     Button(action: { dismiss() }) {

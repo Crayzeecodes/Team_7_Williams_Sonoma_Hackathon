@@ -1,9 +1,3 @@
-//
-//  NavigationManager.swift
-//  WSHackathonApp
-//
-//  Centralized navigation state for modals, sheets, and tab selection.
-//
 
 import SwiftUI
 

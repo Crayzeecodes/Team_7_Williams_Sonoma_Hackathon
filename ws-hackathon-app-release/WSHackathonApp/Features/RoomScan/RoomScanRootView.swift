@@ -1,22 +1,16 @@
-//
-//  RoomScanRootView.swift
-//  WSHackathonApp
-//
-//  Root view for the Scan tab with native title and segmented control.
-//
 
 import SwiftUI
 
 @available(iOS 18.0, *)
 struct RoomScanRootView: View {
-    @State private var selectedMode = 0 // 0 = AI Suggestions, 1 = My Rooms
+    @State private var selectedMode = 0
     @State private var showingCreateRoom = false
     @State private var newRoomName = ""
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Segmented Control
+
                 Picker("Mode", selection: $selectedMode) {
                     Text("AI Suggestions").tag(0)
                     Text("My Rooms").tag(1)
@@ -24,8 +18,7 @@ struct RoomScanRootView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                
-                // Content — no animation on switch to prevent segment shift
+
                 Group {
                     if selectedMode == 0 {
                         RoomScanContainerView()

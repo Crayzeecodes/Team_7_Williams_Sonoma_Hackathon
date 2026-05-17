@@ -5,7 +5,7 @@ struct CheckoutView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(NavigationManager.self) private var navManager
     @Environment(\.dismiss) private var dismiss
-    
+
     let checkoutItems: [WSCartItem]
     let registryId: String?
     let subtotal: Double
@@ -90,12 +90,20 @@ struct CheckoutView: View {
             .background(.ultraThinMaterial)
         }
         .fullScreenCover(isPresented: $showSuccess) {
-            OrderSuccessView {
-                dismiss()
-                navManager.selectedTab = .shop
-                navManager.showProfile = true
-                navManager.showOrders = true
-            }
+            OrderSuccessView(
+                onViewOrders: {
+                    dismiss()
+                    navManager.selectedTab = .shop
+                    navManager.showProfile = true
+                    navManager.showOrders = true
+                },
+                onContinueShopping: {
+                    dismiss()
+                    if registryId != nil {
+                        navManager.selectedTab = .shop
+                    }
+                }
+            )
         }
     }
 
@@ -126,11 +134,11 @@ struct CheckoutView: View {
                 )
 
                 if let registryId = registryId {
-                    _ = try? await RegistryService.shared.clearCart(registryId: registryId)
+                    _ = try? await RegistryService.shared.deleteRegistry(id: registryId)
                 } else {
                     cartManager.clear()
                 }
-                
+
                 showSuccess = true
             } catch {
                 orderError = error.localizedDescription

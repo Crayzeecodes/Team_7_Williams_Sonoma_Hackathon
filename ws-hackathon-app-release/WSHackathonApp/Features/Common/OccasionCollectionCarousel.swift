@@ -1,14 +1,7 @@
-//
-//  OccasionCollectionCarousel.swift
-//  WSHackathonApp
-//
-//  Merged carousel interleaving Occasions and Collections.
-//
 
 import SwiftUI
 import Combine
 
-// MARK: - Carousel Slide
 enum CarouselSlide: Identifiable {
     case occasion(WSOccasion)
     case collection(WSCollection)
@@ -21,7 +14,6 @@ enum CarouselSlide: Identifiable {
     }
 }
 
-// MARK: - Carousel View
 @available(iOS 18.0, *)
 struct OccasionCollectionCarousel: View {
     let occasions: [WSOccasion]
@@ -88,7 +80,6 @@ struct OccasionCollectionCarousel: View {
         }
     }
 
-    // MARK: - Occasion Card
     private func occasionCardContent(_ occasion: WSOccasion) -> some View {
         VStack(alignment: .leading) {
             Text(occasion.name)
@@ -122,7 +113,6 @@ struct OccasionCollectionCarousel: View {
         .padding(.horizontal, 16)
     }
 
-    // MARK: - Collection Card
     private func collectionCardContent(_ collection: WSCollection) -> some View {
         VStack(alignment: .leading) {
             Text("COLLECTION")

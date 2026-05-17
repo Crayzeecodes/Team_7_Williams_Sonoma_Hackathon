@@ -1,15 +1,8 @@
-//
-//  WSService.swift
-//  WSHackathonApp
-//
-//  Fetches data from Supabase using the shared SDK client.
-//
 
 import Foundation
 import CryptoKit
 import Supabase
 
-// MARK: - Internal DTO matching public.products table exactly
 private struct SupabaseProduct: Decodable {
     let id: String
     let skuId: String?
@@ -49,7 +42,6 @@ final class WSService {
             .execute()
             .value
 
-        // Only mark these specific SKUs as deals
         let dealDiscounts: [String: Double] = [
             "FRN-CHAIR-003": 15,
             "FRN-CHAIR-002": 25,
@@ -67,10 +59,8 @@ final class WSService {
                 }
             }
 
-            // Use actual Supabase UUID instead of hashing, so cart foreign keys match
             let productUUID: UUID = UUID(uuidString: product.id) ?? Self.stableUUID(for: product.id)
 
-            // Determine sale info for deal items
             let discountPercent = product.skuId.flatMap { dealDiscounts[$0] }
             let computedSalePrice: Double? = discountPercent.map { round(product.price * (1 - $0 / 100) * 100) / 100 }
             let onSale = discountPercent != nil
@@ -167,11 +157,11 @@ final class WSService {
     }
 
     func addToCart(productId: UUID, quantity: Int, color: String?, size: String?, giftWrapped: Bool) async throws {
-        // POST to Supabase cart_items table in production
+
     }
 
     func addToRegistry(productId: UUID) async throws {
-        // POST to Supabase registry table in production
+
     }
 }
 

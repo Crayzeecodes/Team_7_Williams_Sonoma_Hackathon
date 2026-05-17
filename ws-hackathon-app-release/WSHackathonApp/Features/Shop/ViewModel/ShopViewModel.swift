@@ -1,9 +1,3 @@
-//
-//  ShopViewModel.swift
-//  WSHackathonApp
-//
-//  ViewModel for the Shop tab.
-//
 
 import Foundation
 
@@ -23,11 +17,9 @@ class ShopViewModel {
     var occasions: [WSOccasion] = []
     var collections: [WSCollection] = []
 
-    // MARK: - Filtered Products
     var filteredProducts: [WSProduct] {
         var result = products
 
-        // Search filter
         if !searchText.isEmpty {
             let query = searchText.lowercased()
             result = result.filter {
@@ -37,22 +29,18 @@ class ShopViewModel {
             }
         }
 
-        // Category filter
         if let category = selectedCategory {
             result = result.filter { $0.category == category }
         }
 
-        // Budget filter
         if maxBudget < 10_000 {
             result = result.filter { ($0.salePrice ?? $0.price) <= maxBudget }
         }
 
-        // Brand filter
         if !selectedBrands.isEmpty {
             result = result.filter { selectedBrands.contains($0.brand) }
         }
 
-        // Sort
         switch sortOption {
         case .featured:
             result.sort { $0.isFeatured && !$1.isFeatured }
@@ -93,7 +81,6 @@ class ShopViewModel {
         }
     }
 
-    // MARK: - Data Loading
     func loadData() async {
         isLoading = true
         defer { isLoading = false }
@@ -152,7 +139,6 @@ class ShopViewModel {
         selectedBrands.removeAll()
     }
 
-    // MARK: - Sort Options
     enum SortOption: String, CaseIterable {
         case featured    = "Featured"
         case priceHigh   = "Price: High to Low"

@@ -1,9 +1,3 @@
-//
-//  WSHackathonAppApp.swift
-//  WSHackathonApp
-//
-//  Williams Sonoma iOS App — Phase 1
-//
 
 import SwiftUI
 import Supabase
@@ -29,7 +23,7 @@ struct WSHackathonAppApp: App {
             }
             .preferredColorScheme(.light)
             .task {
-                // Initial check
+
                 if let session = try? await supabase.auth.session {
                     self.isAuthenticated = true
                     await loadUserProfile(userId: session.user.id)
@@ -43,7 +37,7 @@ struct WSHackathonAppApp: App {
                         }
                     } else if [.signedOut, .userDeleted].contains(state.event) {
                         self.isAuthenticated = false
-                        userManager.signOut() // Sync local manager
+                        userManager.signOut()
                     }
                 }
             }
@@ -54,9 +48,8 @@ struct WSHackathonAppApp: App {
         }
     }
 
-    /// Fetches the user row from public.users and populates UserManager
     private func loadUserProfile(userId: UUID) async {
-        // Avoid re-loading if already set to the same user
+
         if userManager.currentUser?.id == userId { return }
 
         do {
@@ -73,7 +66,7 @@ struct WSHackathonAppApp: App {
                 .value
 
             if let row = rows.first {
-                // Split name into first/last for WSUser
+
                 let parts = row.name.split(separator: " ", maxSplits: 1).map(String.init)
                 let firstName = parts.first ?? row.name
                 let lastName = parts.count > 1 ? parts[1] : ""

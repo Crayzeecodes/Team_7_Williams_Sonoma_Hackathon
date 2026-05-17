@@ -1,9 +1,3 @@
-//
-//  ShopView.swift
-//  WSHackathonApp
-//
-//  Main Shop tab matching the screenshot redesign.
-//
 
 import SwiftUI
 
@@ -82,12 +76,10 @@ struct ShopView: View {
         .task { await viewModel.loadData() }
     }
 
-    // MARK: - Toolbar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
 
-            // 2. Wishlist button
             Button(action: { showWishlist = true }) {
                 Image(systemName: wishlistManager.items.isEmpty ? "heart" : "heart.fill")
                     .font(.system(size: 19))
@@ -95,7 +87,6 @@ struct ShopView: View {
             }
             .accessibilityLabel("Wishlist")
 
-            // 4. Profile avatar button
             Button(action: { navManager.showProfile = true }) {
                 Circle()
                     .fill(Color(uiColor: .secondarySystemBackground))
@@ -111,7 +102,6 @@ struct ShopView: View {
         }
     }
 
-    // MARK: - Search Bar
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
@@ -137,7 +127,6 @@ struct ShopView: View {
         .padding(.horizontal, 16)
     }
 
-    // MARK: - Recommended Section
     private var recommendationsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -177,7 +166,6 @@ struct ShopView: View {
         }
     }
 
-    // MARK: - Deals Section
     private var dealsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {

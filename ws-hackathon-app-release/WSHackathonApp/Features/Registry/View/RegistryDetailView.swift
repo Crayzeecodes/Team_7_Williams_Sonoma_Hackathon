@@ -1,11 +1,8 @@
-//
-//  RegistryDetailView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 
 struct RegistryDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: RegistryDetailViewModel
     @State private var isEditingPoll = false
     @State private var isShowingAllSuggestions = false
@@ -68,7 +65,7 @@ struct RegistryDetailView: View {
                     }
                 }
             }
-            
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     viewModel.isPresentingCollaborators = true
@@ -142,6 +139,11 @@ struct RegistryDetailView: View {
         .onDisappear {
             viewModel.disconnect()
         }
+        .onChange(of: viewModel.errorMessage) { _, newValue in
+            if newValue != nil {
+                dismiss()
+            }
+        }
     }
 
     private func header(_ registry: Registry) -> some View {
@@ -152,15 +154,15 @@ struct RegistryDetailView: View {
                     .foregroundStyle(AppColors.secondaryText)
                 Spacer()
             }
-            
+
             Text(registry.name)
                 .font(.system(size: 32, weight: .bold))
                 .foregroundStyle(AppColors.primaryText)
-            
+
             Text("Join code: \(registry.joinCode)")
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(AppColors.accent)
-            
+
             Text(registry.eventDate.formatted(date: .complete, time: .omitted))
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(AppColors.secondaryText)
@@ -362,7 +364,7 @@ struct RegistryDetailView: View {
                         }
                         .padding(16)
                         .registryCardStyle()
-                    }                    
+                    }
                 }
             }
         }

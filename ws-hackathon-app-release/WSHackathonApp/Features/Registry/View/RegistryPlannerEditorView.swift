@@ -1,7 +1,3 @@
-//
-//  RegistryPlannerEditorView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 

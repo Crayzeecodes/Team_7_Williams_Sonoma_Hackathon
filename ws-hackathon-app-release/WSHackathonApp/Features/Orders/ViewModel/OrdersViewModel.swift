@@ -1,7 +1,3 @@
-//
-//  OrdersViewModel.swift
-//  WSHackathonApp
-//
 
 import Foundation
 import SwiftUI
@@ -19,8 +15,7 @@ class OrdersViewModel: ObservableObject {
         errorMessage = nil
         do {
             let allOrders = try await WSOrderService.shared.fetchOrders(userId: userId)
-            
-            // Separate into My Orders (active) and Past Orders (completed)
+
             myOrders = allOrders.filter { ["pending", "paid", "shipped"].contains($0.status) }
             pastOrders = allOrders.filter { ["delivered", "cancelled"].contains($0.status) }
         } catch {

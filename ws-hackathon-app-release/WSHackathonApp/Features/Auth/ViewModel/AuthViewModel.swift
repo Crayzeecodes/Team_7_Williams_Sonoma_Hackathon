@@ -1,7 +1,3 @@
-//
-//  AuthViewModel.swift
-//  WSHackathonApp
-//
 
 import Foundation
 import Combine
@@ -13,85 +9,81 @@ class AuthViewModel: ObservableObject {
     @Published var password = ""
     @Published var errorMessage: String?
     @Published var isLoading = false
-    
+
     struct DBUser: Encodable {
         let id: UUID
         let email: String
         let name: String
-        let password: String // Required by the specific public.users schema provided
+        let password: String
     }
-    
+
     @MainActor
     func login() async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             _ = try await supabase.auth.signIn(email: email, password: password)
-            // Success! The session is handled automatically by the SDK.
+
         } catch {
             errorMessage = "Login failed: \(error.localizedDescription)"
         }
-        
+
         isLoading = false
     }
-    
+
     @MainActor
     func register() async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
-            // 1. Sign up in Supabase Auth
+
             let response = try await supabase.auth.signUp(
                 email: email,
                 password: password,
                 data: ["name": .string(name)]
             )
-            
-            // 2. Sync to public.users table (required for foreign keys)
+
             let user = response.user
             let dbUser = DBUser(
                 id: user.id,
                 email: email,
                 name: name.isEmpty ? "New User" : name,
-                password: password // Included to satisfy the schema's NOT NULL constraint
+                password: password
             )
-            
+
             try await supabase
                 .from("users")
                 .insert(dbUser)
                 .execute()
-            
-            // 3. Force sign in to trigger the `.signedIn` event and update app state
+
             _ = try? await supabase.auth.signIn(email: email, password: password)
-            
-            // Success! Session is handled automatically.
-            
+
         } catch {
             errorMessage = "Signup failed: \(error.localizedDescription)"
         }
-        
+
         isLoading = false
     }
-    
+
     @MainActor
     func resetPassword() async {
         guard !email.isEmpty else {
             errorMessage = "Please enter your email address to reset your password."
             return
         }
-        
+
         isLoading = true
         errorMessage = nil
-        
+
         do {
             try await supabase.auth.resetPasswordForEmail(email)
             errorMessage = "Password reset email sent. Please check your inbox."
         } catch {
             errorMessage = "Failed to send reset email: \(error.localizedDescription)"
         }
-        
+
         isLoading = false
     }
 }

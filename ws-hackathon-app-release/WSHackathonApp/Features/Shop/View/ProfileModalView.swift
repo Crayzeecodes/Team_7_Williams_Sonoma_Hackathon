@@ -1,9 +1,3 @@
-//
-//  ProfileModalView.swift
-//  WSHackathonApp
-//
-//  User profile sheet — full height, no detents.
-//
 
 import SwiftUI
 

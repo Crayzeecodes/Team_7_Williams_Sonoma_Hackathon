@@ -1,7 +1,3 @@
-//
-//  CreateRegistryView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 
@@ -105,7 +101,7 @@ struct CreateRegistryView: View {
             Color(uiColor: .systemBackground).ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 20) {
-                // Header
+
                 HStack {
                     Button {
                         viewModel.goBackPlanner()
@@ -127,7 +123,6 @@ struct CreateRegistryView: View {
 
                     Spacer()
 
-                    // Keeps title centered
                     Color.clear
                         .frame(width: 36, height: 36)
                 }
@@ -182,7 +177,6 @@ struct CreateRegistryView: View {
             .padding(.horizontal, 20)
             .padding(.top, 16)
 
-            // Bottom Buttons
             VStack {
                 Spacer()
                 HStack(spacing: 14) {

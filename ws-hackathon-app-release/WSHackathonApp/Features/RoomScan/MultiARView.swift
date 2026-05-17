@@ -1,20 +1,13 @@
-//
-//  MultiARView.swift
-//  WSHackathonApp
-//
-//  Full-screen AR experience: choose one product at a time,
-//  place it in the scene, take snapshots, save to room.
-//
 
 import SwiftUI
 
 @available(iOS 18.0, *)
 struct MultiARView: View {
     let roomId: UUID
-    
+
     @StateObject private var viewModel = MultiARViewModel()
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var products: [WSProduct] = []
     @State private var placeTrigger = 0
     @State private var snapshotTrigger = 0
@@ -22,22 +15,22 @@ struct MultiARView: View {
     @State private var placedProducts: [WSProduct] = []
     @State private var selectedCategory: String = "All"
     @State private var showSnapshotSaved = false
-    
+
     init(roomId: UUID) {
         self.roomId = roomId
     }
-    
+
     private var categories: [String] {
         var cats = Array(Set(products.map { $0.category })).sorted()
         cats.insert("All", at: 0)
         return cats
     }
-    
+
     private var filteredProducts: [WSProduct] {
         if selectedCategory == "All" { return products }
         return products.filter { $0.category == selectedCategory }
     }
-    
+
     var body: some View {
         ZStack {
             #if targetEnvironment(simulator)
@@ -52,14 +45,13 @@ struct MultiARView: View {
             #else
             MultiARViewContainer(viewModel: viewModel, placeTrigger: $placeTrigger, snapshotTrigger: $snapshotTrigger)
                 .ignoresSafeArea()
-            
-            // Center reticle
+
             if !viewModel.isCoachingActive && viewModel.modelLoadingState != .loading {
                 VStack(spacing: 0) {
                     Circle()
                         .stroke(.white.opacity(0.8), lineWidth: 1.5)
                         .frame(width: 40, height: 40)
-                    
+
                     Rectangle()
                         .fill(.white.opacity(0.5))
                         .frame(width: 1, height: 20)
@@ -67,24 +59,22 @@ struct MultiARView: View {
                 .shadow(color: .black.opacity(0.4), radius: 3)
             }
             #endif
-            
-            // UI Overlay
+
             VStack(spacing: 0) {
                 topBar
                 Spacer()
-                
+
                 if !viewModel.isCoachingActive && !viewModel.planeDetected {
                     hintPill("Move your iPhone to scan the floor")
                 }
                 if viewModel.planeDetected && viewModel.selectedProduct == nil && !showProductPicker {
                     hintPill("Tap \"Choose Product\" below to get started")
                 }
-                
+
                 Spacer()
                 bottomPanel
             }
-            
-            // Loading overlay
+
             if viewModel.modelLoadingState == .loading {
                 Color.black.opacity(0.4).ignoresSafeArea()
                     .allowsHitTesting(false)
@@ -95,8 +85,7 @@ struct MultiARView: View {
                         .foregroundStyle(.white)
                 }
             }
-            
-            // Snapshot saved confirmation
+
             if showSnapshotSaved {
                 VStack {
                     Spacer()
@@ -116,8 +105,7 @@ struct MultiARView: View {
                 .transition(.opacity)
                 .allowsHitTesting(false)
             }
-            
-            // Product picker sheet
+
             if showProductPicker {
                 productPickerOverlay
             }
@@ -134,8 +122,7 @@ struct MultiARView: View {
             saveSnapshotToRoom(snapshot)
         }
     }
-    
-    // MARK: - Save to Room
+
     private func saveSnapshotToRoom(_ image: UIImage) {
         guard let jpegData = image.jpegData(compressionQuality: 0.8) else { return }
         if var room = MyRoomStorage.shared.rooms.first(where: { $0.id == roomId }) {
@@ -147,7 +134,7 @@ struct MultiARView: View {
             withAnimation { showSnapshotSaved = false }
         }
     }
-    
+
     private func saveProductsToRoom() {
         let ids = Array(Set(placedProducts.map { $0.id.uuidString }))
         if var room = MyRoomStorage.shared.rooms.first(where: { $0.id == roomId }) {
@@ -156,8 +143,7 @@ struct MultiARView: View {
             MyRoomStorage.shared.updateRoom(room)
         }
     }
-    
-    // MARK: - Top Bar
+
     private var topBar: some View {
         HStack {
             Button(action: { dismiss() }) {
@@ -168,10 +154,9 @@ struct MultiARView: View {
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
             }
-            
+
             Spacer()
-            
-            // Snapshot button
+
             Button(action: { snapshotTrigger += 1 }) {
                 Image(systemName: "camera.fill")
                     .font(.system(size: 28, weight: .semibold))
@@ -180,12 +165,12 @@ struct MultiARView: View {
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
             }
-            
+
             Spacer()
-            
-            Button(action: { 
+
+            Button(action: {
                 saveProductsToRoom()
-                dismiss() 
+                dismiss()
             }) {
                 Image(systemName: "checkmark")
                     .font(.system(size: 17, weight: .bold))
@@ -198,8 +183,7 @@ struct MultiARView: View {
         .padding(.horizontal, 20)
         .padding(.top, 12)
     }
-    
-    // MARK: - Bottom Panel
+
     private var bottomPanel: some View {
         VStack(spacing: 12) {
             if viewModel.placedCount > 0 {
@@ -207,7 +191,7 @@ struct MultiARView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
-            
+
             if let selected = viewModel.selectedProduct {
                 HStack(spacing: 12) {
                     if let imgURL = selected.primaryImageURL {
@@ -215,7 +199,7 @@ struct MultiARView: View {
                             .frame(width: 50, height: 50)
                             .clipShape(RoundedRectangle(cornerRadius: 25))
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 2) {
                         Text(selected.name)
                             .font(.system(size: 14, weight: .semibold))
@@ -225,9 +209,9 @@ struct MultiARView: View {
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     Button(action: { showProductPicker = true }) {
                         Text("Add")
                             .font(.system(size: 13, weight: .semibold))
@@ -241,7 +225,7 @@ struct MultiARView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                
+
                 Button(action: {
                     placeTrigger += 1
                     placedProducts.append(selected)
@@ -260,7 +244,7 @@ struct MultiARView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .padding(.horizontal, 16)
-                
+
             } else {
                 Button(action: { showProductPicker = true }) {
                     HStack(spacing: 8) {
@@ -287,14 +271,13 @@ struct MultiARView: View {
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }
-    
-    // MARK: - Product Picker Overlay
+
     private var productPickerOverlay: some View {
         ZStack(alignment: .bottom) {
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
                 .onTapGesture { showProductPicker = false }
-            
+
             VStack(spacing: 0) {
                 HStack {
                     Text("Select a Product")
@@ -309,8 +292,7 @@ struct MultiARView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 .padding(.bottom, 8)
-                
-                // Category Filter
+
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(categories, id: \.self) { cat in
@@ -328,7 +310,7 @@ struct MultiARView: View {
                     .padding(.horizontal, 20)
                 }
                 .padding(.bottom, 10)
-                
+
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(filteredProducts) { product in
@@ -347,7 +329,7 @@ struct MultiARView: View {
                                             .frame(width: 56, height: 56)
                                             .overlay(Image(systemName: "photo").foregroundStyle(.tertiary))
                                     }
-                                    
+
                                     VStack(alignment: .leading, spacing: 3) {
                                         Text(product.name)
                                             .font(.system(size: 14, weight: .semibold))
@@ -360,9 +342,9 @@ struct MultiARView: View {
                                             .font(.system(size: 13, weight: .bold))
                                             .foregroundStyle(.primary)
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     if viewModel.selectedProduct?.id == product.id {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(.green)
@@ -392,7 +374,7 @@ struct MultiARView: View {
         .transition(.opacity)
         .animation(.easeInOut(duration: 0.25), value: showProductPicker)
     }
-    
+
     private func hintPill(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 14, weight: .medium))

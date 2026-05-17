@@ -15,18 +15,18 @@ struct SlidingCheckoutButton: View {
             Capsule()
                 .fill(AppColors.alwaysBlack)
                 .frame(height: 64)
-            
+
             Text(title)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(.white.opacity(0.6))
                 .tracking(1.2)
-            
+
             HStack {
                 ZStack {
                     Capsule()
                         .fill(.white)
                         .frame(width: handleSize + offset, height: handleSize)
-                    
+
                     Image(systemName: isPlacingOrder ? "checkmark" : "chevron.right.2")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(AppColors.alwaysBlack)

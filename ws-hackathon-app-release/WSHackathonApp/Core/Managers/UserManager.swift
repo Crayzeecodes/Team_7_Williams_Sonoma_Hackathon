@@ -1,9 +1,3 @@
-//
-//  UserManager.swift
-//  WSHackathonApp
-//
-//  Manages current user state.
-//
 
 import Foundation
 import Supabase

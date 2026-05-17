@@ -1,7 +1,3 @@
-//
-//  RegistrySuggestionsCategoryView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 

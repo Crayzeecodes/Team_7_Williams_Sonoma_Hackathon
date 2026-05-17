@@ -66,7 +66,7 @@ struct RoomScanFlowView: View {
         .toolbar {
             if viewModel.viewState == .results {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { 
+                    Button(action: {
                         viewModel.reset()
                     }) {
                         HStack(spacing: 4) {
@@ -154,7 +154,7 @@ struct RoomScanFlowView: View {
 struct PastAISuggestionsSection: View {
     @State private var records: [RoomScanHistoryRecord] = []
     @State private var isLoading = true
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if !records.isEmpty {
@@ -162,7 +162,7 @@ struct PastAISuggestionsSection: View {
                     .font(.system(size: 18, weight: .bold))
                     .padding(.horizontal, 16)
                     .padding(.top, 24)
-                
+
                 ForEach(records) { record in
                     NavigationLink(destination: RoomScanHistoryDetailWrapper(record: record)) {
                         HStack(spacing: 14) {
@@ -179,7 +179,7 @@ struct PastAISuggestionsSection: View {
                                             .foregroundStyle(.secondary)
                                     )
                             }
-                            
+
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("\(record.detectedStyle) \(record.roomType.capitalized)")
                                     .font(.system(size: 15, weight: .semibold))
@@ -192,9 +192,9 @@ struct PastAISuggestionsSection: View {
                                 .font(.system(size: 12))
                                 .foregroundStyle(.secondary)
                             }
-                            
+
                             Spacer()
-                            
+
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(Color(uiColor: .tertiaryLabel))

@@ -1,9 +1,3 @@
-//
-//  ScannerView.swift
-//  WSHackathonApp
-//
-//  Stub for product barcode scanner.
-//
 
 import SwiftUI
 
@@ -15,13 +9,12 @@ struct ScannerView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 20) {
-                // Viewfinder graphic
+
                 ZStack {
                     RoundedRectangle(cornerRadius: 25)
                         .stroke(Color.white, lineWidth: 2)
                         .frame(width: 260, height: 260)
 
-                    // Corner accent lines
                     Image(systemName: "barcode.viewfinder")
                         .font(.system(size: 80, weight: .ultraLight))
                         .foregroundStyle(.white.opacity(0.3))
@@ -43,7 +36,6 @@ struct ScannerView: View {
                     .padding(.top, 4)
             }
 
-            // Close button top-right
             VStack {
                 HStack {
                     Spacer()

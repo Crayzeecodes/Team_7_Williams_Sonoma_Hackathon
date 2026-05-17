@@ -1,7 +1,3 @@
-//
-//  WSOrder.swift
-//  WSHackathonApp
-//
 
 import Foundation
 
@@ -49,7 +45,6 @@ struct WSOrderItem: Identifiable, Codable, Hashable {
     }
 }
 
-// Combined struct for fetching orders with items
 struct WSOrderWithItems: Identifiable, Codable, Hashable {
     let id: UUID
     let userId: UUID

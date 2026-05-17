@@ -1,19 +1,13 @@
-//
-//  MockData.swift
-//  WSHackathonApp
-//
 
 import Foundation
 
 struct MockData {
 
-    // MARK: - Sample User
     static let sampleUser = WSUser(
         id: UUID(), firstName: "Sarah", lastName: "Mitchell",
         email: "sarah.mitchell@email.com", isKeyRewardsMember: true, rewardPoints: 4250
     )
 
-    // MARK: - Categories
     static let categories: [WSCategory] = [
         WSCategory(id: 1,  name: "Cookware",              icon: "flame",           productCount: 142, imageAsset: nil),
         WSCategory(id: 2,  name: "Knives & Cutlery",      icon: "scissors",        productCount: 89,  imageAsset: nil),
@@ -29,7 +23,6 @@ struct MockData {
         WSCategory(id: 12, name: "Gifts & Registry",      icon: "gift",            productCount: 150, imageAsset: nil),
     ]
 
-    // MARK: - Products
     static let products: [WSProduct] = [
         WSProduct(id: UUID(), name: "Signature Round Dutch Oven, 5.5 Qt.", brand: "Le Creuset", category: "Cookware", subcategory: "Dutch Ovens", price: 399.95, salePrice: nil, imageNames: ["product_dutch_oven"], rating: 4.8, reviewCount: 1243, description: "The iconic Le Creuset Dutch Oven in Williams Sonoma's exclusive colorways. Crafted from enameled cast iron for even heat distribution and superior browning.", specs: ["Material": "Enameled Cast Iron", "Capacity": "5.5 Qt.", "Oven Safe": "Up to 500°F", "Dishwasher Safe": "Yes"], isOnSale: false, isFeatured: true, isNewArrival: false, occasions: ["Holiday Entertaining", "Housewarming Gifts"], collectionName: "Le Creuset Cast Iron", stockCount: 24, giftPackagingAvailable: true, giftPackagingPrice: 12.95, colors: [WSProductColor(name: "Marseille", hex: "#1B4F8A"), WSProductColor(name: "Flame", hex: "#E8471C"), WSProductColor(name: "White", hex: "#F5F3EE")], sizes: ["2 Qt.", "3.5 Qt.", "5.5 Qt.", "7.25 Qt."], createdAt: Date()),
 
@@ -74,12 +67,10 @@ struct MockData {
         WSProduct(id: UUID(), name: "Le Creuset Signature Saucepan, 1.75 Qt.", brand: "Le Creuset", category: "Cookware", subcategory: "Saucepans", price: 219.95, salePrice: nil, imageNames: ["product_saucepan"], rating: 4.6, reviewCount: 389, description: "Versatile enameled cast iron saucepan with a helper handle and tight-fitting lid for simmering and sauce making.", specs: ["Material": "Enameled Cast Iron", "Capacity": "1.75 Qt.", "Oven Safe": "Up to 500°F", "Lid": "Stainless Steel Knob"], isOnSale: false, isFeatured: false, isNewArrival: false, occasions: ["Holiday Entertaining"], collectionName: "Le Creuset Cast Iron", stockCount: 29, giftPackagingAvailable: true, giftPackagingPrice: 12.95, colors: [WSProductColor(name: "Flame", hex: "#E8471C"), WSProductColor(name: "White", hex: "#F5F3EE")], sizes: ["1.75 Qt.", "2.25 Qt.", "3.5 Qt."], createdAt: Date()),
     ]
 
-    // MARK: - Recommendations
     static var recommendations: [WSProduct] {
         Array(products.filter { $0.isFeatured || $0.rating >= 4.6 }.prefix(8))
     }
 
-    // MARK: - Occasions
     static let occasions: [WSOccasion] = [
         WSOccasion(id: UUID(), name: "Holiday Entertaining", subtitle: "Everything for the perfect gathering", backgroundColor: "#8B1A1A", imageAsset: nil, tags: ["Holiday Entertaining"]),
         WSOccasion(id: UUID(), name: "Wedding Registry", subtitle: "Build your dream kitchen together", backgroundColor: "#5C6B5C", imageAsset: nil, tags: ["Wedding Registry"]),
@@ -88,7 +79,6 @@ struct MockData {
         WSOccasion(id: UUID(), name: "Back to Kitchen", subtitle: "Fresh start, fresh recipes", backgroundColor: "#7A6B4A", imageAsset: nil, tags: ["Back to Kitchen"]),
     ]
 
-    // MARK: - Collections
     static let collections: [WSCollection] = [
         WSCollection(id: UUID(), name: "Le Creuset Cast Iron", brand: "Le Creuset", tagline: "Timeless French craftsmanship", imageAsset: nil, productIds: []),
         WSCollection(id: UUID(), name: "All-Clad Stainless", brand: "All-Clad", tagline: "Professional-grade performance", imageAsset: nil, productIds: []),
@@ -97,7 +87,6 @@ struct MockData {
         WSCollection(id: UUID(), name: "Williams Sonoma Signature", brand: "Williams Sonoma", tagline: "Our finest, curated for you", imageAsset: nil, productIds: []),
     ]
 
-    // MARK: - Deals
     static var deals: [WSDeal] {
         products.filter { $0.isOnSale }.map { product in
             WSDeal(id: UUID(), product: product, discountType: "percentage",
@@ -107,7 +96,6 @@ struct MockData {
         }
     }
 
-    // MARK: - Reviews
     static let reviews: [WSReview] = [
         WSReview(id: UUID(), productId: products[0].id, userId: UUID(), userName: "Julia C.", rating: 5, comment: "Absolutely love this Dutch oven! The heat distribution is perfect and the color is stunning.", createdAt: Calendar.current.date(byAdding: .day, value: -5, to: Date()), verifiedPurchase: true),
         WSReview(id: UUID(), productId: products[0].id, userId: UUID(), userName: "Michael R.", rating: 5, comment: "Best kitchen investment I've ever made. Makes incredible soups, stews, and bread.", createdAt: Calendar.current.date(byAdding: .day, value: -12, to: Date()), verifiedPurchase: true),

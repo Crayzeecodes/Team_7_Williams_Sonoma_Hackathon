@@ -1,13 +1,6 @@
-//
-//  RoomScanModels.swift
-//  WSHackathonApp
-//
-//  Data models for the AI Room Scan feature.
-//
 
 import Foundation
 
-// MARK: - Room Scan Preferences
 struct RoomScanPreferences {
     var category: String = ""
     var size: String = ""
@@ -27,7 +20,6 @@ struct RoomScanPreferences {
     }
 }
 
-// MARK: - API Request
 struct RoomAnalyzeRequest: Encodable {
     let images: [String]
     let preferences: RoomScanPreferencesDTO
@@ -46,7 +38,6 @@ struct RoomScanPreferencesDTO: Encodable {
     }
 }
 
-// MARK: - Analysis Result (matches Claude JSON output)
 struct RoomAnalysisResult: Codable {
     let roomType: String
     let detectedStyle: String
@@ -75,7 +66,6 @@ struct RoomAnalysisResult: Codable {
     }
 }
 
-// MARK: - Preference Question Helpers
 enum RoomScanQuestions {
 
     static let categoryOptions = [
@@ -113,7 +103,6 @@ enum RoomScanQuestions {
     ]
 }
 
-// MARK: - Room Scan Error
 enum RoomScanError: LocalizedError {
     case noImages
     case compressionFailed

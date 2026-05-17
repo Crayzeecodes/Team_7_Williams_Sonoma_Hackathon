@@ -1,7 +1,3 @@
-//
-//  OrdersView.swift
-//  WSHackathonApp
-//
 
 import SwiftUI
 

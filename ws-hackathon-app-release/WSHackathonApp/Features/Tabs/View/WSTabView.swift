@@ -1,9 +1,3 @@
-//
-//  WSTabView.swift
-//  WSHackathonApp
-//
-//  Main tab bar: bag.fill, cart.fill, list.bullet, shippingbox.fill
-//
 
 import SwiftUI
 
@@ -69,6 +63,6 @@ struct WSTabView: View {
             .environment(WSCartManager())
             .environment(UserManager())
     } else {
-        // Fallback on earlier versions
+
     }
 }
