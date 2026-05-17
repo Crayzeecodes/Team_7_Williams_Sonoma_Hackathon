@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 18.0, *)
 struct CartView: View {
     @Environment(WSCartManager.self) private var cartManager
     @Environment(NavigationManager.self) private var navManager
@@ -422,8 +423,4 @@ private struct SummaryRow: View {
     }
 }
 
-#Preview {
-    CartView()
-        .environment(NavigationManager())
-        .environment(WSCartManager())
-}
+
