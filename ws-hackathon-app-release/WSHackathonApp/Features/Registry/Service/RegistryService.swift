@@ -210,29 +210,48 @@ final class RegistryService {
 
         let registry = try await loadRegistry(id: registryId)
         let product = try await loadProducts(productIDs: [requestBody.productId]).first
+        let userId = session.user.id.uuidString
+        let quantity = max(1, requestBody.quantity)
+        let price = requestBody.price ?? product?.price ?? 0
+        let productName = requestBody.name ?? product?.name ?? "Registry item"
+        let productImage = requestBody.imageUrl ?? product?.images.first ?? ""
+        var updatedItems = registry.cartItems
 
-        if let existingItem = registry.cartItems.first(where: { $0.productId == requestBody.productId }) {
-            return try await setCartItemQuantity(
-                registryId: registryId,
-                itemId: existingItem.id,
-                quantity: existingItem.quantity + requestBody.quantity
+        if let existingIndex = updatedItems.firstIndex(where: {
+            $0.productId == requestBody.productId &&
+            $0.addedByUserId == userId &&
+            $0.status == .inCart
+        }) {
+            let existingItem = updatedItems[existingIndex]
+            updatedItems[existingIndex] = RegistryCartItem(
+                id: existingItem.id,
+                productId: existingItem.productId,
+                addedByUserId: existingItem.addedByUserId,
+                quantity: existingItem.quantity + quantity,
+                price: price,
+                name: productName,
+                imageUrl: productImage,
+                source: requestBody.source,
+                status: requestBody.status,
+                addedAt: existingItem.addedAt
+            )
+        } else {
+            updatedItems.append(
+                RegistryCartItem(
+                    id: UUID().uuidString,
+                    productId: requestBody.productId,
+                    addedByUserId: userId,
+                    quantity: quantity,
+                    price: price,
+                    name: productName,
+                    imageUrl: productImage,
+                    source: requestBody.source,
+                    status: requestBody.status,
+                    addedAt: Date()
+                )
             )
         }
 
-        let newItem = RegistryCartItem(
-            id: UUID().uuidString,
-            productId: requestBody.productId,
-            addedByUserId: session.user.id.uuidString,
-            quantity: requestBody.quantity,
-            price: requestBody.price ?? product?.price ?? 0,
-            name: requestBody.name ?? product?.name ?? "Product",
-            imageUrl: requestBody.imageUrl ?? product?.images.first ?? "",
-            source: requestBody.source,
-            status: requestBody.status,
-            addedAt: Date()
-        )
-
-        let updatedItems = registry.cartItems + [newItem]
         let updatedBudget = budgetSnapshot(for: registry, cartItems: updatedItems)
 
         try await supabase
@@ -276,6 +295,20 @@ final class RegistryService {
     func removeCartItem(registryId: String, itemId: String) async throws -> CartUpdatePayload {
         let registry = try await loadRegistry(id: registryId)
         let updatedItems = registry.cartItems.filter { $0.id != itemId }
+        let updatedBudget = budgetSnapshot(for: registry, cartItems: updatedItems)
+
+        try await supabase
+            .from("registries")
+            .update(RegistryCartPatch(cartItems: updatedItems, budgetSnapshot: updatedBudget))
+            .eq("id", value: registryId)
+            .execute()
+
+        return CartUpdatePayload(registryId: registryId, cartItems: updatedItems, budgetSnapshot: updatedBudget)
+    }
+
+    func clearCart(registryId: String) async throws -> CartUpdatePayload {
+        let registry = try await loadRegistry(id: registryId)
+        let updatedItems: [RegistryCartItem] = []
         let updatedBudget = budgetSnapshot(for: registry, cartItems: updatedItems)
 
         try await supabase

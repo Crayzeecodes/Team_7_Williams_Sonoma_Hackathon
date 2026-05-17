@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct WSProductSpec: Identifiable {
     let id = UUID()
@@ -25,6 +26,8 @@ let exampleSpecs: [WSProductSpec] = [
 @available(iOS 18.0, *)
 struct ProductDetailView: View {
     let product: WSProduct
+    private let optionCardHeight: CGFloat = 82
+
     @Environment(WishlistManager.self) private var wishlistManager
     @Environment(WSCartManager.self) private var cartManager
     @Environment(NavigationManager.self) private var navManager
@@ -39,9 +42,12 @@ struct ProductDetailView: View {
     @State private var selectedImageIndex: Int = 0
     @State private var showARView = false
     @State private var showShareSheet = false
+    @State private var showAddedToRegistryToast = false
+    @State private var addedRegistryName = ""
     @State private var isWishlisted = false
     @State private var reviews: [WSReview] = []
     @State private var isAddedToCart = false
+    @State private var showingRegistryPicker = false
     
     // For related products
     @State private var viewModel = ShopViewModel()
@@ -80,7 +86,7 @@ struct ProductDetailView: View {
                 Button(action: { isWishlisted.toggle() }) {
                     Image(systemName: isWishlisted ? "heart.fill" : "heart")
                         .font(.system(size: 17))
-                        .foregroundStyle(Color.primary)
+                        .foregroundStyle(isWishlisted ? Color.red : Color.primary)
                         .padding(8)
                         .background(.ultraThinMaterial)
                         .clipShape(Circle())
@@ -99,8 +105,7 @@ struct ProductDetailView: View {
             }
         }
         .sheet(isPresented: $showShareSheet) {
-            // ShareSheet(items: [product.name, product.id.uuidString])
-            Text("Share Sheet coming soon") // Native Share sheet stub
+            ProductShareSheet(activityItems: productShareItems)
         }
         .fullScreenCover(isPresented: $showARView) {
             ARProductView(product: product)
@@ -244,15 +249,13 @@ struct ProductDetailView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .medium))
             }
+            .contentShape(Rectangle())
             .foregroundStyle(Color.primary)
-            .padding(16)
+            .padding(.horizontal, 16)
+            .frame(height: optionCardHeight)
             .background(Color(uiColor: .systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 25))
-            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
-            )
+            .shadow(color: .black.opacity(0.14), radius: 18, x: 0, y: 8)
         }
         .buttonStyle(WSPressButtonStyle())
         .padding(.horizontal, 16)
@@ -276,7 +279,9 @@ struct ProductDetailView: View {
                         .rotationEffect(.degrees(isSpecsExpanded ? 90 : 0))
                         .foregroundStyle(Color.primary)
                 }
-                .padding(16)
+                .contentShape(Rectangle())
+                .padding(.horizontal, 16)
+                .frame(height: optionCardHeight)
             }
             .buttonStyle(.plain)
             
@@ -306,13 +311,10 @@ struct ProductDetailView: View {
                 .padding(.bottom, 16)
             }
         }
+        .frame(minHeight: optionCardHeight, alignment: .top)
         .background(Color(uiColor: .systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 25))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-        .overlay(
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
-        )
+        .shadow(color: .black.opacity(0.14), radius: 18, x: 0, y: 8)
         .padding(.horizontal, 16)
         .padding(.top, 24)
     }
@@ -373,35 +375,42 @@ struct ProductDetailView: View {
 
     // MARK: - 6j. Premium Packaging
     private var premiumPackagingCard: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "giftcard")
-                .font(.system(size: 22, weight: .light))
-                .foregroundStyle(Color.primary)
-                .frame(width: 28)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Premium Packaging")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.primary)
-                Text("Luxury gift-ready packaging included")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.secondary)
+        Button(action: {
+            withAnimation(.spring()) {
+                giftPackaging.toggle()
             }
+        }) {
+            HStack(spacing: 14) {
+                Image(systemName: "giftcard")
+                    .font(.system(size: 22, weight: .light))
+                    .foregroundStyle(Color.primary)
+                    .frame(width: 28)
 
-            Spacer()
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Premium Packaging")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.primary)
+                    Text("Luxury gift-ready packaging included")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.secondary)
+                        .multilineTextAlignment(.leading)
+                }
 
-            Toggle("", isOn: $giftPackaging)
-                .tint(Color.black)
-                .labelsHidden()
+                Spacer()
+
+                Toggle("", isOn: $giftPackaging)
+                    .tint(Color.black)
+                    .labelsHidden()
+                    .allowsHitTesting(false)
+            }
+            .contentShape(Rectangle())
+            .padding(.horizontal, 16)
+            .frame(height: optionCardHeight)
+            .background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
+            .shadow(color: .black.opacity(0.14), radius: 18, x: 0, y: 8)
         }
-        .padding(16)
-        .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 25))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-        .overlay(
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
-        )
+        .buttonStyle(WSPressButtonStyle())
         .padding(.horizontal, 16)
         .padding(.top, 32)
     }
@@ -482,7 +491,7 @@ struct ProductDetailView: View {
 
                 // Add to Registry — filled pill
                 Button(action: {
-                    registryManager.addToRegistry(product, variant: selectedVariant)
+                    showingRegistryPicker = true
                 }) {
                     HStack(spacing: 8) {
                         Image(systemName: "list.bullet.clipboard")
@@ -503,6 +512,43 @@ struct ProductDetailView: View {
             .background(Color(uiColor: .systemBackground))
             .shadow(color: .black.opacity(0.06), radius: 8, y: -2)
         }
+        .sheet(isPresented: $showingRegistryPicker) {
+            RegistryPickerSheet(
+                product: product,
+                variant: selectedVariant,
+                registryManager: registryManager,
+                onAdded: { registryName in
+                    addedRegistryName = registryName
+                    showAddedToRegistryToast = true
+                }
+            )
+            .presentationDetents([.medium, .large])
+        }
+        .alert(isPresented: $showAddedToRegistryToast) {
+            Alert(
+                title: Text("Added to Registry"),
+                message: Text("\(product.name) has been added to \(addedRegistryName)."),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+    }
+
+    private var productShareItems: [Any] {
+        let price = product.salePrice ?? product.price
+        let description = product.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        let shortDescription = description.count > 180
+            ? "\(description.prefix(180))..."
+            : description
+
+        return [
+            """
+            \(product.name)
+            Williams Sonoma
+            $\(String(format: "%.2f", price))
+
+            \(shortDescription)
+            """
+        ]
     }
 
     @ViewBuilder
@@ -524,4 +570,185 @@ struct ProductDetailView: View {
                 .foregroundStyle(Color(uiColor: .tertiaryLabel))
         }
     }
+}
+
+private struct RegistryPickerSheet: View {
+    let product: WSProduct
+    let variant: WSProductColor?
+    let registryManager: RegistryManager
+    
+    var onAdded: ((String) -> Void)?
+    
+    @State private var registries: [Registry] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String? = nil
+    @State private var addingRegistryId: String?
+    @State private var addedRegistryName: String?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack {
+                if isLoading {
+                    ProgressView("Loading registries...")
+                } else if let errorMessage {
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.red)
+                        Text("Failed to load registries")
+                            .font(.headline)
+                        Text(errorMessage)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+                } else if registries.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "gift.circle")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.secondary)
+                        Text("No registries found")
+                            .font(.headline)
+                        Text("Create a registry first to start adding products.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            ForEach(registries) { registry in
+                                Button {
+                                    addProduct(to: registry)
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(registry.name)
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundStyle(Color.primary)
+                                            Text(registry.eventType.title)
+                                                .font(.system(size: 14))
+                                                .foregroundStyle(Color.secondary)
+                                        }
+
+                                        Spacer()
+
+                                        if addedRegistryName == registry.name {
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 17, weight: .bold))
+                                                .foregroundStyle(Color.green)
+                                        } else if addingRegistryId == registry.id {
+                                            ProgressView()
+                                            .controlSize(.small)
+                                        }
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 14)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 3)
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(addingRegistryId != nil || addedRegistryName != nil)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.white.ignoresSafeArea())
+            .navigationTitle("Select Registry")
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                if let addedRegistryName {
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color.green)
+                        Text("Added to \(addedRegistryName)")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Color.primary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.white)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Color.primary)
+                            .frame(width: 36, height: 36)
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .task {
+                do {
+                    registries = try await RegistryService.shared.loadRegistries()
+                    isLoading = false
+                } catch {
+                    errorMessage = error.localizedDescription
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    private func addProduct(to registry: Registry) {
+        guard addingRegistryId == nil, addedRegistryName == nil else { return }
+
+        addingRegistryId = registry.id
+        errorMessage = nil
+
+        Task {
+            do {
+                let request = AddRegistryCartItemRequest(
+                    productId: product.id.uuidString,
+                    quantity: 1,
+                    price: product.salePrice ?? product.price,
+                    name: product.name,
+                    imageUrl: product.primaryImageURL?.absoluteString ?? product.imageNames.first ?? "",
+                    source: .manual,
+                    status: .inCart
+                )
+
+                _ = try await RegistryService.shared.addCartItem(
+                    registryId: registry.id,
+                    requestBody: request
+                )
+
+                registryManager.addToRegistry(product, variant: variant)
+                addedRegistryName = registry.name
+                onAdded?(registry.name)
+
+                try? await Task.sleep(for: .seconds(1.0))
+                dismiss()
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+
+            addingRegistryId = nil
+        }
+    }
+}
+
+private struct ProductShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

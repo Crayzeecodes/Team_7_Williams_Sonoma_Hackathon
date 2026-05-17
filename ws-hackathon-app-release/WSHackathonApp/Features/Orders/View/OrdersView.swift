@@ -19,8 +19,8 @@ struct OrdersView: View {
             VStack(spacing: 0) {
                 // Segmented Control
                 Picker("Orders", selection: $selectedTab) {
-                    Text("My Orders").tag(0)
-                    Text("Past Orders").tag(1)
+                    Text("Upcoming").tag(0)
+                    Text("Past").tag(1)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
@@ -66,11 +66,11 @@ struct OrdersView: View {
                 }
             }
         }
-        .navigationTitle("MY ORDERS")
+        .navigationTitle("My Orders")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("MY ORDERS")
+                Text("My Orders")
                     .font(.system(size: 16, weight: .bold))
                     .tracking(2)
                     .foregroundStyle(Color.primary)

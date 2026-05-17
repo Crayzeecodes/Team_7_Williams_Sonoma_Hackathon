@@ -9,6 +9,7 @@ struct RegistryDetailView: View {
     @StateObject private var viewModel: RegistryDetailViewModel
     @State private var isEditingPoll = false
     @State private var isShowingAllSuggestions = false
+    @State private var showCheckout = false
 
     init(registryID: String) {
         _viewModel = StateObject(wrappedValue: RegistryDetailViewModel(registryID: registryID))
@@ -45,7 +46,7 @@ struct RegistryDetailView: View {
         .safeAreaInset(edge: .bottom) {
             if viewModel.registry != nil {
                 SlidingCheckoutButton {
-                    // Checkout flow can be connected here.
+                    showCheckout = true
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 10)
@@ -92,6 +93,47 @@ struct RegistryDetailView: View {
             RegistrySuggestionsCategoryView(
                 products: viewModel.suggestedProducts,
                 currencySymbol: viewModel.currencySymbol
+            )
+        }
+        .navigationDestination(isPresented: $showCheckout) {
+            CheckoutView(
+                subtotal: viewModel.cartItems.reduce(0) { $0 + ($1.price * Double($1.quantity)) },
+                checkoutItems: viewModel.cartItems.map { item in
+                    WSCartItem(
+                        id: UUID(uuidString: item.id) ?? UUID(),
+                        product: WSProduct(
+                            id: UUID(uuidString: item.productId) ?? UUID(),
+                            name: item.name,
+                            brand: "Williams Sonoma",
+                            category: "Registry",
+                            subcategory: nil,
+                            price: item.price,
+                            salePrice: nil,
+                            imageNames: [item.imageUrl],
+                            rating: 5.0,
+                            reviewCount: 0,
+                            description: "",
+                            specs: [:],
+                            isOnSale: false,
+                            isFeatured: false,
+                            isNewArrival: false,
+                            occasions: [],
+                            collectionName: nil,
+                            stockCount: 10,
+                            giftPackagingAvailable: false,
+                            giftPackagingPrice: nil,
+                            colors: nil,
+                            sizes: nil,
+                            createdAt: Date()
+                        ),
+                        quantity: item.quantity,
+                        selectedColor: nil,
+                        selectedSize: nil,
+                        giftWrapped: false,
+                        giftMessage: nil
+                    )
+                },
+                registryId: viewModel.registryID
             )
         }
         .task {

@@ -3,6 +3,7 @@ import SwiftUI
 struct SlidingCheckoutButton: View {
     @State private var offset: CGFloat = 0
     @State private var isPlacingOrder = false
+    var title: String = "SLIDE TO CHECKOUT"
     let action: () -> Void
 
     private let buttonWidth: CGFloat = UIScreen.main.bounds.width - 32
@@ -15,7 +16,7 @@ struct SlidingCheckoutButton: View {
                 .fill(AppColors.alwaysBlack)
                 .frame(height: 64)
             
-            Text("SLIDE TO CHECKOUT")
+            Text(title)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(.white.opacity(0.6))
                 .tracking(1.2)
