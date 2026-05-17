@@ -27,6 +27,7 @@ struct WSHackathonAppApp: App {
                     AuthView()
                 }
             }
+            .preferredColorScheme(.light)
             .task {
                 // Initial check
                 if let session = try? await supabase.auth.session {

@@ -135,7 +135,8 @@ struct RoomScanHistoryDetailWrapper: View {
         // Fetch the full products from WSService
         do {
             let allProducts = try await WSService.shared.fetchProducts()
-            let matchedProducts = allProducts.filter { record.recommendedProductIds.contains($0.id.uuidString) }
+            let recommendedIdsLower = Set(record.recommendedProductIds.map { $0.lowercased() })
+            let matchedProducts = allProducts.filter { recommendedIdsLower.contains($0.id.uuidString.lowercased()) }
             
             viewModel.analysisResult = result
             viewModel.recommendedProducts = matchedProducts

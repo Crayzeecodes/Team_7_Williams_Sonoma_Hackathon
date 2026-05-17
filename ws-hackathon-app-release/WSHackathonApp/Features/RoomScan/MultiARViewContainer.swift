@@ -115,7 +115,7 @@ struct MultiARViewContainer: UIViewRepresentable {
         }
 
         func placeSelectedModel() {
-            guard let arView = arView, let _ = viewModel.selectedProduct else { return }
+            guard let arView = arView, let selectedProduct = viewModel.selectedProduct else { return }
             
             // Try multiple raycast strategies for reliability
             let screenCenter = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
@@ -147,8 +147,8 @@ struct MultiARViewContainer: UIViewRepresentable {
             Task {
                 let entity: ModelEntity
                 
-                // Try loading the bundled USDZ
-                if let url = Bundle.main.url(forResource: "Sofa_Single", withExtension: "usdz"),
+                // Use the smart product-to-model mapping
+                if let url = ARViewerViewModel.usdzURL(for: selectedProduct),
                    let loadedEntity = try? await ModelEntity(contentsOf: url) {
                     entity = loadedEntity
                 } else {

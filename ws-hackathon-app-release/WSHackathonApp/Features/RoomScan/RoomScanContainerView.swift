@@ -83,7 +83,7 @@ struct RoomScanFlowView: View {
         switch viewModel.viewState {
         case .capturing:   return ""
         case .questioning: return "Preferences"
-        case .analyzing:   return "Analysing"
+        case .analyzing:   return ""
         case .results:     return "Recommended for You"
         case .error:       return "Error"
         }

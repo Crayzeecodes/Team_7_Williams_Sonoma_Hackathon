@@ -25,12 +25,15 @@ struct RoomScanRootView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 
-                // Content
-                if selectedMode == 0 {
-                    RoomScanContainerView()
-                } else {
-                    MyRoomsListView()
+                // Content — no animation on switch to prevent segment shift
+                Group {
+                    if selectedMode == 0 {
+                        RoomScanContainerView()
+                    } else {
+                        MyRoomsListView()
+                    }
                 }
+                .animation(.none, value: selectedMode)
             }
             .navigationTitle("Scan")
             .navigationBarTitleDisplayMode(.large)
