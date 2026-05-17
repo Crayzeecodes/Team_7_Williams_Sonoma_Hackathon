@@ -1,8 +1,3 @@
-//
-//  OrderDetailView.swift
-//  WSHackathonApp
-//
-
 import SwiftUI
 
 struct OrderDetailView: View {
@@ -11,7 +6,6 @@ struct OrderDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // Header Status
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Order Status")
@@ -35,7 +29,6 @@ struct OrderDetailView: View {
                 
                 Divider()
                 
-                // Items
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Items")
                         .font(.system(size: 18, weight: .bold))
@@ -88,7 +81,6 @@ struct OrderDetailView: View {
                 
                 Divider()
                 
-                // Summary
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Order Summary")
                         .font(.system(size: 18, weight: .bold))
@@ -104,8 +96,13 @@ struct OrderDetailView: View {
                         summaryRow(title: "Total", value: String(format: "$%.2f", order.totalAmount), isBold: true)
                     }
                     .padding(16)
-                    .background(Color(uiColor: .secondarySystemBackground))
+                    .background(Color(uiColor: .systemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 25))
+                    .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
+                    )
                     .padding(.horizontal, 16)
                 }
             }

@@ -1,11 +1,3 @@
-//
-//  RoomScanContainerView.swift
-//  WSHackathonApp
-//
-//  Container view managing the Room Scan state machine.
-//  The entry view is shown inline, while the analysis flow is pushed via navigation.
-//
-
 import SwiftUI
 
 @available(iOS 18.0, *)
@@ -17,10 +9,27 @@ struct RoomScanContainerView: View {
         ScrollView {
             VStack(spacing: 0) {
                 RoomScanEntryView(viewModel: viewModel)
-                
-                // Past AI Suggestions Cards
                 PastAISuggestionsSection()
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button(action: {
+                viewModel.proceedToQuestions()
+            }) {
+                Text("ANALYSE MY ROOM")
+                    .font(.system(size: 15, weight: .semibold))
+                    .tracking(1.5)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(viewModel.canAnalyze ? Color.black : Color(uiColor: .tertiaryLabel))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
+            }
+            .disabled(!viewModel.canAnalyze)
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
+            .background(.ultraThinMaterial)
         }
         .navigationDestination(isPresented: Binding(
             get: { viewModel.viewState != .capturing },
@@ -40,7 +49,7 @@ struct RoomScanFlowView: View {
         Group {
             switch viewModel.viewState {
             case .capturing:
-                Color.clear // Fallback
+                Color.clear
             case .questioning:
                 RoomPreferencesView(viewModel: viewModel)
             case .analyzing:
@@ -89,7 +98,6 @@ struct RoomScanFlowView: View {
         }
     }
 
-    // MARK: - Error View
     private func errorView(_ message: String) -> some View {
         VStack(spacing: 20) {
             Spacer()
@@ -142,7 +150,6 @@ struct RoomScanFlowView: View {
     }
 }
 
-// MARK: - Past AI Suggestions Section
 @available(iOS 18.0, *)
 struct PastAISuggestionsSection: View {
     @State private var records: [RoomScanHistoryRecord] = []
@@ -200,8 +207,6 @@ struct PastAISuggestionsSection: View {
                     }
                     .padding(.horizontal, 16)
                 }
-            } else if !isLoading {
-                // Show nothing if no history
             }
         }
         .padding(.bottom, 20)

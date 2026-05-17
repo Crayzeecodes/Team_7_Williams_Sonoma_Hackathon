@@ -1,8 +1,3 @@
-//
-//  RegistryAISuggestionService.swift
-//  WSHackathonApp
-//
-
 import Foundation
 import GoogleGenerativeAI
 
@@ -24,7 +19,7 @@ actor RegistryAISuggestionService {
         let apiKey = Self.getGeminiAPIKey()
         self.apiKey = apiKey
         self.model = GenerativeModel(
-            name: "gemini-2.5-flash",
+            name: "gemini-1.5-flash",
             apiKey: apiKey,
             generationConfig: GenerationConfig(
                 responseMIMEType: "application/json"
@@ -57,20 +52,26 @@ actor RegistryAISuggestionService {
                 .replacingOccurrences(of: "```", with: "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
 
-            guard let jsonData = cleanedText.data(using: .utf8) else {
+            let jsonString = extractJSONObject(from: cleanedText) ?? cleanedText
+            guard let data = jsonString.data(using: .utf8) else {
                 return fallbackProductIDs(for: registry, products: cappedProducts, limit: limit)
             }
 
-            let decoded = try JSONDecoder().decode(SuggestedProductIDsResponse.self, from: jsonData)
-            let availableIDs = Set(cappedProducts.compactMap(\.supabaseId))
+            let decoded = try JSONDecoder().decode(SuggestedProductIDsResponse.self, from: data)
+            let productsByID = Dictionary(uniqueKeysWithValues: cappedProducts.compactMap { p -> (String, RegistryProduct)? in
+                guard let id = p.supabaseId else { return nil }
+                return (id.lowercased(), p)
+            })
+
+            var matchedIDs: [String] = []
             var seenIDs = Set<String>()
 
-            let matchedIDs = decoded.productIDs.filter { productID in
-                guard availableIDs.contains(productID), !seenIDs.contains(productID) else {
-                    return false
+            for rawID in decoded.productIDs {
+                let id = rawID.lowercased()
+                if productsByID[id] != nil && !seenIDs.contains(id) {
+                    seenIDs.insert(id)
+                    matchedIDs.append(id)
                 }
-                seenIDs.insert(productID)
-                return true
             }
 
             if matchedIDs.isEmpty {
@@ -81,6 +82,14 @@ actor RegistryAISuggestionService {
         } catch {
             return fallbackProductIDs(for: registry, products: cappedProducts, limit: limit)
         }
+    }
+
+    private func extractJSONObject(from value: String) -> String? {
+        guard let start = value.firstIndex(of: "{"),
+              let end = value.lastIndex(of: "}") else {
+            return nil
+        }
+        return String(value[start...end])
     }
 }
 

@@ -1,10 +1,3 @@
-//
-//  RoomScanService.swift
-//  WSHackathonApp
-//
-//  Handles API communication directly with Gemini using GoogleGenerativeAI.
-//
-
 import Foundation
 import UIKit
 import GoogleGenerativeAI
@@ -16,7 +9,7 @@ actor RoomScanService {
 
     private init() {
         self.model = GenerativeModel(
-            name: "gemini-2.5-flash",
+            name: "gemini-1.5-flash",
             apiKey: Self.getGeminiAPIKey(),
             generationConfig: GenerationConfig(
                 responseMIMEType: "application/json"
@@ -24,7 +17,6 @@ actor RoomScanService {
         )
     }
 
-    // MARK: - API Key Helper
     nonisolated private static func getGeminiAPIKey() -> String {
         if let path = Bundle.main.path(forResource: ".env", ofType: nil),
            let content = try? String(contentsOfFile: path) {
@@ -37,11 +29,9 @@ actor RoomScanService {
             }
         }
         
-        return "AIzaSyCPDfRlSoRKaK7wyb1t79DZM54YnjNBQus"
+        return "AIzaSyCr_-XV8F9RkYdAZK9WieCFCN9MP5azYbE"
     }
 
-    // MARK: - Image Compression
-    /// Compresses image to max 1024px longest side, JPEG quality 0.7
     @MainActor
     private func compressImage(_ image: UIImage) -> Data? {
         let maxDimension: CGFloat = 1024
@@ -64,7 +54,6 @@ actor RoomScanService {
         return resized?.jpegData(compressionQuality: 0.7)
     }
 
-    // MARK: - Analyze Room
     func analyzeRoom(
         images: [UIImage],
         preferences: RoomScanPreferences
@@ -72,7 +61,6 @@ actor RoomScanService {
 
         guard !images.isEmpty else { throw RoomScanError.noImages }
 
-        // 1. Build the prompt
         let prompt = """
         You are a world-class interior design AI for Williams-Sonoma.
         Analyze the provided room image(s) and user preferences carefully.
@@ -106,7 +94,6 @@ actor RoomScanService {
         }
         """
 
-        // 2. Prepare inputs (text + images)
         var inputParts: [ModelContent.Part] = [.text(prompt)]
         for image in images {
             if let compressedData = await compressImage(image) {
@@ -115,7 +102,6 @@ actor RoomScanService {
         }
         let content = ModelContent(role: "user", parts: inputParts)
 
-        // 3. Generate content directly from Gemini
         let response: GenerateContentResponse
         do {
             response = try await model.generateContent([content])
@@ -128,7 +114,6 @@ actor RoomScanService {
             throw RoomScanError.decodingError
         }
 
-        // 4. Clean JSON string (remove markdown block if present)
         let cleanedText = text
             .replacingOccurrences(of: "```json\n", with: "")
             .replacingOccurrences(of: "```", with: "")
@@ -138,13 +123,11 @@ actor RoomScanService {
             throw RoomScanError.decodingError
         }
 
-        // 5. Decode to RoomAnalysisResult
         do {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             var aiResult = try decoder.decode(RoomAnalysisResult.self, from: jsonData)
             
-            // 6. Fetch products matching recommended categories locally from WSService
             let wsService = await WSService.shared
             let allProducts = try await wsService.fetchProducts()
             let recommendedCategories = aiResult.recommendedCategories
@@ -153,7 +136,6 @@ actor RoomScanService {
                 recommendedCategories.contains(product.category)
             }
             
-            // Limit to 20 for UI performance, just like the backend did
             aiResult.recommendedProducts = Array(matchedProducts.prefix(20))
             
             return aiResult

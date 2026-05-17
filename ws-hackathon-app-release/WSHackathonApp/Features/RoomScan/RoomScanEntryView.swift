@@ -1,10 +1,3 @@
-//
-//  RoomScanEntryView.swift
-//  WSHackathonApp
-//
-//  Camera/photo capture options screen — first step of Room Scan flow.
-//
-
 import SwiftUI
 
 struct RoomScanEntryView: View {
@@ -15,7 +8,6 @@ struct RoomScanEntryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             VStack(spacing: 8) {
                 Image(systemName: "camera.viewfinder")
                     .font(.system(size: 48, weight: .ultraLight))
@@ -37,7 +29,6 @@ struct RoomScanEntryView: View {
 
             Spacer().frame(height: 36)
 
-            // Capture Options
             VStack(spacing: 12) {
                 captureButton(
                     icon: "camera.fill",
@@ -55,7 +46,6 @@ struct RoomScanEntryView: View {
             }
             .padding(.horizontal, 16)
 
-            // Thumbnail Previews
             if !viewModel.capturedImages.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("\(viewModel.capturedImages.count) photo\(viewModel.capturedImages.count == 1 ? "" : "s") selected")
@@ -99,23 +89,6 @@ struct RoomScanEntryView: View {
             }
 
             Spacer()
-
-            // CTA Button
-            Button(action: {
-                viewModel.proceedToQuestions()
-            }) {
-                Text("ANALYSE MY ROOM")
-                    .font(.system(size: 15, weight: .semibold))
-                    .tracking(1.5)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
-                    .background(viewModel.canAnalyze ? Color.black : Color(uiColor: .tertiaryLabel))
-                    .clipShape(RoundedRectangle(cornerRadius: 25))
-            }
-            .disabled(!viewModel.canAnalyze)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
         }
         .fullScreenCover(isPresented: $showCamera) {
             CameraPickerView(capturedImage: $newCameraImage)
@@ -140,7 +113,6 @@ struct RoomScanEntryView: View {
         .animation(.easeInOut(duration: 0.3), value: viewModel.capturedImages.count)
     }
 
-    // MARK: - Capture Option Button
     private func captureButton(icon: String, title: String, subtitle: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 14) {
@@ -150,7 +122,6 @@ struct RoomScanEntryView: View {
                     .frame(width: 44, height: 44)
                     .background(Color(uiColor: .tertiarySystemFill))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)

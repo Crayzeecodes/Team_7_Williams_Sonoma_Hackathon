@@ -1,10 +1,3 @@
-//
-//  CartAIRecommendationService.swift
-//  WSHackathonApp
-//
-//  Uses Gemini to suggest complementary bundle products for cart items.
-//
-
 import Foundation
 import GoogleGenerativeAI
 
@@ -32,7 +25,7 @@ actor CartAIRecommendationService {
         let apiKey = Self.getGeminiAPIKey()
         self.apiKey = apiKey
         self.model = GenerativeModel(
-            name: "gemini-2.5-flash",
+            name: "gemini-1.5-flash",
             apiKey: apiKey,
             generationConfig: GenerationConfig(
                 responseMIMEType: "application/json"
@@ -54,7 +47,6 @@ actor CartAIRecommendationService {
         )
 
         guard !candidates.isEmpty else { return .noMatches }
-
         guard !apiKey.isEmpty else { return .unavailable }
 
         let prompt = buildPrompt(

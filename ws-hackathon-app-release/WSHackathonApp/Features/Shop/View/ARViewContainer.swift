@@ -1,11 +1,3 @@
-//
-//  ARViewContainer.swift
-//  WSHackathonApp
-//
-//  UIViewRepresentable wrapping RealityKit ARView with plane detection,
-//  model placement, and gesture support.
-//
-
 import SwiftUI
 
 #if !targetEnvironment(simulator)
@@ -20,12 +12,10 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero)
 
-        // Configure AR session
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = [.horizontal]
         config.environmentTexturing = .automatic
 
-        // Enable people occlusion if supported
         if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
             config.frameSemantics.insert(.personSegmentationWithDepth)
         }
@@ -33,7 +23,6 @@ struct ARViewContainer: UIViewRepresentable {
         arView.session.delegate = context.coordinator
         arView.session.run(config)
 
-        // Add coaching overlay
         let coachingOverlay = ARCoachingOverlayView()
         coachingOverlay.session = arView.session
         coachingOverlay.goal = .horizontalPlane
@@ -42,7 +31,6 @@ struct ARViewContainer: UIViewRepresentable {
         arView.addSubview(coachingOverlay)
         context.coordinator.coachingOverlay = coachingOverlay
 
-        // Add tap gesture for placement
         let tapGesture = UITapGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handleTap(_:))
@@ -69,7 +57,6 @@ struct ARViewContainer: UIViewRepresentable {
         Coordinator(viewModel: viewModel, modelEntity: modelEntity)
     }
 
-    // MARK: - Coordinator
     class Coordinator: NSObject, ARSessionDelegate, ARCoachingOverlayViewDelegate {
         var viewModel: ARViewerViewModel
         var modelEntity: ModelEntity?
@@ -83,7 +70,6 @@ struct ARViewContainer: UIViewRepresentable {
             self.modelEntity = modelEntity
         }
 
-        // MARK: - ARSessionDelegate
         func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
             for anchor in anchors {
                 if anchor is ARPlaneAnchor {
@@ -107,28 +93,24 @@ struct ARViewContainer: UIViewRepresentable {
             print("AR Session interruption ended")
         }
 
-        // MARK: - ARCoachingOverlayViewDelegate
         func coachingOverlayViewDidDeactivate(_ coachingOverlayView: ARCoachingOverlayView) {
             DispatchQueue.main.async {
                 self.viewModel.isCoachingActive = false
             }
         }
 
-        // MARK: - Tap to Place
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView = arView,
                   let entity = modelEntity else { return }
 
             let location = gesture.location(in: arView)
 
-            // Raycast to find horizontal plane — try multiple strategies for reliability
             var results = arView.raycast(
                 from: location,
                 allowing: .estimatedPlane,
                 alignment: .horizontal
             )
             
-            // Fallback: existing plane geometry
             if results.isEmpty {
                 results = arView.raycast(
                     from: location,
@@ -137,7 +119,6 @@ struct ARViewContainer: UIViewRepresentable {
                 )
             }
             
-            // Fallback: existing plane infinite
             if results.isEmpty {
                 results = arView.raycast(
                     from: location,
@@ -149,40 +130,32 @@ struct ARViewContainer: UIViewRepresentable {
             guard let firstResult = results.first else { return }
 
             if viewModel.placementState == .placed {
-                // Move existing model
                 currentAnchor?.removeFromParent()
             }
 
-            // Create anchor at hit position
             let anchor = AnchorEntity(world: firstResult.worldTransform)
 
-            // Clone the entity for placement
             let clonedEntity = entity.clone(recursive: true)
             clonedEntity.generateCollisionShapes(recursive: true)
 
-            // 1. Calculate the bounds of the raw model
             let bounds = clonedEntity.visualBounds(relativeTo: nil)
             
-            // 2. Fix floating/off-center origins by moving the model so its bottom-center is at (0,0,0)
             clonedEntity.position = SIMD3<Float>(
                 -bounds.center.x,
                 -(bounds.center.y - (bounds.extents.y / 2.0)),
                 -bounds.center.z
             )
             
-            // 3. Create a wrapper entity to act as the new centered pivot
             let wrapper = ModelEntity()
             wrapper.addChild(clonedEntity)
             
-            // 4. Scale the wrapper so the sofa is exactly 2 meters wide
             let maxDimension = max(bounds.extents.x, max(bounds.extents.y, bounds.extents.z))
             if maxDimension > 0 {
                 wrapper.scale = SIMD3<Float>(repeating: 2.0 / maxDimension)
             } else {
-                wrapper.scale = SIMD3<Float>(repeating: 0.002) // Fallback for mm scale
+                wrapper.scale = SIMD3<Float>(repeating: 0.002)
             }
             
-            // 5. Install gestures and add to anchor
             wrapper.generateCollisionShapes(recursive: true)
             arView.installGestures(.all, for: wrapper)
             
@@ -197,7 +170,6 @@ struct ARViewContainer: UIViewRepresentable {
             }
         }
 
-        // MARK: - Reset
         func resetScene() {
             currentAnchor?.removeFromParent()
             currentAnchor = nil
