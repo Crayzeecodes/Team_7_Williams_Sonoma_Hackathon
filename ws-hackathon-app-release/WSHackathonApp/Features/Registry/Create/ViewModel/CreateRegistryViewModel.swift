@@ -24,7 +24,6 @@ final class CreateRegistryViewModel: ObservableObject {
     @Published var eventDate: Date = Date()
     @Published var collaboratorCount: Int = 1
     @Published var plannerAnswers: [RegistryPlannerAnswer] = [
-        .init(question: "What is the primary purpose of this event?", answer: "", answers: [], options: ["Birthday Party", "Wedding", "Anniversary", "Housewarming", "Baby Shower", "Corporate Event", "Other"], allowsMultiple: true),
         .init(question: "How many guests are you expecting?", answer: "", answers: [], options: ["< 10", "10-25", "25-50", "50-100", "100+", "Other"], allowsMultiple: true),
         .init(question: "What is the overall vibe or theme?", answer: "", answers: [], options: ["Modern", "Classic", "Rustic", "Bohemian", "Minimalist", "Colorful", "Other"], allowsMultiple: true),
         .init(question: "Are there any specific product categories you'd like to focus on?", answer: "", answers: [], options: ["Cookware", "Bakeware", "Electrics", "Tabletop", "Kitchen Tools", "Coffee & Tea", "Other"], allowsMultiple: true),
@@ -171,15 +170,19 @@ final class CreateRegistryViewModel: ObservableObject {
             return
         }
 
+        let sanitizedPlannerAnswers = plannerAnswers.filter {
+            $0.question != Self.primaryPurposeQuestion
+        }
+
         let eventDetails = RegistryEventDetails(
-            aiPlannerAnswers: registryType == .event ? plannerAnswers : [],
+            aiPlannerAnswers: registryType == .event ? sanitizedPlannerAnswers : [],
             targetBudget: registryType == .event ? parsedBudget : 0,
             paymentSplitType: .split
         )
 
         let giftingDetails = RegistryGiftingDetails(
             collaboratorCount: registryType == .gifting ? collaboratorCount : 1,
-            aiPlannerAnswers: registryType == .gifting ? plannerAnswers : [],
+            aiPlannerAnswers: registryType == .gifting ? sanitizedPlannerAnswers : [],
             splitType: registryType == .gifting ? selectedSplitType : .split,
             creatorBudget: registryType == .gifting ? (selectedSplitType == .split ? parsedBudget : parsedYourBudget) : 0,
             pooledBudget: registryType == .gifting ? (selectedSplitType == .dutch ? parsedYourBudget : 0) : 0,
@@ -257,6 +260,8 @@ final class CreateRegistryViewModel: ObservableObject {
         let normalized = option.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         return normalized == "other" || normalized == "others"
     }
+
+    private static let primaryPurposeQuestion = "What is the primary purpose of this event?"
 
     private func generateJoinCode(length: Int = 6) -> String {
         let alphabet = Array("ABCDEFGHJKLMNPQRSTUVWXYZ23456789")

@@ -120,18 +120,17 @@ struct RegistryDetailView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
-                    ForEach(viewModel.suggestions) { suggestion in
-                        suggestionCard(suggestion)
+                    ForEach(viewModel.suggestedProducts) { product in
+                        suggestedProductCard(product)
                     }
                 }
             }
         }
     }
 
-    private func suggestionCard(_ suggestion: RegistryAISuggestion) -> some View {
-        let product = suggestion.productRef.product
+    private func suggestedProductCard(_ product: RegistryProduct) -> some View {
         return VStack(alignment: .leading, spacing: 12) {
-            AsyncImage(url: product?.primaryImageURL) { image in
+            AsyncImage(url: product.primaryImageURL) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
                 Rectangle()
@@ -141,42 +140,12 @@ struct RegistryDetailView: View {
             .frame(width: 210, height: 170)
             .clipShape(RoundedRectangle(cornerRadius: 20))
 
-            Text(product?.name ?? "Recommended product")
+            Text(product.name)
                 .font(.system(size: 16, weight: .bold))
                 .lineLimit(2)
 
-            Text("\(viewModel.currencySymbol)\(product?.price ?? 0, specifier: "%.0f")")
+            Text("\(viewModel.currencySymbol)\(product.price, specifier: "%.0f")")
                 .font(.system(size: 15, weight: .semibold))
-
-            VStack(alignment: .leading, spacing: 6) {
-                GeometryReader { proxy in
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(AppColors.surfaceMedium)
-                        .overlay(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(AppColors.accent)
-                                .frame(width: proxy.size.width * suggestion.score)
-                        }
-                }
-                .frame(height: 8)
-
-                Text(suggestion.reasoning)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(AppColors.secondaryText)
-            }
-
-            Button {
-                Task { await viewModel.addSuggestionToCart(suggestion) }
-            } label: {
-                Text("Add to Cart")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(AppColors.alwaysBlack)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-            }
-            .buttonStyle(.plain)
         }
         .padding(14)
         .frame(width: 240, alignment: .leading)

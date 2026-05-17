@@ -10,6 +10,7 @@ import Combine
 final class RegistryDetailViewModel: ObservableObject {
     @Published var registry: Registry?
     @Published var members: [RegistryMemberDisplay] = []
+    @Published var suggestedProducts: [RegistryProduct] = []
     @Published var isLoading: Bool = false
     @Published var isPresentingCollaborators: Bool = false
     @Published var errorMessage: String?
@@ -24,10 +25,6 @@ final class RegistryDetailViewModel: ObservableObject {
         self.registryID = registryID
         self.registryService = .shared
         self.socketService = .shared
-    }
-
-    var suggestions: [RegistryAISuggestion] {
-        registry?.aiSuggestions ?? []
     }
 
     var cartItems: [RegistryCartItem] {
@@ -49,9 +46,11 @@ final class RegistryDetailViewModel: ObservableObject {
         do {
             async let registryTask = registryService.loadRegistry(id: registryID)
             async let membersTask = registryService.loadMembers(registryId: registryID)
-            let (loadedRegistry, loadedMembers) = try await (registryTask, membersTask)
+            async let suggestedProductsTask = registryService.loadSuggestedProducts(registryId: registryID, forceRefresh: false)
+            let (loadedRegistry, loadedMembers, loadedSuggestedProducts) = try await (registryTask, membersTask, suggestedProductsTask)
             registry = loadedRegistry
             members = loadedMembers
+            suggestedProducts = loadedSuggestedProducts
             configureSocket()
         } catch {
             errorMessage = error.localizedDescription
@@ -60,50 +59,10 @@ final class RegistryDetailViewModel: ObservableObject {
 
     func refreshSuggestions() async {
         do {
-            let refreshed = try await registryService.refreshSuggestions(registryId: registryID, forceRefresh: true)
-            guard let registry else { return }
-            self.registry = Registry(
-                supabaseId: registry.supabaseId,
-                adminId: registry.adminId,
-                name: registry.name,
-                joinCode: registry.joinCode,
-                registryType: registry.registryType,
-                creatorName: registry.creatorName,
-                eventType: registry.eventType,
-                eventDate: registry.eventDate,
-                currency: registry.currency,
-                eventDetails: registry.eventDetails,
-                giftingDetails: registry.giftingDetails,
-                members: registry.members,
-                cartItems: registry.cartItems,
-                aiSuggestions: refreshed,
-                polls: registry.polls,
-                budgetSnapshot: registry.budgetSnapshot,
-                shippingAddress: registry.shippingAddress,
-                createdAt: registry.createdAt
-            )
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    func addSuggestionToCart(_ suggestion: RegistryAISuggestion) async {
-        let product = suggestion.productRef.product
-        do {
-            let payload = try await registryService.addCartItem(
-                registryId: registryID,
-                requestBody: AddRegistryCartItemRequest(
-                    productId: suggestion.productId,
-                    quantity: 1,
-                    price: product?.price,
-                    name: product?.name,
-                    imageUrl: product?.images.first,
-                    source: .ai,
-                    status: .inCart
-                )
-            )
-            applyCartUpdate(payload)
-            coinAnimationTrigger += 1
+            async let refreshedRegistry = registryService.loadRegistry(id: registryID)
+            async let refreshedProducts = registryService.loadSuggestedProducts(registryId: registryID, forceRefresh: true)
+            registry = try await refreshedRegistry
+            suggestedProducts = try await refreshedProducts
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -153,9 +112,11 @@ final class RegistryDetailViewModel: ObservableObject {
         do {
             async let registryTask = registryService.loadRegistry(id: registryID)
             async let membersTask = registryService.loadMembers(registryId: registryID)
-            let (loadedRegistry, loadedMembers) = try await (registryTask, membersTask)
+            async let suggestedProductsTask = registryService.loadSuggestedProducts(registryId: registryID, forceRefresh: false)
+            let (loadedRegistry, loadedMembers, loadedSuggestedProducts) = try await (registryTask, membersTask, suggestedProductsTask)
             registry = loadedRegistry
             members = loadedMembers
+            suggestedProducts = loadedSuggestedProducts
         } catch {
             errorMessage = error.localizedDescription
         }

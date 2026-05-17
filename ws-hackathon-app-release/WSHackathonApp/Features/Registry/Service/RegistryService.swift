@@ -25,6 +25,7 @@ enum RegistryServiceError: LocalizedError {
 
 final class RegistryService {
     static let shared = RegistryService()
+    private let aiSuggestionService = RegistryAISuggestionService.shared
 
     private init() {}
 
@@ -155,9 +156,41 @@ final class RegistryService {
         throw RegistryServiceError.serverError("Cart item operations require a Supabase RPC function.")
     }
 
-    // MARK: - AI suggestions (no-op; returned from registry row)
+    // MARK: - AI suggestions
     func refreshSuggestions(registryId: String, forceRefresh: Bool) async throws -> [RegistryAISuggestion] {
-        return []
+        let registry = try await loadRegistry(id: registryId)
+
+        if !forceRefresh, !registry.aiSuggestions.isEmpty {
+            return registry.aiSuggestions
+        }
+
+        let allProducts = try await fetchAllProducts()
+        let suggestedProductIDs = try await aiSuggestionService.suggestProductIDs(
+            for: registry,
+            products: allProducts
+        )
+
+        let suggestions = suggestedProductIDs.enumerated().map { index, productId in
+            RegistryAISuggestion(
+                productId: productId,
+                score: max(0.1, 1 - (Double(index) * 0.08)),
+                reasoning: "",
+                generatedAt: Date()
+            )
+        }
+
+        try await supabase
+            .from("registries")
+            .update(["ai_suggestions": suggestions])
+            .eq("id", value: registryId)
+            .execute()
+
+        return suggestions
+    }
+
+    func loadSuggestedProducts(registryId: String, forceRefresh: Bool) async throws -> [RegistryProduct] {
+        let suggestions = try await refreshSuggestions(registryId: registryId, forceRefresh: forceRefresh)
+        return try await loadProducts(productIDs: suggestions.map(\.productId))
     }
 
     // MARK: - Load members from registry_members table
@@ -166,6 +199,33 @@ final class RegistryService {
             .from("registry_members")
             .select()
             .eq("registry_id", value: registryId)
+            .execute()
+            .value
+    }
+
+    func loadProducts(productIDs: [String]) async throws -> [RegistryProduct] {
+        guard !productIDs.isEmpty else { return [] }
+
+        let idOrder = Dictionary(uniqueKeysWithValues: productIDs.enumerated().map { ($1, $0) })
+        let products: [RegistryProduct] = try await supabase
+            .from("products")
+            .select()
+            .in("id", values: productIDs)
+            .execute()
+            .value
+
+        return products
+            .sorted { lhs, rhs in
+                let lhsIndex = idOrder[lhs.supabaseId ?? ""] ?? .max
+                let rhsIndex = idOrder[rhs.supabaseId ?? ""] ?? .max
+                return lhsIndex < rhsIndex
+            }
+    }
+
+    private func fetchAllProducts() async throws -> [RegistryProduct] {
+        try await supabase
+            .from("products")
+            .select()
             .execute()
             .value
     }
