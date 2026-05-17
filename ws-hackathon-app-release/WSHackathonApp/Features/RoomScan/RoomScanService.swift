@@ -37,7 +37,7 @@ actor RoomScanService {
             }
         }
         
-        return "AIzaSyCr_-XV8F9RkYdAZK9WieCFCN9MP5azYbE"
+        return "AIzaSyCPDfRlSoRKaK7wyb1t79DZM54YnjNBQus"
     }
 
     // MARK: - Image Compression
@@ -121,7 +121,7 @@ actor RoomScanService {
             response = try await model.generateContent([content])
         } catch {
             print("Gemini API error: \(error)")
-            throw RoomScanError.serverError(500)
+            throw RoomScanError.networkError(error)
         }
 
         guard let text = response.text else {

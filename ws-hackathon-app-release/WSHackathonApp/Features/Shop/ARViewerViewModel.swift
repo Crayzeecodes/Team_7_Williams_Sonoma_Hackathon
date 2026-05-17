@@ -42,13 +42,33 @@ class ARViewerViewModel {
     }
 
     // MARK: - USDZ Model Mapping
-    /// For the hackathon demo, all products use the bundled Sofa_Single.usdz model.
-    /// In production, this would map each product to its own USDZ file.
-    private static let demoModelName = "Sofa_Single"
+    /// Maps product names to their respective USDZ model files via keyword matching.
+    /// Products without a specific match fall back to Sofa_Single.
+    private static let defaultModelName = "Sofa_Single"
 
-    /// Returns the bundle URL for the demo USDZ model.
+    /// Keyword-to-model mapping. Order matters — first match wins.
+    private static let modelKeywords: [(keywords: [String], model: String)] = [
+        (["victorian", "barrel", "leather sofa"],       "Sofa_Single"),
+        (["harlow", "mid-century", "mid century"],      "Sofa_03"),
+        (["armchair", "arm chair", "accent chair"],     "Arm_chair__Furniture"),
+        (["espresso", "coffee maker", "barista"],       "Coffee_machine"),
+        (["microwave"],                                 "l4d2_microwave"),
+        (["fridge", "refrigerator"],                    "Not-too-modern_fridge"),
+        (["sofa", "couch", "sectional", "loveseat"],    "Sofa_03"),
+    ]
+
+    /// Returns the bundle URL for the product's matching USDZ model.
     static func usdzURL(for product: WSProduct) -> URL? {
-        return Bundle.main.url(forResource: demoModelName, withExtension: "usdz")
+        let name = product.name.lowercased()
+        for entry in modelKeywords {
+            if entry.keywords.contains(where: { name.contains($0) }) {
+                if let url = Bundle.main.url(forResource: entry.model, withExtension: "usdz") {
+                    return url
+                }
+            }
+        }
+        // Default fallback
+        return Bundle.main.url(forResource: defaultModelName, withExtension: "usdz")
     }
 
     /// Whether this product has an AR model available.

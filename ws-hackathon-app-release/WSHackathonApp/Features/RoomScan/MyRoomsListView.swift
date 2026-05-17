@@ -34,7 +34,7 @@ struct MyRoomsListView: View {
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 60)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 } else {
                     List {
                         VStack(spacing: 8) {

@@ -8,10 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		5E041BBF2FB9020200F31D31 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 5E041BBE2FB9020200F31D31 /* Supabase */; };
+		9CB5921D267DB5DD0221415E /* .env in Resources */ = {isa = PBXBuildFile; fileRef = 6702104B183087828E5BA46E /* .env */; };
 		D0ACD65E2FB99595007AD891 /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = D0ACD65D2FB99595007AD891 /* GoogleGenerativeAI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6702104B183087828E5BA46E /* .env */ = {isa = PBXFileReference; includeInIndex = 1; path = .env; sourceTree = "<group>"; };
 		75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WSHackathonApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -62,6 +64,7 @@
 				75B248F52F7FAA4E00AD2FA7 /* WSHackathonApp */,
 				5E041BBD2FB9020200F31D31 /* Frameworks */,
 				75B248F42F7FAA4E00AD2FA7 /* Products */,
+				6702104B183087828E5BA46E /* .env */,
 			);
 			sourceTree = "<group>";
 		};
@@ -143,6 +146,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9CB5921D267DB5DD0221415E /* .env in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -281,7 +285,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ZCY34KH9VF;
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 33SV33T9PX;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -306,7 +309,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHackathon;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHackatho;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -331,7 +334,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ZCY34KH9VF;
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 33SV33T9PX;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -356,7 +358,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHackathon;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ws.WSHackatho;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
