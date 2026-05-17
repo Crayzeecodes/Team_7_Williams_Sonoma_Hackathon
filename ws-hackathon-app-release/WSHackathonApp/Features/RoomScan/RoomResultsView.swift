@@ -7,11 +7,24 @@
 
 import SwiftUI
 
+enum ResultGalleryState: Identifiable, Equatable {
+    case remote(index: Int)
+    case local(index: Int)
+    
+    var id: String {
+        switch self {
+        case .remote(let idx): return "remote_\(idx)"
+        case .local(let idx): return "local_\(idx)"
+        }
+    }
+}
+
 @available(iOS 18.0, *)
 struct RoomResultsView: View {
     @Bindable var viewModel: RoomScanViewModel
     @Environment(WSCartManager.self) private var cartManager
     @Environment(WishlistManager.self) private var wishlistManager
+    @State private var activeGallery: ResultGalleryState?
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -21,6 +34,43 @@ struct RoomResultsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                // Scanned Images
+                if !viewModel.scannedImageUrls.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(Array(viewModel.scannedImageUrls.enumerated()), id: \.offset) { index, urlStr in
+                                if let url = URL(string: urlStr) {
+                                    CustomAsyncImage(url: url)
+                                        .frame(width: 140, height: 140)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .onTapGesture {
+                                            activeGallery = .remote(index: index)
+                                        }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                    .padding(.top, 8)
+                } else if !viewModel.capturedImages.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(Array(viewModel.capturedImages.enumerated()), id: \.offset) { idx, image in
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 140, height: 140)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .onTapGesture {
+                                        activeGallery = .local(index: idx)
+                                    }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                    .padding(.top, 8)
+                }
+                
                 // AI Insight Card
                 if let result = viewModel.analysisResult {
                     insightCard(result)
@@ -51,6 +101,14 @@ struct RoomResultsView: View {
             }
             .padding(.top, 8)
             .padding(.bottom, 40)
+        }
+        .fullScreenCover(item: $activeGallery) { state in
+            switch state {
+            case .remote(let index):
+                AsyncFullScreenGalleryView(urls: viewModel.scannedImageUrls, initialIndex: index)
+            case .local(let index):
+                UIImageFullScreenGalleryView(images: viewModel.capturedImages, initialIndex: index)
+            }
         }
     }
 
@@ -85,7 +143,7 @@ struct RoomResultsView: View {
             }
         }
         .padding(16)
-        .background(Color(uiColor: .secondarySystemBackground))
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
             RoundedRectangle(cornerRadius: 25)
@@ -118,9 +176,19 @@ struct RoomResultsView: View {
                     .fill(Color(uiColor: .secondarySystemBackground))
                     .aspectRatio(1.0, contentMode: .fit)
                     .overlay(
-                        Image(systemName: "photo")
-                            .font(.system(size: 28, weight: .ultraLight))
-                            .foregroundStyle(Color(uiColor: .tertiaryLabel))
+                        Group {
+                            if let imageURL = product.primaryImageURL {
+                                CustomAsyncImage(url: imageURL)
+                            } else if let assetName = product.imageNames.first, !assetName.hasPrefix("/") {
+                                Image(assetName)
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 28, weight: .ultraLight))
+                                    .foregroundStyle(Color(uiColor: .tertiaryLabel))
+                            }
+                        }
                     )
                     .clipped()
 
@@ -183,7 +251,7 @@ struct RoomResultsView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(Color.black)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
                     }
 
                     Button(action: {
@@ -199,16 +267,19 @@ struct RoomResultsView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 6)
+                            RoundedRectangle(cornerRadius: 25)
                                 .stroke(Color.black, lineWidth: 1)
                         )
                     }
                 }
                 .padding(.top, 6)
+                
+                Spacer(minLength: 0)
             }
             .padding(10)
+            .frame(maxHeight: .infinity, alignment: .top)
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
             RoundedRectangle(cornerRadius: 25)
@@ -246,5 +317,90 @@ struct RoomResultsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)
+    }
+}
+
+struct AsyncFullScreenGalleryView: View {
+    let urls: [String]
+    let initialIndex: Int
+    @State private var selectedIndex: Int
+    @Environment(\.dismiss) private var dismiss
+    
+    init(urls: [String], initialIndex: Int) {
+        self.urls = urls
+        self.initialIndex = initialIndex
+        _selectedIndex = State(initialValue: initialIndex)
+    }
+    
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            TabView(selection: $selectedIndex) {
+                ForEach(urls.indices, id: \.self) { idx in
+                    if let url = URL(string: urls[idx]) {
+                        CustomAsyncImage(url: url)
+                            .scaledToFit()
+                            .tag(idx)
+                    }
+                }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+            
+            VStack {
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding()
+                    }
+                    Spacer()
+                }
+                Spacer()
+            }
+        }
+    }
+}
+
+struct UIImageFullScreenGalleryView: View {
+    let images: [UIImage]
+    let initialIndex: Int
+    @State private var selectedIndex: Int
+    @Environment(\.dismiss) private var dismiss
+    
+    init(images: [UIImage], initialIndex: Int) {
+        self.images = images
+        self.initialIndex = initialIndex
+        _selectedIndex = State(initialValue: initialIndex)
+    }
+    
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            TabView(selection: $selectedIndex) {
+                ForEach(images.indices, id: \.self) { idx in
+                    Image(uiImage: images[idx])
+                        .resizable()
+                        .scaledToFit()
+                        .tag(idx)
+                }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+            
+            VStack {
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding()
+                    }
+                    Spacer()
+                }
+                Spacer()
+            }
+        }
     }
 }

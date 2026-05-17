@@ -33,15 +33,20 @@ struct RoomScanHistoryView: View {
                 }
             } else {
                 List(historyRecords) { record in
-                    NavigationLink(destination: RoomScanHistoryDetailWrapper(record: record)) {
+                    ZStack {
+                        NavigationLink(destination: RoomScanHistoryDetailWrapper(record: record)) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        
                         HStack(spacing: 16) {
                             if let firstImage = record.imageUrls.first, let url = URL(string: firstImage) {
                                 CustomAsyncImage(url: url)
                                     .frame(width: 60, height: 60)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
                             } else {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(uiColor: .secondarySystemBackground))
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(uiColor: .tertiarySystemFill))
                                     .frame(width: 60, height: 60)
                                     .overlay(Image(systemName: "photo").foregroundStyle(.secondary))
                             }
@@ -53,10 +58,22 @@ struct RoomScanHistoryView: View {
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
+                            
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(Color(uiColor: .tertiaryLabel))
                         }
-                        .padding(.vertical, 4)
+                        .padding(14)
+                        .frame(minHeight: 80)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
                     }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
+                .listStyle(.plain)
             }
         }
         .navigationTitle("Scan History")
@@ -122,6 +139,7 @@ struct RoomScanHistoryDetailWrapper: View {
             
             viewModel.analysisResult = result
             viewModel.recommendedProducts = matchedProducts
+            viewModel.scannedImageUrls = record.imageUrls
             viewModel.viewState = .results // Trick the view model
             
             isReady = true

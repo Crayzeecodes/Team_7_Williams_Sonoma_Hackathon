@@ -121,12 +121,30 @@ struct ARViewContainer: UIViewRepresentable {
 
             let location = gesture.location(in: arView)
 
-            // Raycast to find horizontal plane
-            let results = arView.raycast(
+            // Raycast to find horizontal plane — try multiple strategies for reliability
+            var results = arView.raycast(
                 from: location,
                 allowing: .estimatedPlane,
                 alignment: .horizontal
             )
+            
+            // Fallback: existing plane geometry
+            if results.isEmpty {
+                results = arView.raycast(
+                    from: location,
+                    allowing: .existingPlaneGeometry,
+                    alignment: .horizontal
+                )
+            }
+            
+            // Fallback: existing plane infinite
+            if results.isEmpty {
+                results = arView.raycast(
+                    from: location,
+                    allowing: .existingPlaneInfinite,
+                    alignment: .horizontal
+                )
+            }
 
             guard let firstResult = results.first else { return }
 

@@ -21,6 +21,7 @@ class RoomScanViewModel {
     }
 
     var capturedImages: [UIImage] = []
+    var scannedImageUrls: [String] = [] // NEW: For displaying history images
     var preferences = RoomScanPreferences()
     var currentQuestionIndex: Int = 0
     var analysisResult: RoomAnalysisResult? = nil

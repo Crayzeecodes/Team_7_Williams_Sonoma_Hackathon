@@ -111,13 +111,13 @@ struct RoomScanEntryView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 54)
                     .background(viewModel.canAnalyze ? Color.black : Color(uiColor: .tertiaryLabel))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
             }
             .disabled(!viewModel.canAnalyze)
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
-        .sheet(isPresented: $showCamera) {
+        .fullScreenCover(isPresented: $showCamera) {
             CameraPickerView(capturedImage: $newCameraImage)
         }
         .sheet(isPresented: $showPhotoPicker) {
@@ -167,7 +167,8 @@ struct RoomScanEntryView: View {
                     .foregroundStyle(Color(uiColor: .tertiaryLabel))
             }
             .padding(16)
-            .background(Color(uiColor: .secondarySystemBackground))
+            .frame(minHeight: 80)
+            .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 25))
             .overlay(
                 RoundedRectangle(cornerRadius: 25)

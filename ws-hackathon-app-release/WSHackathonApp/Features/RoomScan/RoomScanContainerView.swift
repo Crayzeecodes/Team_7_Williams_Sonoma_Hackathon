@@ -2,7 +2,8 @@
 //  RoomScanContainerView.swift
 //  WSHackathonApp
 //
-//  Container view managing the Room Scan state machine and sub-view transitions.
+//  Container view managing the Room Scan state machine.
+//  The entry view is shown inline, while the analysis flow is pushed via navigation.
 //
 
 import SwiftUI
@@ -13,64 +14,74 @@ struct RoomScanContainerView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            Group {
-                switch viewModel.viewState {
-                case .capturing:
-                    RoomScanEntryView(viewModel: viewModel)
-
-                case .questioning:
-                    RoomPreferencesView(viewModel: viewModel)
-
-                case .analyzing:
-                    RoomAnalysisLoadingView()
-
-                case .results:
-                    RoomResultsView(viewModel: viewModel)
-
-                case .error(let message):
-                    errorView(message)
-                }
+        ScrollView {
+            VStack(spacing: 0) {
+                RoomScanEntryView(viewModel: viewModel)
+                
+                // Past AI Suggestions Cards
+                PastAISuggestionsSection()
             }
-            .navigationTitle(navigationTitle)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                if viewModel.viewState == .capturing {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink(destination: RoomScanHistoryView()) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "clock.arrow.circlepath")
-                                    .font(.system(size: 13, weight: .semibold))
-                                Text("History")
-                                    .font(.system(size: 13, weight: .medium))
-                            }
-                            .foregroundStyle(Color.primary)
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { viewModel.viewState != .capturing },
+            set: { if !$0 { viewModel.reset() } }
+        )) {
+            RoomScanFlowView(viewModel: viewModel)
+        }
+    }
+}
+
+@available(iOS 18.0, *)
+struct RoomScanFlowView: View {
+    @Bindable var viewModel: RoomScanViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        Group {
+            switch viewModel.viewState {
+            case .capturing:
+                Color.clear // Fallback
+            case .questioning:
+                RoomPreferencesView(viewModel: viewModel)
+            case .analyzing:
+                RoomAnalysisLoadingView()
+            case .results:
+                RoomResultsView(viewModel: viewModel)
+            case .error(let message):
+                errorView(message)
+            }
+        }
+        .navigationTitle(navigationTitle)
+        .navigationBarTitleDisplayMode(.large)
+        .navigationBarBackButtonHidden(viewModel.viewState == .analyzing || viewModel.viewState == .results)
+        .toolbar {
+            if viewModel.viewState == .results {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { 
+                        viewModel.reset()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.backward")
+                                .font(.system(size: 17, weight: .semibold))
+                            Text("Back")
+                                .font(.system(size: 17))
                         }
-                    }
-                } else if viewModel.viewState == .results {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(action: { viewModel.reset() }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "arrow.counterclockwise")
-                                    .font(.system(size: 13, weight: .semibold))
-                                Text("New Scan")
-                                    .font(.system(size: 13, weight: .medium))
-                            }
-                            .foregroundStyle(Color.primary)
-                        }
+                        .foregroundStyle(Color.primary)
                     }
                 }
             }
         }
         .interactiveDismissDisabled(viewModel.viewState == .analyzing)
         .onDisappear {
-            viewModel.cancelAnalysis()
+            if viewModel.viewState == .analyzing {
+                viewModel.cancelAnalysis()
+            }
         }
     }
 
     private var navigationTitle: String {
         switch viewModel.viewState {
-        case .capturing:   return "Room Scan"
+        case .capturing:   return ""
         case .questioning: return "Preferences"
         case .analyzing:   return "Analysing"
         case .results:     return "Recommended for You"
@@ -127,6 +138,80 @@ struct RoomScanContainerView: View {
             .padding(.horizontal, 16)
 
             Spacer()
+        }
+    }
+}
+
+// MARK: - Past AI Suggestions Section
+@available(iOS 18.0, *)
+struct PastAISuggestionsSection: View {
+    @State private var records: [RoomScanHistoryRecord] = []
+    @State private var isLoading = true
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if !records.isEmpty {
+                Text("Past AI Suggestions")
+                    .font(.system(size: 18, weight: .bold))
+                    .padding(.horizontal, 16)
+                    .padding(.top, 24)
+                
+                ForEach(records) { record in
+                    NavigationLink(destination: RoomScanHistoryDetailWrapper(record: record)) {
+                        HStack(spacing: 14) {
+                            if let firstImage = record.imageUrls.first, let url = URL(string: firstImage) {
+                                CustomAsyncImage(url: url)
+                                    .frame(width: 64, height: 64)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            } else {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(uiColor: .tertiarySystemFill))
+                                    .frame(width: 64, height: 64)
+                                    .overlay(
+                                        Image(systemName: "sparkles")
+                                            .foregroundStyle(.secondary)
+                                    )
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(record.detectedStyle) \(record.roomType.capitalized)")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                HStack(spacing: 8) {
+                                    Label("\(record.recommendedProductIds.count) products", systemImage: "cube")
+                                    Text("·")
+                                    Text(record.createdAt, style: .date)
+                                }
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(Color(uiColor: .tertiaryLabel))
+                        }
+                        .padding(14)
+                        .frame(minHeight: 80)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    }
+                    .padding(.horizontal, 16)
+                }
+            } else if !isLoading {
+                // Show nothing if no history
+            }
+        }
+        .padding(.bottom, 20)
+        .task {
+            do {
+                records = try await RoomScanHistoryService.shared.fetchHistory()
+            } catch {
+                print("Failed to load AI history: \(error)")
+            }
+            isLoading = false
         }
     }
 }
