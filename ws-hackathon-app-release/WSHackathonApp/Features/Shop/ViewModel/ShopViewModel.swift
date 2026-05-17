@@ -96,24 +96,53 @@ class ShopViewModel {
     // MARK: - Data Loading
     func loadData() async {
         isLoading = true
-        do {
-            async let p = WSService.shared.fetchProducts()
-            async let c = WSService.shared.fetchCategories()
-            async let r = WSService.shared.fetchRecommendations()
-            async let d = WSService.shared.fetchDeals()
-            async let o = WSService.shared.fetchOccasions()
-            async let col = WSService.shared.fetchCollections()
+        defer { isLoading = false }
 
-            products = try await p
-            categories = try await c
-            recommendations = try await r
-            deals = try await d
-            occasions = try await o
-            collections = try await col
+        do {
+            let loadedProducts = try await WSService.shared.fetchProducts()
+            products = loadedProducts
+
+            let grouped = Dictionary(grouping: loadedProducts, by: \.category)
+            categories = grouped.keys.sorted().enumerated().map { index, category in
+                WSCategory(
+                    id: index + 1,
+                    name: category,
+                    icon: Self.iconName(for: category),
+                    productCount: grouped[category]?.count ?? 0,
+                    imageAsset: nil
+                )
+            }
+
+            recommendations = Array(
+                loadedProducts.sorted { lhs, rhs in
+                    if lhs.isFeatured != rhs.isFeatured {
+                        return lhs.isFeatured && !rhs.isFeatured
+                    }
+                    return lhs.rating > rhs.rating
+                }
+                .prefix(8)
+            )
+
+            deals = loadedProducts
+                .filter(\.isOnSale)
+                .map { product in
+                    WSDeal(
+                        id: UUID(),
+                        product: product,
+                        discountType: "percentage",
+                        discountValue: product.salePrice != nil
+                            ? round((1 - product.salePrice! / product.price) * 100)
+                            : 15,
+                        validUntil: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
+                        couponCode: nil
+                    )
+                }
+
+            occasions = try await WSService.shared.fetchOccasions()
+            collections = try await WSService.shared.fetchCollections()
         } catch {
-            print("Failed to load data: \(error)")
+            print("Failed to load shop data: \(error)")
         }
-        isLoading = false
     }
 
     func resetFilters() {
@@ -131,5 +160,18 @@ class ShopViewModel {
         case newest      = "Newest Arrivals"
         case topRated    = "Top Rated"
         case bestSelling = "Best Selling"
+    }
+
+    private static func iconName(for category: String) -> String {
+        let normalized = category.lowercased()
+        if normalized.contains("cookware") { return "flame" }
+        if normalized.contains("knife") || normalized.contains("cutlery") { return "scissors" }
+        if normalized.contains("bake") { return "birthday.cake" }
+        if normalized.contains("electric") { return "bolt.circle" }
+        if normalized.contains("coffee") || normalized.contains("tea") { return "cup.and.saucer" }
+        if normalized.contains("food") { return "bag" }
+        if normalized.contains("outdoor") { return "tree" }
+        if normalized.contains("furniture") || normalized.contains("home") { return "sofa" }
+        return "fork.knife"
     }
 }

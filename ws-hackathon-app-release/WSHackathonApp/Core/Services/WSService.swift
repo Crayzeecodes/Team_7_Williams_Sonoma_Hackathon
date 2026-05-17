@@ -7,18 +7,19 @@
 
 import Foundation
 import CryptoKit
+import Supabase
 
 // MARK: - Internal DTO matching public.products table exactly
 private struct SupabaseProduct: Decodable {
     let id: String
-    let skuId: String
+    let skuId: String?
     let name: String
-    let description: String
+    let description: String?
     let price: Double
-    let images: [String]
-    let category: String
-    let specs: [String]
-    let stars: Double
+    let images: [String]?
+    let category: String?
+    let specs: [String]?
+    let stars: Double?
     let arModelUrl: String?
     let arScale: Double?
     let arPlacementType: String?
@@ -42,9 +43,14 @@ final class WSService {
     private init() {}
 
     func fetchProducts() async throws -> [WSProduct] {
-        let supabaseProducts: [SupabaseProduct] = try await request(path: "/rest/v1/products")
+        let supabaseProducts: [SupabaseProduct] = try await supabase
+            .from("products")
+            .select()
+            .execute()
+            .value
+
         return supabaseProducts.enumerated().map { index, product in
-            let specs: [String: String] = product.specs.reduce(into: [:]) { dict, spec in
+            let specs: [String: String] = (product.specs ?? []).reduce(into: [:]) { dict, spec in
                 let parts = spec.split(separator: ":", maxSplits: 1).map(String.init)
                 if parts.count == 2 {
                     dict[parts[0].trimmingCharacters(in: .whitespaces)] = parts[1].trimmingCharacters(in: .whitespaces)
@@ -55,26 +61,26 @@ final class WSService {
                 id: Self.stableUUID(for: product.id),
                 name: product.name,
                 brand: "Williams Sonoma",
-                category: product.category,
-                subcategory: product.category,
+                category: product.category ?? "General",
+                subcategory: product.category ?? "General",
                 price: product.price,
                 salePrice: nil,
-                imageNames: product.images,
-                rating: product.stars,
+                imageNames: product.images ?? [],
+                rating: product.stars ?? 0,
                 reviewCount: 12 + (index * 5),
-                description: product.description,
+                description: product.description ?? "",
                 specs: specs,
                 isOnSale: false,
                 isFeatured: index < 8,
                 isNewArrival: index % 3 == 0,
-                occasions: Self.occasions(for: product.category),
+                occasions: Self.occasions(for: product.category ?? "General"),
                 collectionName: "Williams Sonoma",
                 stockCount: 25 + (index % 12) * 3,
                 giftPackagingAvailable: true,
                 giftPackagingPrice: 9.95,
                 colors: nil,
                 sizes: nil,
-                createdAt: Calendar.current.date(byAdding: .day, value: -index, to: Date()) ?? Date()
+                createdAt: Self.parseDate(product.createdAt) ?? (Calendar.current.date(byAdding: .day, value: -index, to: Date()) ?? Date())
             )
         }
     }
@@ -184,11 +190,15 @@ private extension WSService {
         }
     }
 
-    func request<T: Decodable>(path: String) async throws -> T {
-        let endpoint = Endpoint(path: path, method: .get)
-        let data: Data = try await APIClient.shared.requestData(endpoint).0
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(T.self, from: data)
+    static func parseDate(_ rawValue: String?) -> Date? {
+        guard let rawValue, !rawValue.isEmpty else { return nil }
+        let iso8601 = ISO8601DateFormatter()
+        iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let parsed = iso8601.date(from: rawValue) {
+            return parsed
+        }
+
+        let fallback = ISO8601DateFormatter()
+        return fallback.date(from: rawValue)
     }
 }
