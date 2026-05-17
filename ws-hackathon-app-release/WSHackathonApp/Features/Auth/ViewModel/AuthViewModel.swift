@@ -74,4 +74,24 @@ class AuthViewModel: ObservableObject {
         
         isLoading = false
     }
+    
+    @MainActor
+    func resetPassword() async {
+        guard !email.isEmpty else {
+            errorMessage = "Please enter your email address to reset your password."
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            try await supabase.auth.resetPasswordForEmail(email)
+            errorMessage = "Password reset email sent. Please check your inbox."
+        } catch {
+            errorMessage = "Failed to send reset email: \(error.localizedDescription)"
+        }
+        
+        isLoading = false
+    }
 }
