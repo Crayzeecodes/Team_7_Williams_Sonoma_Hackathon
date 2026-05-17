@@ -138,32 +138,13 @@ struct ARViewContainer: UIViewRepresentable {
             let clonedEntity = entity.clone(recursive: true)
             clonedEntity.generateCollisionShapes(recursive: true)
 
-            let bounds = clonedEntity.visualBounds(relativeTo: nil)
-
-            clonedEntity.position = SIMD3<Float>(
-                -bounds.center.x,
-                -(bounds.center.y - (bounds.extents.y / 2.0)),
-                -bounds.center.z
-            )
-
-            let wrapper = ModelEntity()
-            wrapper.addChild(clonedEntity)
-
-            let maxDimension = max(bounds.extents.x, max(bounds.extents.y, bounds.extents.z))
-            if maxDimension > 0 {
-                wrapper.scale = SIMD3<Float>(repeating: 2.0 / maxDimension)
-            } else {
-                wrapper.scale = SIMD3<Float>(repeating: 0.002)
-            }
-
-            wrapper.generateCollisionShapes(recursive: true)
-            arView.installGestures(.all, for: wrapper)
-
-            anchor.addChild(wrapper)
+            arView.installGestures(.all, for: clonedEntity)
+            
+            anchor.addChild(clonedEntity)
             arView.scene.addAnchor(anchor)
 
             currentAnchor = anchor
-            placedEntity = wrapper
+            placedEntity = clonedEntity
 
             DispatchQueue.main.async {
                 self.viewModel.onModelPlaced()

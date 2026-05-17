@@ -165,13 +165,19 @@ struct ARProductView: View {
     }
 
     private func coachingHint(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 15, weight: .medium))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
+        HStack(spacing: 8) {
+            Image(systemName: "hand.tap.fill")
+                .font(.system(size: 14, weight: .bold))
+            Text(text.uppercased())
+                .font(.system(size: 15, weight: .bold))
+                .tracking(0.5)
+        }
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(Color.black.opacity(0.85))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .padding(.horizontal, 16)
     }
 
     private var productInfoCard: some View {

@@ -106,7 +106,7 @@ private extension RegistryAISuggestionService {
             }
         }
 
-        return "AIzaSyCr_-XV8F9RkYdAZK9WieCFCN9MP5azYbE"
+        return "YOUR_GEMINI_API_KEY_HERE"
     }
 
     func buildPrompt(for registry: Registry, products: [RegistryProduct], limit: Int) -> String {

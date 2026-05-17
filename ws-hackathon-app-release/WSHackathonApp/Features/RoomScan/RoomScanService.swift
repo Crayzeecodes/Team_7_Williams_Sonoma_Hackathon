@@ -9,11 +9,8 @@ actor RoomScanService {
 
     private init() {
         self.model = GenerativeModel(
-            name: "gemini-1.5-flash",
-            apiKey: Self.getGeminiAPIKey(),
-            generationConfig: GenerationConfig(
-                responseMIMEType: "application/json"
-            )
+            name: "gemini-3.1-flash-lite",
+            apiKey: Self.getGeminiAPIKey()
         )
     }
 
@@ -28,8 +25,8 @@ actor RoomScanService {
                 }
             }
         }
-
-        return "AIzaSyCr_-XV8F9RkYdAZK9WieCFCN9MP5azYbE"
+        
+        return "YOUR_GEMINI_API_KEY_HERE"
     }
 
     @MainActor
@@ -75,7 +72,7 @@ actor RoomScanService {
         1. Identify the room type precisely (kitchen, living_room, dining_room, bedroom, bathroom, outdoor_patio).
         2. Deeply analyze the visual foundation of the room: look at the background colors, the wall paint, any wallpaper patterns, flooring, and dominant textures.
         3. Identify the overall design style (e.g., minimalist, rustic, farmhouse, mid-century modern).
-        4. Reason about what would actually *look good* in this exact space. Why did you choose these categories? Format your reasoning strictly as bullet points (use `- ` for each point, separated by `\n`).
+        4. Reason about what would actually *look good* in this exact space. Why did you choose these categories? Format your reasoning strictly as 2-3 short, concise bullet points (use `- ` for each point, separated by `\n`). Keep it brief and avoid long paragraphs.
         5. Based on this visual harmony, recommend Williams-Sonoma product categories that would genuinely complement the room. Use these exact category names where applicable: Cookware, Knives & Cutlery, Bakeware, Electrics, Kitchen Tools, Coffee & Tea, Outdoor & BBQ, Tabletop & Bar, Food & Pantry, Storage & Organization, Cleaning, Gifts & Registry.
         6. Return structured JSON only — no prose, no markdown, no explanation.
 
