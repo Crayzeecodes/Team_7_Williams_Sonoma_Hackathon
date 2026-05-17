@@ -326,11 +326,21 @@ struct RegistryPollOption: Codable, Hashable {
 }
 
 struct RegistryPoll: Codable, Hashable, Identifiable {
-    var id: String { "\(question)-\(createdAt?.timeIntervalSince1970 ?? 0)" }
+    let pollId: String?
     let question: String
     let options: [RegistryPollOption]
     let status: RegistryPollStatus
     let createdAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case pollId = "id"
+        case question
+        case options
+        case status
+        case createdAt
+    }
+
+    var id: String { pollId ?? "\(question)-\(createdAt?.timeIntervalSince1970 ?? 0)" }
 }
 
 struct RegistryBudgetSnapshot: Codable, Hashable {
@@ -374,12 +384,22 @@ struct RegistryMemberDisplay: Codable, Hashable, Identifiable {
     let joinedAt: Date?
     let contributedBudget: Double
     let role: RegistryMemberRole
+    var name: String?
+    var email: String?
 
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
         case joinedAt = "joined_at"
         case contributedBudget = "contributed_budget"
         case role
+        case name
+        case email
+    }
+
+    var displayName: String {
+        if let name, !name.isEmpty { return name }
+        if let email, !email.isEmpty { return email }
+        return "Member"
     }
 }
 

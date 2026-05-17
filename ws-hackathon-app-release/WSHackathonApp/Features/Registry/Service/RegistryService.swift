@@ -34,12 +34,35 @@ final class RegistryService {
         guard let session = try? await supabase.auth.session else {
             throw RegistryServiceError.notAuthenticated
         }
-        return try await supabase
+
+        let ownedRegistries: [Registry] = try await supabase
             .from("registries")
             .select()
             .eq("admin_id", value: session.user.id.uuidString)
             .execute()
             .value
+
+        let memberships: [RegistryMemberRequest] = try await supabase
+            .from("registry_members")
+            .select()
+            .eq("user_id", value: session.user.id.uuidString)
+            .execute()
+            .value
+
+        let joinedRegistryIDs = memberships
+            .map(\.registryId)
+            .filter { id in !ownedRegistries.contains(where: { $0.id == id }) }
+
+        guard !joinedRegistryIDs.isEmpty else { return ownedRegistries }
+
+        let joinedRegistries: [Registry] = try await supabase
+            .from("registries")
+            .select()
+            .in("id", values: joinedRegistryIDs)
+            .execute()
+            .value
+
+        return ownedRegistries + joinedRegistries
     }
 
     // MARK: - Preview a registry by join code (no auth required)
@@ -99,6 +122,18 @@ final class RegistryService {
             throw RegistryServiceError.invalidResponse
         }
 
+        let existingMemberships: [RegistryMemberRequest] = try await supabase
+            .from("registry_members")
+            .select()
+            .eq("registry_id", value: registryId)
+            .eq("user_id", value: session.user.id.uuidString)
+            .execute()
+            .value
+
+        if !existingMemberships.isEmpty {
+            return try await loadRegistry(id: registryId)
+        }
+
         let memberRequest = RegistryMemberRequest(
             registryId: registryId,
             userId: session.user.id.uuidString,
@@ -112,7 +147,14 @@ final class RegistryService {
             .insert(memberRequest)
             .execute()
 
-        return try await loadRegistry(id: registryId)
+        let registry = try await loadRegistry(id: registryId)
+        if registry.registryType == .gifting,
+           registry.giftingDetails.splitType == .dutch,
+           contributedBudget != nil {
+            return try await updateDutchBudgetAfterJoin(registry: registry, contribution: contributedBudget ?? 0)
+        }
+
+        return registry
     }
 
     // MARK: - Load a single registry by ID
@@ -146,14 +188,193 @@ final class RegistryService {
         return LeaveRegistryResponse(deleted: true, registryId: id, registry: nil)
     }
 
+    func deleteRegistry(id: String) async throws {
+        try await supabase
+            .from("registry_members")
+            .delete()
+            .eq("registry_id", value: id)
+            .execute()
+
+        try await supabase
+            .from("registries")
+            .delete()
+            .eq("id", value: id)
+            .execute()
+    }
+
     // MARK: - Cart item ops (stored as JSONB in registries.cart_items)
     func addCartItem(registryId: String, requestBody: AddRegistryCartItemRequest) async throws -> CartUpdatePayload {
-        // Fetch current registry, append item to JSONB array via RPC or manual update
-        throw RegistryServiceError.serverError("Cart item operations require a Supabase RPC function.")
+        guard let session = try? await supabase.auth.session else {
+            throw RegistryServiceError.notAuthenticated
+        }
+
+        let registry = try await loadRegistry(id: registryId)
+        let product = try await loadProducts(productIDs: [requestBody.productId]).first
+
+        if let existingItem = registry.cartItems.first(where: { $0.productId == requestBody.productId }) {
+            return try await setCartItemQuantity(
+                registryId: registryId,
+                itemId: existingItem.id,
+                quantity: existingItem.quantity + requestBody.quantity
+            )
+        }
+
+        let newItem = RegistryCartItem(
+            id: UUID().uuidString,
+            productId: requestBody.productId,
+            addedByUserId: session.user.id.uuidString,
+            quantity: requestBody.quantity,
+            price: requestBody.price ?? product?.price ?? 0,
+            name: requestBody.name ?? product?.name ?? "Product",
+            imageUrl: requestBody.imageUrl ?? product?.images.first ?? "",
+            source: requestBody.source,
+            status: requestBody.status,
+            addedAt: Date()
+        )
+
+        let updatedItems = registry.cartItems + [newItem]
+        let updatedBudget = budgetSnapshot(for: registry, cartItems: updatedItems)
+
+        try await supabase
+            .from("registries")
+            .update(RegistryCartPatch(cartItems: updatedItems, budgetSnapshot: updatedBudget))
+            .eq("id", value: registryId)
+            .execute()
+
+        return CartUpdatePayload(registryId: registryId, cartItems: updatedItems, budgetSnapshot: updatedBudget)
+    }
+
+    func setCartItemQuantity(registryId: String, itemId: String, quantity: Int) async throws -> CartUpdatePayload {
+        let registry = try await loadRegistry(id: registryId)
+        let updatedItems = registry.cartItems.compactMap { item -> RegistryCartItem? in
+            guard item.id == itemId else { return item }
+            guard quantity > 0 else { return nil }
+            return RegistryCartItem(
+                id: item.id,
+                productId: item.productId,
+                addedByUserId: item.addedByUserId,
+                quantity: quantity,
+                price: item.price,
+                name: item.name,
+                imageUrl: item.imageUrl,
+                source: item.source,
+                status: item.status,
+                addedAt: item.addedAt
+            )
+        }
+        let updatedBudget = budgetSnapshot(for: registry, cartItems: updatedItems)
+
+        try await supabase
+            .from("registries")
+            .update(RegistryCartPatch(cartItems: updatedItems, budgetSnapshot: updatedBudget))
+            .eq("id", value: registryId)
+            .execute()
+
+        return CartUpdatePayload(registryId: registryId, cartItems: updatedItems, budgetSnapshot: updatedBudget)
     }
 
     func removeCartItem(registryId: String, itemId: String) async throws -> CartUpdatePayload {
-        throw RegistryServiceError.serverError("Cart item operations require a Supabase RPC function.")
+        let registry = try await loadRegistry(id: registryId)
+        let updatedItems = registry.cartItems.filter { $0.id != itemId }
+        let updatedBudget = budgetSnapshot(for: registry, cartItems: updatedItems)
+
+        try await supabase
+            .from("registries")
+            .update(RegistryCartPatch(cartItems: updatedItems, budgetSnapshot: updatedBudget))
+            .eq("id", value: registryId)
+            .execute()
+
+        return CartUpdatePayload(registryId: registryId, cartItems: updatedItems, budgetSnapshot: updatedBudget)
+    }
+
+    func createPoll(registryId: String) async throws -> Registry {
+        let registry = try await loadRegistry(id: registryId)
+        guard registry.registryType == .gifting else { return registry }
+        guard !registry.cartItems.isEmpty else {
+            throw RegistryServiceError.serverError("Add products to the shared cart before creating a poll.")
+        }
+        guard registry.polls.isEmpty else {
+            return registry
+        }
+
+        let poll = RegistryPoll(
+            pollId: UUID().uuidString,
+            question: "Which gift should we choose?",
+            options: registry.cartItems.map {
+                RegistryPollOption(productId: $0.productId, votes: [])
+            },
+            status: .active,
+            createdAt: Date()
+        )
+        let updatedPolls = [poll] + registry.polls
+
+        try await supabase
+            .from("registries")
+            .update(RegistryPollsPatch(polls: updatedPolls))
+            .eq("id", value: registryId)
+            .execute()
+
+        return try await loadRegistry(id: registryId)
+    }
+
+    func addProductToPoll(registryId: String, pollId: String, productId: String) async throws -> Registry {
+        let registry = try await loadRegistry(id: registryId)
+        let updatedPolls = registry.polls.map { poll in
+            guard poll.id == pollId else { return poll }
+            guard !poll.options.contains(where: { $0.productId == productId }) else { return poll }
+            return RegistryPoll(
+                pollId: poll.pollId,
+                question: poll.question,
+                options: poll.options + [RegistryPollOption(productId: productId, votes: [])],
+                status: poll.status,
+                createdAt: poll.createdAt
+            )
+        }
+
+        try await supabase
+            .from("registries")
+            .update(RegistryPollsPatch(polls: updatedPolls))
+            .eq("id", value: registryId)
+            .execute()
+
+        return try await loadRegistry(id: registryId)
+    }
+
+    func voteInPoll(registryId: String, pollId: String, productId: String) async throws -> Registry {
+        guard let session = try? await supabase.auth.session else {
+            throw RegistryServiceError.notAuthenticated
+        }
+
+        let registry = try await loadRegistry(id: registryId)
+        let currentUserId = session.user.id.uuidString
+        let updatedPolls = registry.polls.map { poll in
+            guard poll.id == pollId, poll.status == .active else { return poll }
+            let options = poll.options.map { option in
+                let votesWithoutUser = option.votes.filter { $0.userId != currentUserId }
+                if option.productId == productId {
+                    return RegistryPollOption(
+                        productId: option.productId,
+                        votes: votesWithoutUser + [RegistryPollVote(userId: currentUserId)]
+                    )
+                }
+                return RegistryPollOption(productId: option.productId, votes: votesWithoutUser)
+            }
+            return RegistryPoll(
+                pollId: poll.pollId,
+                question: poll.question,
+                options: options,
+                status: poll.status,
+                createdAt: poll.createdAt
+            )
+        }
+
+        try await supabase
+            .from("registries")
+            .update(RegistryPollsPatch(polls: updatedPolls))
+            .eq("id", value: registryId)
+            .execute()
+
+        return try await loadRegistry(id: registryId)
     }
 
     // MARK: - AI suggestions
@@ -193,14 +414,72 @@ final class RegistryService {
         return try await loadProducts(productIDs: suggestions.map(\.productId))
     }
 
+    func updatePlannerAnswers(registryId: String, answers: [RegistryPlannerAnswer]) async throws -> Registry {
+        let registry = try await loadRegistry(id: registryId)
+
+        if registry.registryType == .event {
+            let updatedEventDetails = RegistryEventDetails(
+                aiPlannerAnswers: answers,
+                targetBudget: registry.eventDetails.targetBudget,
+                paymentSplitType: registry.eventDetails.paymentSplitType
+            )
+
+            try await supabase
+                .from("registries")
+                .update(RegistryEventDetailsPatch(eventDetails: updatedEventDetails, aiSuggestions: []))
+                .eq("id", value: registryId)
+                .execute()
+        } else {
+            let updatedGiftingDetails = RegistryGiftingDetails(
+                collaboratorCount: registry.giftingDetails.collaboratorCount,
+                aiPlannerAnswers: answers,
+                splitType: registry.giftingDetails.splitType,
+                creatorBudget: registry.giftingDetails.creatorBudget,
+                pooledBudget: registry.giftingDetails.pooledBudget,
+                budgetStatus: registry.giftingDetails.budgetStatus
+            )
+
+            try await supabase
+                .from("registries")
+                .update(RegistryGiftingDetailsPatch(giftingDetails: updatedGiftingDetails, aiSuggestions: []))
+                .eq("id", value: registryId)
+                .execute()
+        }
+
+        _ = try await refreshSuggestions(registryId: registryId, forceRefresh: true)
+        return try await loadRegistry(id: registryId)
+    }
+
     // MARK: - Load members from registry_members table
     func loadMembers(registryId: String) async throws -> [RegistryMemberDisplay] {
-        return try await supabase
+        var members: [RegistryMemberDisplay] = try await supabase
             .from("registry_members")
             .select()
             .eq("registry_id", value: registryId)
             .execute()
             .value
+
+        let userIDs = members.map(\.userId)
+        guard !userIDs.isEmpty else { return members }
+
+        let users: [RegistryMemberUser] = try await supabase
+            .from("users")
+            .select("id,name,email")
+            .in("id", values: userIDs)
+            .execute()
+            .value
+
+        let usersById = Dictionary(uniqueKeysWithValues: users.map { ($0.id, $0) })
+        members = members.map { member in
+            var copy = member
+            copy.name = usersById[member.userId]?.name
+            copy.email = usersById[member.userId]?.email
+            return copy
+        }
+        return members.sorted { lhs, rhs in
+            if lhs.role != rhs.role { return lhs.role.rawValue < rhs.role.rawValue }
+            return (lhs.joinedAt ?? .distantPast) < (rhs.joinedAt ?? .distantPast)
+        }
     }
 
     func loadProducts(productIDs: [String]) async throws -> [RegistryProduct] {
@@ -229,10 +508,110 @@ final class RegistryService {
             .execute()
             .value
     }
+
+    private func budgetSnapshot(for registry: Registry, cartItems: [RegistryCartItem]) -> RegistryBudgetSnapshot {
+        let spent = cartItems
+            .filter { $0.status == .inCart || $0.status == .purchased }
+            .reduce(0) { $0 + ($1.price * Double($1.quantity)) }
+        let configuredBudget: Double
+        if registry.registryType == .event {
+            configuredBudget = registry.eventDetails.targetBudget
+        } else if registry.giftingDetails.splitType == .dutch {
+            configuredBudget = registry.giftingDetails.pooledBudget
+        } else {
+            configuredBudget = registry.giftingDetails.creatorBudget
+        }
+        let total = max(configuredBudget, registry.budgetSnapshot.totalBudget)
+        return RegistryBudgetSnapshot(
+            totalBudget: total,
+            spentAmount: spent,
+            remainingAmount: max(0, total - spent),
+            lastUpdated: Date()
+        )
+    }
+
+    private func updateDutchBudgetAfterJoin(registry: Registry, contribution: Double) async throws -> Registry {
+        let updatedGiftingDetails = RegistryGiftingDetails(
+            collaboratorCount: registry.giftingDetails.collaboratorCount,
+            aiPlannerAnswers: registry.giftingDetails.aiPlannerAnswers,
+            splitType: registry.giftingDetails.splitType,
+            creatorBudget: registry.giftingDetails.creatorBudget,
+            pooledBudget: registry.giftingDetails.pooledBudget + contribution,
+            budgetStatus: registry.giftingDetails.budgetStatus
+        )
+
+        let spent = registry.cartItems
+            .filter { $0.status == .inCart || $0.status == .purchased }
+            .reduce(0) { $0 + ($1.price * Double($1.quantity)) }
+        let updatedBudget = RegistryBudgetSnapshot(
+            totalBudget: updatedGiftingDetails.pooledBudget,
+            spentAmount: spent,
+            remainingAmount: max(0, updatedGiftingDetails.pooledBudget - spent),
+            lastUpdated: Date()
+        )
+
+        try await supabase
+            .from("registries")
+            .update(RegistryBudgetPatch(giftingDetails: updatedGiftingDetails, budgetSnapshot: updatedBudget))
+            .eq("id", value: registry.id)
+            .execute()
+
+        return try await loadRegistry(id: registry.id)
+    }
 }
 
 struct LeaveRegistryResponse: Codable {
     let deleted: Bool
     let registryId: String?
     let registry: Registry?
+}
+
+private struct RegistryCartPatch: Encodable {
+    let cartItems: [RegistryCartItem]
+    let budgetSnapshot: RegistryBudgetSnapshot
+
+    enum CodingKeys: String, CodingKey {
+        case cartItems = "cart_items"
+        case budgetSnapshot = "budget_snapshot"
+    }
+}
+
+private struct RegistryPollsPatch: Encodable {
+    let polls: [RegistryPoll]
+}
+
+private struct RegistryBudgetPatch: Encodable {
+    let giftingDetails: RegistryGiftingDetails
+    let budgetSnapshot: RegistryBudgetSnapshot
+
+    enum CodingKeys: String, CodingKey {
+        case giftingDetails = "gifting_details"
+        case budgetSnapshot = "budget_snapshot"
+    }
+}
+
+private struct RegistryEventDetailsPatch: Encodable {
+    let eventDetails: RegistryEventDetails
+    let aiSuggestions: [RegistryAISuggestion]
+
+    enum CodingKeys: String, CodingKey {
+        case eventDetails = "event_details"
+        case aiSuggestions = "ai_suggestions"
+    }
+}
+
+private struct RegistryGiftingDetailsPatch: Encodable {
+    let giftingDetails: RegistryGiftingDetails
+    let aiSuggestions: [RegistryAISuggestion]
+
+    enum CodingKeys: String, CodingKey {
+        case giftingDetails = "gifting_details"
+        case aiSuggestions = "ai_suggestions"
+    }
+}
+
+private struct RegistryMemberUser: Decodable {
+    let id: String
+    let name: String?
+    let email: String?
 }

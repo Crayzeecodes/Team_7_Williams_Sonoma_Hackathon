@@ -20,6 +20,7 @@ final class RegistryListViewModel: ObservableObject {
     @Published var joinPreview: RegistryPreview?
     @Published var joinErrorMessage: String?
     @Published var isJoining: Bool = false
+    @Published var isEditing: Bool = false
 
     private let registryService: RegistryService
 
@@ -74,6 +75,15 @@ final class RegistryListViewModel: ObservableObject {
     func prepareCreate(_ type: RegistryType) {
         createRegistryType = type
         isPresentingCreateRegistry = true
+    }
+
+    func deleteRegistry(_ registry: Registry) async {
+        do {
+            try await registryService.deleteRegistry(id: registry.id)
+            registries.removeAll { $0.id == registry.id }
+        } catch {
+            joinErrorMessage = error.localizedDescription
+        }
     }
 
     func previewJoinRegistry() async {

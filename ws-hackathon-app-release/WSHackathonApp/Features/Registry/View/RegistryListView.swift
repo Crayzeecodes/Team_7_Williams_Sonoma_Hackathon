@@ -7,6 +7,7 @@ import SwiftUI
 
 struct RegistryListView: View {
     @StateObject private var viewModel = RegistryListViewModel()
+    @State private var selectedRegistryID: String?
 
     var body: some View {
         NavigationStack {
@@ -20,6 +21,16 @@ struct RegistryListView: View {
             .navigationTitle("Registry")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { selectedRegistryID != nil },
+                    set: { if !$0 { selectedRegistryID = nil } }
+                )
+            ) {
+                if let selectedRegistryID {
+                    RegistryDetailView(registryID: selectedRegistryID)
+                }
+            }
             .sheet(isPresented: $viewModel.isPresentingJoinRegistry) {
                 joinRegistrySheet
                     .presentationDetents([.medium])
@@ -104,26 +115,56 @@ struct RegistryListView: View {
             }
             .padding(24)
             .frame(maxWidth: .infinity)
-            .background(Color(uiColor: .secondarySystemBackground))
+            .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 25))
+            .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 8)
             Spacer()
         } else {
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(viewModel.filteredRegistries) { registry in
-                        NavigationLink(destination: RegistryDetailView(registryID: registry.id)) {
+            List {
+                ForEach(viewModel.filteredRegistries) { registry in
+                    ZStack(alignment: .topTrailing) {
+                        Button {
+                            selectedRegistryID = registry.id
+                        } label: {
                             if registry.registryType == .event {
                                 EventRegistryCard(registry: registry)
                             } else {
                                 GiftingRegistryCard(registry: registry)
                             }
                         }
-                        .buttonStyle(.plain)
+                        .disabled(viewModel.isEditing)
+
+                        if viewModel.isEditing {
+                            Button(role: .destructive) {
+                                Task { await viewModel.deleteRegistry(registry) }
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .font(.system(size: 26))
+                                    .foregroundStyle(.red)
+                                    .background(Circle().fill(Color(uiColor: .systemBackground)))
+                            }
+                            .padding(12)
+                            .accessibilityLabel("Delete \(registry.name)")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            Task { await viewModel.deleteRegistry(registry) }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        .tint(.red)
+                        .accessibilityLabel("Delete \(registry.name)")
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color(uiColor: .systemBackground))
         }
     }
 
@@ -147,18 +188,16 @@ struct RegistryListView: View {
                     .foregroundStyle(Color.primary)
             }
             
-            // Profile circle to match ShopView
-            Button(action: { /* navManager.showProfile = true */ }) {
-                Circle()
-                    .fill(Color(uiColor: .secondarySystemBackground))
-                    .frame(width: 34, height: 34)
-                    .overlay(
-                        Text("WS") // Hardcoded for now or fetch from user manager
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.primary)
-                    )
-                    .overlay(Circle().stroke(Color(uiColor: .separator), lineWidth: 0.5))
+            Button {
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                    viewModel.isEditing.toggle()
+                }
+            } label: {
+                Text(viewModel.isEditing ? "Done" : "Edit")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.primary)
             }
+            .accessibilityLabel(viewModel.isEditing ? "Done editing registries" : "Edit registries")
         }
     }
 
@@ -187,8 +226,9 @@ struct RegistryListView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(uiColor: .secondarySystemBackground))
+                .background(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 25))
+                .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 8)
             }
 
             if viewModel.joinPreview?.registryType == .gifting,
@@ -279,10 +319,6 @@ private struct EventRegistryCard: View {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
         )
     }
 }
@@ -451,10 +487,6 @@ private struct GiftingRegistryCard: View {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
         )
     }
 }
