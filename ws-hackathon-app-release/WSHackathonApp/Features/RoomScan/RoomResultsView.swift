@@ -86,9 +86,9 @@ struct RoomResultsView: View {
         }
         .padding(16)
         .background(Color(uiColor: .secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }
@@ -209,9 +209,9 @@ struct RoomResultsView: View {
             .padding(10)
         }
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }

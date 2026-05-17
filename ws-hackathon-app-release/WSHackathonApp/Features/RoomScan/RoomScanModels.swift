@@ -58,7 +58,7 @@ struct RoomAnalysisResult: Codable {
     let sizePreference: String
     let reasoning: String
     let negativeCategories: [String]
-    let recommendedProducts: [WSProduct]
+    var recommendedProducts: [WSProduct]?
 
     enum CodingKeys: String, CodingKey {
         case roomType = "room_type"

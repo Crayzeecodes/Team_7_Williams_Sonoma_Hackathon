@@ -15,40 +15,26 @@ final class WSService {
     private init() {}
 
     func fetchProducts() async throws -> [WSProduct] {
-        let skus: [RemoteSKU] = try await request(path: "/skus")
-        return skus.enumerated().map { index, sku in
-            let regularPrice = sku.price.regularPrice
-            let salePrice = sku.price.sellingPrice < regularPrice ? sku.price.sellingPrice : nil
-            let category = sku.properties.productType?.normalizedCategoryName ?? "General"
-            let imagePaths = sku.media.images.map(\.path)
-            let brand = sku.properties.brand?.formattedBrandName ?? "Williams Sonoma"
-            let specs = sku.properties.specsDictionary
-
-            return WSProduct(
-                id: Self.stableUUID(for: sku.id),
-                name: sku.name,
-                brand: brand,
-                category: category,
-                subcategory: sku.properties.allProductTypes,
-                price: regularPrice,
-                salePrice: salePrice,
-                imageNames: imagePaths,
-                rating: 4.2 + (Double(index % 7) * 0.1),
-                reviewCount: max(12, 40 + (index * 17)),
-                description: "Availability: \(sku.availability) | Delivery: \(sku.deliveryEstimate)",
-                specs: specs,
-                isOnSale: salePrice != nil,
-                isFeatured: index < 8,
-                isNewArrival: index % 3 == 0,
-                occasions: Self.occasions(for: category),
-                collectionName: brand,
-                stockCount: 25 + (index % 12) * 3,
-                giftPackagingAvailable: true,
-                giftPackagingPrice: 9.95,
-                colors: nil,
-                sizes: nil,
-                createdAt: Calendar.current.date(byAdding: .day, value: -index, to: Date()) ?? Date()
-            )
+        guard let url = URL(string: AppConstants.API.aiBaseURL + "/products") else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        do {
+            return try decoder.decode([WSProduct].self, from: data)
+        } catch {
+            print("❌ Shop Fetch Decoding Error: \(error)")
+            if let str = String(data: data, encoding: .utf8) {
+                print("❌ Raw JSON: \(str.prefix(500))...")
+            }
+            throw error
         }
     }
 

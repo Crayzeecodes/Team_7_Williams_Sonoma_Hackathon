@@ -168,9 +168,9 @@ struct RoomScanEntryView: View {
             }
             .padding(16)
             .background(Color(uiColor: .secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: 25)
                     .stroke(Color(uiColor: .separator), lineWidth: 0.5)
             )
         }

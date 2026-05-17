@@ -28,3 +28,4 @@ Carthage/Build/
 *.p12
 *.mobileprovision
 *.key
+.env
