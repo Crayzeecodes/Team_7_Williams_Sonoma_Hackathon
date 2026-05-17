@@ -210,6 +210,16 @@ async def analyze_room(request: RoomAnalyzeRequest):
                     stars_val = float(doc.get("stars") or 0.0)
                     images_val = doc.get("images") or []
                     
+                    raw_created = doc.get("created_at")
+                    if raw_created:
+                        try:
+                            dt = datetime.fromisoformat(raw_created.replace("Z", "+00:00"))
+                            created_str = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+                        except Exception:
+                            created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    else:
+                        created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
                     mapped_products.append({
                         "id": str(doc.get("id")),
                         "name": doc.get("name", "Unknown Product"),
@@ -233,7 +243,7 @@ async def analyze_room(request: RoomAnalyzeRequest):
                         "gift_packaging_price": None,
                         "colors": [],
                         "sizes": [],
-                        "created_at": doc.get("created_at") or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                        "created_at": created_str
                     })
             except Exception as e:
                 logger.error(f"Supabase query error: {e}")
@@ -272,6 +282,17 @@ async def get_all_products():
                 stars_val = float(doc.get("stars") or 0.0)
                 images_val = doc.get("images") or []
                 
+                raw_created = doc.get("created_at")
+                if raw_created:
+                    try:
+                        # Convert to strict ISO8601 without fractional seconds to appease Swift decoder
+                        dt = datetime.fromisoformat(raw_created.replace("Z", "+00:00"))
+                        created_str = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+                    except Exception:
+                        created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                else:
+                    created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
                 mapped_products.append({
                     "id": str(doc.get("id")),
                     "name": doc.get("name", "Unknown Product"),
@@ -295,7 +316,7 @@ async def get_all_products():
                     "gift_packaging_price": None,
                     "colors": [],
                     "sizes": [],
-                    "created_at": doc.get("created_at") or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    "created_at": created_str
                 })
         except Exception as e:
             logger.error(f"Supabase fetch all products error: {e}")
