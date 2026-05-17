@@ -146,9 +146,9 @@ struct ARProductView: View {
     private var dismissButton: some View {
         Button(action: { dismiss() }) {
             Image(systemName: "xmark")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
-                .padding(10)
+                .padding(12)
                 .background(.ultraThinMaterial)
                 .clipShape(Circle())
         }
@@ -194,19 +194,33 @@ struct ARProductView: View {
     // MARK: - Product Info Card (Bottom)
     private var productInfoCard: some View {
         HStack(spacing: 12) {
+            if let imgURL = product.primaryImageURL {
+                CustomAsyncImage(url: imgURL)
+                    .frame(width: 50, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            } else {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.white.opacity(0.2))
+                    .frame(width: 50, height: 50)
+            }
+            
             VStack(alignment: .leading, spacing: 2) {
                 Text(product.name)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
-
+                
+                Text(product.brand.uppercased())
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.7))
+                
                 if let salePrice = product.salePrice {
                     Text("$\(salePrice, specifier: "%.2f")")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white)
                 } else {
                     Text("$\(product.price, specifier: "%.2f")")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white)
                 }
             }
@@ -214,16 +228,18 @@ struct ARProductView: View {
             Spacer()
 
             // Placement status indicator
-            HStack(spacing: 4) {
-                Circle()
-                    .fill(statusColor)
-                    .frame(width: 8, height: 8)
-                Text(statusText)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.8))
+            VStack(alignment: .trailing, spacing: 4) {
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 8, height: 8)
+                    Text(statusText)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.8))
+                }
             }
         }
-        .padding(16)
+        .padding(12)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .allowsHitTesting(false)

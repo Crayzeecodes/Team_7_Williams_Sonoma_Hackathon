@@ -35,7 +35,7 @@ struct WSTabView: View {
                 }
                 .tag(NavigationManager.AppTab.registry)
 
-            RoomScanContainerView()
+            RoomScanRootView()
                 .tabItem {
                     Label("Scan", systemImage: "viewfinder")
                 }

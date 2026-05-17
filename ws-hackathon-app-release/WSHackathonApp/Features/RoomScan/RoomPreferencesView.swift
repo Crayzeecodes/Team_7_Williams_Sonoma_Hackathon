@@ -14,13 +14,13 @@ struct RoomPreferencesView: View {
         VStack(spacing: 0) {
             // Progress Indicator
             progressBar
-                .padding(.top, 16)
+                .padding(.top, 8)
                 .padding(.horizontal, 16)
 
-            Spacer().frame(height: 40)
+            Spacer().frame(height: 16)
 
             // Question Card
-            VStack(spacing: 24) {
+            VStack(spacing: 8) {
                 Text("Q\(viewModel.currentQuestionIndex + 1) of 4")
                     .font(.system(size: 13, weight: .medium))
                     .tracking(1)
@@ -39,10 +39,10 @@ struct RoomPreferencesView: View {
             }
             .padding(.horizontal, 24)
 
-            Spacer().frame(height: 32)
+            Spacer().frame(height: 24)
 
             // Answer Options
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 ForEach(viewModel.currentQuestionOptions, id: \.self) { option in
                     optionButton(option)
                 }
@@ -100,7 +100,7 @@ struct RoomPreferencesView: View {
                 .disabled(viewModel.currentAnswer.isEmpty)
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(.bottom, 24)
         }
         .animation(.easeInOut(duration: 0.35), value: viewModel.currentQuestionIndex)
     }
