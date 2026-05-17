@@ -13,7 +13,7 @@ enum AppConstants {
         static var imageBasePath: String { APIConfig.baseURL.appendingPathComponent("images").absoluteString + "/" }
         static let timeout: TimeInterval = 30
 
-        // FastAPI backend for AI features
-        static let aiBaseURL = "http://127.0.0.1:8000"
+        // FastAPI backend for AI features (No longer needed)
+        // static let aiBaseURL = "http://127.0.0.1:8000"
     }
 }

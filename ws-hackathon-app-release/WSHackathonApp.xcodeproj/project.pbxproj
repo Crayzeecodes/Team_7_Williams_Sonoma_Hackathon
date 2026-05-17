@@ -13,7 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		59A2E9387E649C8212D39108 /* .env */ = {isa = PBXFileReference; includeInIndex = 1; path = .env; sourceTree = "<group>"; };
+		59A2E9387E649C8212D39108 /* .env */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = .env; sourceTree = "<group>"; };
 		75B248F32F7FAA4E00AD2FA7 /* WSHackathonApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WSHackathonApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -284,7 +284,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = MV45GDP3M3;
+				DEVELOPMENT_TEAM = ZCY34KH9VF;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -333,7 +333,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = MV45GDP3M3;
+				DEVELOPMENT_TEAM = ZCY34KH9VF;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;

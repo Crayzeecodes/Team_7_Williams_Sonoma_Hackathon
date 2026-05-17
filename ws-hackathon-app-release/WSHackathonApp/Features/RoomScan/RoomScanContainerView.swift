@@ -35,7 +35,19 @@ struct RoomScanContainerView: View {
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                if viewModel.viewState == .results {
+                if viewModel.viewState == .capturing {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink(destination: RoomScanHistoryView()) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .font(.system(size: 13, weight: .semibold))
+                                Text("History")
+                                    .font(.system(size: 13, weight: .medium))
+                            }
+                            .foregroundStyle(Color.primary)
+                        }
+                    }
+                } else if viewModel.viewState == .results {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: { viewModel.reset() }) {
                             HStack(spacing: 4) {
