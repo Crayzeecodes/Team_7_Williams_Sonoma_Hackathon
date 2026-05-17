@@ -122,8 +122,8 @@ class RoomScanViewModel {
                     preferences: preferences
                 )
                 self.analysisResult = result
-                // Use the dynamically fetched MongoDB products returned by the backend
-                self.recommendedProducts = result.recommendedProducts
+                // Fallback to empty array if decoding gives nil, though we expect RoomScanService to populate it locally.
+                self.recommendedProducts = result.recommendedProducts ?? []
                 self.viewState = .results
             } catch is CancellationError {
                 // Task was cancelled — do nothing

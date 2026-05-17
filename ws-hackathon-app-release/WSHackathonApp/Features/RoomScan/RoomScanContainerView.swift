@@ -33,16 +33,8 @@ struct RoomScanContainerView: View {
                 }
             }
             .navigationTitle(navigationTitle)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.primary)
-                    }
-                }
-
                 if viewModel.viewState == .results {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: { viewModel.reset() }) {

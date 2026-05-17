@@ -114,9 +114,9 @@ struct OccasionCollectionCarousel: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: 200)
         .background(Color(uiColor: .secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color.black, lineWidth: 1)
         )
         .padding(.horizontal, 16)
@@ -154,9 +154,9 @@ struct OccasionCollectionCarousel: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: 200)
         .background(Color(uiColor: .secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color.black, lineWidth: 1)
         )
         .padding(.horizontal, 16)

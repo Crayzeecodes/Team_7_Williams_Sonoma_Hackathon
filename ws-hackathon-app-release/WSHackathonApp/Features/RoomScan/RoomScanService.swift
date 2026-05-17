@@ -2,7 +2,7 @@
 //  RoomScanService.swift
 //  WSHackathonApp
 //
-//  Handles API communication with the FastAPI room analysis backend.
+//  Handles API communication with the local room analysis backend.
 //
 
 import Foundation
@@ -42,7 +42,6 @@ actor RoomScanService {
 
         guard !images.isEmpty else { throw RoomScanError.noImages }
 
-        // 1. Compress and encode images
         var base64Images: [String] = []
         for image in images {
             guard let data = compressImage(image) else {
@@ -51,13 +50,11 @@ actor RoomScanService {
             base64Images.append(data.base64EncodedString())
         }
 
-        // 2. Build request body
         let requestBody = RoomAnalyzeRequest(
             images: base64Images,
             preferences: preferences.dto
         )
 
-        // 3. Build URL request
         guard let url = URL(string: AppConstants.API.aiBaseURL + "/room/analyze") else {
             throw RoomScanError.invalidURL
         }
@@ -65,12 +62,11 @@ actor RoomScanService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 60 // Claude analysis can take a moment
+        request.timeoutInterval = 60
 
         let encoder = JSONEncoder()
         request.httpBody = try encoder.encode(requestBody)
 
-        // 4. Execute request
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -81,7 +77,6 @@ actor RoomScanService {
             throw RoomScanError.serverError(httpResponse.statusCode)
         }
 
-        // 5. Decode response
         do {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
