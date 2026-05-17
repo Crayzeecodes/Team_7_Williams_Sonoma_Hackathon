@@ -75,15 +75,15 @@ struct WSProductCardGrid: View {
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(uiColor: .systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 25))
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(Color(uiColor: .separator), lineWidth: 0.5)
-            )
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(product.brand) \(product.name), \(product.price) dollars")
         }
+        .background(Color(uiColor: .systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(Color(uiColor: .separator), lineWidth: 0.5)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(product.brand) \(product.name), \(product.price) dollars")
     }
         
     @ViewBuilder

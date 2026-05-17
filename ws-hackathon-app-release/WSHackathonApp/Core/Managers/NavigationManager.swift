@@ -15,12 +15,13 @@ class NavigationManager {
     var showOffers: Bool = false
     var showScanner: Bool = false
     var showAllCategories: Bool = false
+    var showOrders: Bool = false
     var activeOffers: [WSDeal] = []
     var pendingCategoryFilter: String? = nil
     var pendingSearchText: String? = nil
 
     var isAnyModalShowing: Bool {
-        showProfile || showWishlist || showOffers || showScanner || showAllCategories
+        showProfile || showWishlist || showOffers || showScanner || showAllCategories || showOrders
     }
 
     enum AppTab: Int, CaseIterable, Identifiable {

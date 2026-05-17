@@ -27,12 +27,12 @@ struct ProductDetailView: View {
     let product: WSProduct
     @Environment(WishlistManager.self) private var wishlistManager
     @Environment(WSCartManager.self) private var cartManager
+    @Environment(NavigationManager.self) private var navManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var registryManager = RegistryManager()
     @State private var selectedVariant: WSProductColor? = nil
     @State private var selectedSize: String? = nil
-    @State private var quantity: Int = 1
     @State private var giftPackaging: Bool = false
     @State private var isDescriptionExpanded: Bool = false
     @State private var isSpecsExpanded: Bool = false
@@ -41,6 +41,7 @@ struct ProductDetailView: View {
     @State private var showShareSheet = false
     @State private var isWishlisted = false
     @State private var reviews: [WSReview] = []
+    @State private var isAddedToCart = false
     
     // For related products
     @State private var viewModel = ShopViewModel()
@@ -55,7 +56,6 @@ struct ProductDetailView: View {
                     productInfoBlock
                         .padding(.top, 32)
 
-                    quantitySection
                     descriptionSection
                     viewInARButton
                     specsSection
@@ -64,7 +64,7 @@ struct ProductDetailView: View {
                         premiumPackagingCard
                     }
                     
-                    WSProductReviewsView(productId: product.id, reviews: $reviews)
+                    reviewsSection
                     
                     relatedProductsSection
                 }
@@ -110,6 +110,7 @@ struct ProductDetailView: View {
             selectedVariant = product.colors?.first
             selectedSize = product.sizes?.first
             reviews = MockData.reviews.filter { $0.productId == product.id }
+            isAddedToCart = cartManager.items.contains(where: { $0.product.id == product.id })
             Task { await viewModel.loadData() }
         }
         .onChange(of: isWishlisted) { _, newValue in
@@ -178,12 +179,6 @@ struct ProductDetailView: View {
                     Text(String(format: "%.1f", product.rating))
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Color.primary)
-                    Text("(\(product.reviewCount) reviews)")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color.secondary)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.secondary)
                 }
             }
             .buttonStyle(.plain)
@@ -210,43 +205,7 @@ struct ProductDetailView: View {
 
 
 
-    // MARK: - 6g. Quantity
-    private var quantitySection: some View {
-        HStack {
-            Text("Quantity")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color.primary)
-            Spacer()
-            HStack(spacing: 0) {
-                Button(action: { if quantity > 1 { quantity -= 1 } }) {
-                    Image(systemName: "minus")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(quantity > 1 ? Color.primary : Color.secondary)
-                        .frame(width: 44, height: 44)
-                }
-                .disabled(quantity <= 1)
-
-                Text("\(quantity)")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.primary)
-                    .frame(width: 44, alignment: .center)
-
-                Button(action: { quantity += 1 }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 44, height: 44)
-                        .background(Color.black)
-                        .clipShape(Circle())
-                }
-            }
-            .background(Color(uiColor: .secondarySystemBackground))
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(Color(uiColor: .separator), lineWidth: 0.5))
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 32)
-    }
+    // Removed quantitySection
 
     // MARK: - 6h. Description
     private var descriptionSection: some View {
@@ -287,11 +246,12 @@ struct ProductDetailView: View {
             }
             .foregroundStyle(Color.primary)
             .padding(16)
-            .background(Color(uiColor: .secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
+            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(uiColor: .separator), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: 25)
+                    .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
             )
         }
         .buttonStyle(WSPressButtonStyle())
@@ -301,38 +261,113 @@ struct ProductDetailView: View {
     
     // MARK: - 6i. Specs
     private var specsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Specifications")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(Color.primary)
-                .padding(.horizontal, 16)
-
-            VStack(spacing: 0) {
-                let specs = product.productSpecs.isEmpty ? exampleSpecs : product.productSpecs
-                ForEach(Array(specs.enumerated()), id: \.element.id) { index, spec in
-                    HStack(alignment: .top, spacing: 12) {
-                        Text(spec.label)
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color.secondary)
-                            .frame(width: 130, alignment: .leading)
-                        Text(spec.value)
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color.primary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(
-                        Color(uiColor: index.isMultiple(of: 2)
-                              ? .systemBackground
-                              : .secondarySystemBackground)
-                    )
+        VStack(spacing: 0) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) { isSpecsExpanded.toggle() }
+            }) {
+                HStack {
+                    Text("Specifications")
+                        .font(.system(size: 15, weight: .semibold))
+                        .tracking(0.5)
+                        .foregroundStyle(Color.primary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .rotationEffect(.degrees(isSpecsExpanded ? 90 : 0))
+                        .foregroundStyle(Color.primary)
                 }
+                .padding(16)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(uiColor: .separator), lineWidth: 0.5))
-            .padding(.horizontal, 16)
+            .buttonStyle(.plain)
+            
+            if isSpecsExpanded {
+                VStack(spacing: 0) {
+                    let specs = product.productSpecs.isEmpty ? exampleSpecs : product.productSpecs
+                    ForEach(Array(specs.enumerated()), id: \.element.id) { index, spec in
+                        HStack(alignment: .top, spacing: 12) {
+                            Text(spec.label)
+                                .font(.system(size: 14))
+                                .foregroundStyle(Color.secondary)
+                                .frame(width: 120, alignment: .leading) // Adjusted width slightly for better proportion
+                            Text(spec.value)
+                                .font(.system(size: 14))
+                                .foregroundStyle(Color.primary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 8)
+                        .background(
+                            Color(uiColor: index.isMultiple(of: 2) ? .clear : .secondarySystemBackground)
+                        )
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(.horizontal, 8)
+                .padding(.bottom, 16)
+            }
         }
+        .background(Color(uiColor: .systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, 24)
+    }
+
+    // MARK: - 6k. Customer Reviews
+    private var reviewsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("CUSTOMER REVIEWS")
+                .font(.system(size: 11, weight: .semibold))
+                .tracking(1)
+                .foregroundStyle(Color.secondary)
+            
+            HStack {
+                Text("\(product.reviewCount) Reviews")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(Color.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(Color.secondary)
+            }
+            
+            // Fake Review
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    ForEach(0..<5) { _ in
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.primary)
+                    }
+                    Spacer()
+                    Text("2 days ago")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.secondary)
+                }
+                
+                Text("Excellent quality, totally worth the price! Williams Sonoma never disappoints with their collections.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.primary)
+                    .lineLimit(3)
+                
+                Text("Sarah J.")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.secondary)
+            }
+            .padding()
+            .background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
+            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 25)
+                    .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
+            )
+        }
+        .padding(.horizontal, 16)
         .padding(.top, 32)
     }
 
@@ -360,8 +395,13 @@ struct ProductDetailView: View {
                 .labelsHidden()
         }
         .padding(16)
-        .background(Color(uiColor: .secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Color(uiColor: .systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
+        )
         .padding(.horizontal, 16)
         .padding(.top, 32)
     }
@@ -369,7 +409,7 @@ struct ProductDetailView: View {
     // MARK: - 6l. Related Products
     private var relatedProductsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("You May Also Need")
+            Text("Similar Items")
                 .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(Color.primary)
                 .padding(.horizontal, 16)
@@ -402,15 +442,38 @@ struct ProductDetailView: View {
             HStack(spacing: 12) {
                 // Add to Cart — outline pill
                 Button(action: {
-                    cartManager.add(product: product, quantity: quantity, color: selectedVariant?.name, size: selectedSize, giftWrapped: giftPackaging, giftMessage: nil)
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "cart.badge.plus")
-                            .font(.system(size: 14))
-                        Text("ADD TO CART")
-                            .font(.system(size: 12, weight: .semibold))
-                            .tracking(0.5)
+                    if isAddedToCart {
+                        navManager.selectedTab = .cart
+                        dismiss()
+                    } else {
+                        cartManager.add(product: product, quantity: 1, color: selectedVariant?.name, size: selectedSize, giftWrapped: giftPackaging, giftMessage: nil)
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.8)) {
+                            isAddedToCart = true
+                        }
                     }
+                }) {
+                    ZStack {
+                        if isAddedToCart {
+                            HStack(spacing: 8) {
+                                Image(systemName: "cart.fill")
+                                    .font(.system(size: 14))
+                                Text("GO TO CART")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .tracking(0.5)
+                            }
+                            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
+                        } else {
+                            HStack(spacing: 8) {
+                                Image(systemName: "cart.badge.plus")
+                                    .font(.system(size: 14))
+                                Text("ADD TO CART")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .tracking(0.5)
+                            }
+                            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
+                        }
+                    }
+                    .clipped()
                     .foregroundStyle(Color.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)

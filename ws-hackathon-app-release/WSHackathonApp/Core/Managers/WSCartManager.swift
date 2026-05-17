@@ -44,7 +44,7 @@ class WSCartManager {
         })
 
         if let index = existingIndex {
-            items[index].quantity += quantity
+            items[index].quantity = quantity
         } else {
             let item = WSCartItem(
                 id: UUID(),

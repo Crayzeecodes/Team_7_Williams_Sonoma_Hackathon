@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileModalView: View {
     @Environment(UserManager.self) private var userManager
+    @Environment(NavigationManager.self) private var navManager
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -23,6 +24,9 @@ struct ProfileModalView: View {
             .background(Color(uiColor: .secondarySystemBackground))
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: Bindable(navManager).showOrders) {
+                OrdersView()
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
@@ -81,8 +85,8 @@ struct ProfileModalView: View {
 
     private var menuSection: some View {
         VStack(spacing: 0) {
-            menuRow(icon: "shippingbox", title: "My Orders")
-            menuRow(icon: "gift", title: "My Registry")
+            menuRow(icon: "shippingbox", title: "My Orders") { navManager.showOrders = true }
+            menuRow(icon: "gift", title: "My Registry") { }
             menuRow(icon: "heart", title: "My Wishlist")
             menuRow(icon: "mappin.circle", title: "Saved Addresses")
             menuRow(icon: "creditcard", title: "Payment Methods")
@@ -95,8 +99,8 @@ struct ProfileModalView: View {
         .padding(.top, 16)
     }
 
-    private func menuRow(icon: String, title: String) -> some View {
-        Button { } label: {
+    private func menuRow(icon: String, title: String, action: @escaping () -> Void = { }) -> some View {
+        Button(action: action) {
             HStack(spacing: 14) {
                 Image(systemName: icon)
                     .font(.system(size: 16))

@@ -49,6 +49,16 @@ final class WSService {
             .execute()
             .value
 
+        // Only mark these specific SKUs as deals
+        let dealDiscounts: [String: Double] = [
+            "FRN-CHAIR-003": 15,
+            "FRN-CHAIR-002": 25,
+            "FRN-CHAIR-001": 35,
+            "ELC-MICRO-001": 40,
+            "ELC-COFFEE-001": 55,
+            "ELC-FRIDGE-001": 20
+        ]
+
         return supabaseProducts.enumerated().map { index, product in
             let specs: [String: String] = (product.specs ?? []).reduce(into: [:]) { dict, spec in
                 let parts = spec.split(separator: ":", maxSplits: 1).map(String.init)
@@ -57,20 +67,28 @@ final class WSService {
                 }
             }
 
+            // Use actual Supabase UUID instead of hashing, so cart foreign keys match
+            let productUUID: UUID = UUID(uuidString: product.id) ?? Self.stableUUID(for: product.id)
+
+            // Determine sale info for deal items
+            let discountPercent = product.skuId.flatMap { dealDiscounts[$0] }
+            let computedSalePrice: Double? = discountPercent.map { round(product.price * (1 - $0 / 100) * 100) / 100 }
+            let onSale = discountPercent != nil
+
             return WSProduct(
-                id: Self.stableUUID(for: product.id),
+                id: productUUID,
                 name: product.name,
                 brand: "Williams Sonoma",
                 category: product.category ?? "General",
                 subcategory: product.category ?? "General",
                 price: product.price,
-                salePrice: nil,
+                salePrice: computedSalePrice,
                 imageNames: product.images ?? [],
                 rating: product.stars ?? 0,
                 reviewCount: 12 + (index * 5),
                 description: product.description ?? "",
                 specs: specs,
-                isOnSale: false,
+                isOnSale: onSale,
                 isFeatured: index < 8,
                 isNewArrival: index % 3 == 0,
                 occasions: Self.occasions(for: product.category ?? "General"),
