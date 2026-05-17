@@ -194,7 +194,7 @@ struct CartItemRow: Decodable {
     let product: ProductRow?
 }
 
-struct ProductRow: Decodable {  // Changed from private to internal
+struct ProductRow: Decodable {
     let id: UUID
     let skuId: String
     let name: String

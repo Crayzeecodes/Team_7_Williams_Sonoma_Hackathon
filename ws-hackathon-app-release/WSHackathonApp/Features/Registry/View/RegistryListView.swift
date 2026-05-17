@@ -56,7 +56,7 @@ struct RegistryListView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
         .background(Color(uiColor: .secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .padding(.horizontal, 16)
     }
 
@@ -93,18 +93,18 @@ struct RegistryListView: View {
             VStack(spacing: 14) {
                 Image(systemName: "giftcard.fill")
                     .font(.system(size: 40))
-                    .foregroundStyle(AppColors.accent)
+                    .foregroundStyle(Color.black)
                 Text("No registries match your search")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(AppColors.primaryText)
+                    .foregroundStyle(Color.primary)
                 Text("Create a new registry or join one with a code.")
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(AppColors.secondaryText)
+                    .foregroundStyle(Color.secondary)
                     .multilineTextAlignment(.center)
             }
             .padding(24)
             .frame(maxWidth: .infinity)
-            .background(AppColors.pureWhite)
+            .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 25))
             Spacer()
         } else {
@@ -121,6 +121,7 @@ struct RegistryListView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal, 16)
                 .padding(.bottom, 24)
             }
         }
@@ -165,7 +166,7 @@ struct RegistryListView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Join a Registry")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(AppColors.primaryText)
+                .foregroundStyle(Color.primary)
 
             TextField("6-character code", text: $viewModel.joinCode)
                 .textInputAutocapitalization(.characters)
@@ -173,7 +174,7 @@ struct RegistryListView: View {
                     Task { await viewModel.previewJoinRegistry() }
                 }
                 .padding()
-                .background(AppColors.surfaceMedium)
+                .background(Color(uiColor: .secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 25))
 
             if let preview = viewModel.joinPreview {
@@ -182,11 +183,11 @@ struct RegistryListView: View {
                         .font(.system(size: 18, weight: .bold))
                     Text(preview.eventType.title)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(AppColors.secondaryText)
+                        .foregroundStyle(Color.secondary)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.pureWhite)
+                .background(Color(uiColor: .secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 25))
             }
 
@@ -199,7 +200,7 @@ struct RegistryListView: View {
                 )
                 .keyboardType(.decimalPad)
                 .padding()
-                .background(AppColors.surfaceMedium)
+                .background(Color(uiColor: .secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 25))
             }
 
@@ -229,7 +230,7 @@ struct RegistryListView: View {
                     Spacer()
                 }
                 .padding(.vertical, 16)
-                .background(AppColors.alwaysBlack)
+                .background(Color.black)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 25))
             }
@@ -239,149 +240,221 @@ struct RegistryListView: View {
             Spacer()
         }
         .padding(20)
-        .background(AppColors.surfaceLight)
+        .background(Color(uiColor: .systemBackground))
     }
 }
 
 private struct EventRegistryCard: View {
     let registry: Registry
 
+    private let cornerRadius: CGFloat = 25
+    private let contentInset: CGFloat = 36
+    private let navyBlue = Color(red: 0.1, green: 0.2, blue: 0.5)
+
     var body: some View {
         ZStack {
-            // Thinner Ribbon border
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(AppColors.accent, lineWidth: 3) // Thinner (was 6)
-                .padding(2)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 25)
-                        .stroke(AppColors.accent, lineWidth: 1) // Thinner (was 2)
-                        .padding(-2)
-                )
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white)
 
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top) {
-                    Image(systemName: registry.eventType.iconName)
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(AppColors.primaryText)
-                        .frame(width: 52, height: 52)
-                        .background(AppColors.surfaceMedium)
-                        .clipShape(RoundedRectangle(cornerRadius: 18))
+            EventIntricateBorder(color: navyBlue)
+                .padding(1.25)
 
-                    Spacer()
+            VStack(alignment: .leading, spacing: 8) {
+                Text(registry.name)
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(Color.primary)
+                Text(registry.eventType.title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.secondary)
+                Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.primary)
+            }
+            .padding(contentInset)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, minHeight: 150)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .background(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
+        )
+    }
+}
+
+private struct EventIntricateBorder: View {
+    let color: Color
+    
+    private let lineWidth: CGFloat = 2.5
+    private let innerGap: CGFloat = 3
+    
+    var body: some View {
+        ZStack {
+            // Outer frame
+            Rectangle()
+                .stroke(color, lineWidth: lineWidth)
+            
+            // Inner frame
+            Rectangle()
+                .stroke(color, lineWidth: lineWidth)
+                .padding(lineWidth + innerGap)
+            
+            // Corners overlay
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    CornerKnot(color: color, lineWidth: lineWidth, innerGap: innerGap)
+                    Spacer(minLength: 0)
+                    CornerKnot(color: color, lineWidth: lineWidth, innerGap: innerGap)
+                        .rotationEffect(.degrees(90))
                 }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(registry.name)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(AppColors.primaryText)
-                    Text(registry.eventType.title)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(AppColors.secondaryText)
-                    Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(AppColors.primaryText)
+                Spacer(minLength: 0)
+                HStack(spacing: 0) {
+                    CornerKnot(color: color, lineWidth: lineWidth, innerGap: innerGap)
+                        .rotationEffect(.degrees(-90))
+                    Spacer(minLength: 0)
+                    CornerKnot(color: color, lineWidth: lineWidth, innerGap: innerGap)
+                        .rotationEffect(.degrees(180))
                 }
             }
-            .padding(28)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.pureWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 25))
+    }
+}
+
+private struct CornerKnot: View {
+    let color: Color
+    let lineWidth: CGFloat
+    let innerGap: CGFloat
+    
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            // Background mask
+            Rectangle()
+                .fill(Color.white)
+                .frame(width: 24, height: 24)
+            
+            // Knot Path
+            Path { p in
+                // Outer loop
+                p.move(to: CGPoint(x: 24, y: 0))
+                p.addLine(to: CGPoint(x: 0, y: 0))
+                p.addLine(to: CGPoint(x: 0, y: 24))
+                
+                let i = lineWidth + innerGap
+                
+                // Inner loop
+                p.move(to: CGPoint(x: 24, y: i))
+                p.addLine(to: CGPoint(x: i, y: i))
+                p.addLine(to: CGPoint(x: i, y: 24))
+                
+                // Interlocking square
+                let sq = i + lineWidth + innerGap
+                p.move(to: CGPoint(x: 0, y: sq))
+                p.addLine(to: CGPoint(x: sq, y: sq))
+                p.addLine(to: CGPoint(x: sq, y: 0))
+            }
+            .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .square, lineJoin: .miter))
+        }
+        .frame(width: 24, height: 24)
     }
 }
 
 private struct GiftingRegistryCard: View {
     let registry: Registry
 
+    private let cornerRadius: CGFloat = 25
+    private let ribbonColor = Color(red: 0.85, green: 0.15, blue: 0.15)
+    private let ribbonWidth: CGFloat = 8
+    private let verticalRibbonOffset: CGFloat = 25
+    private let horizontalRibbonOffset: CGFloat = 25
+
     var body: some View {
         ZStack {
-            // Thinner Cross Ribbon
-            VStack {
-                Rectangle()
-                    .fill(AppColors.accent)
-                    .frame(width: 12) // Thinner (was 24)
-                    .frame(maxHeight: .infinity)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.leading, 60)
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white)
 
-            HStack {
+            // Horizontal Ribbon
+            VStack(spacing: 0) {
                 Rectangle()
-                    .fill(AppColors.accent)
-                    .frame(height: 12) // Thinner (was 24)
-                    .frame(maxWidth: .infinity)
+                    .fill(ribbonColor)
+                    .frame(height: ribbonWidth)
+                    .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
+                    .padding(.top, horizontalRibbonOffset)
+                Spacer(minLength: 0)
             }
-            .frame(maxHeight: .infinity, alignment: .top)
-            .padding(.top, 50)
 
-            // Ribbon Bow (Circle for simplicity, can be more complex)
-            Circle()
-                .fill(AppColors.accent)
-                .frame(width: 48, height: 48)
-                .overlay(
-                    Image(systemName: "ribbon")
-                        .font(.system(size: 24))
-                        .foregroundStyle(.white)
-                )
-                .offset(x: -UIScreen.main.bounds.width/2 + 72 + 60, y: -UIScreen.main.bounds.height/2 + 250) // Adjust offsets carefully
-                // Actually easier to anchor to top leading of the intersection
-            
-            // Re-anchoring Bow
-            VStack {
-                HStack {
+            // Vertical Ribbon
+            HStack(spacing: 0) {
+                Rectangle()
+                    .fill(ribbonColor)
+                    .frame(width: ribbonWidth)
+                    .shadow(color: .black.opacity(0.15), radius: 3, x: 2)
+                    .padding(.leading, verticalRibbonOffset)
+                Spacer(minLength: 0)
+            }
+
+            // Knot / Bow
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
                     ZStack {
-                        // Thinner Bow Loops
-                        Circle()
-                            .stroke(AppColors.accent, lineWidth: 4) // Thinner (was 8)
-                            .frame(width: 34, height: 24)
-                            .rotationEffect(.degrees(-35))
-                            .offset(x: -16, y: -12)
-                        
-                        Circle()
-                            .stroke(AppColors.accent, lineWidth: 4) // Thinner (was 8)
-                            .frame(width: 34, height: 24)
-                            .rotationEffect(.degrees(35))
-                            .offset(x: 16, y: -12)
-                        
-                        // Center knot
-                        Circle()
-                            .fill(AppColors.accent)
-                            .frame(width: 20, height: 20)
-                        
-                        Image(systemName: "gift.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.white)
+                        Capsule().fill(ribbonColor).frame(width: 32, height: 6).rotationEffect(.degrees(0))
+                        Capsule().fill(ribbonColor).frame(width: 32, height: 6).rotationEffect(.degrees(45))
+                        Capsule().fill(ribbonColor).frame(width: 32, height: 6).rotationEffect(.degrees(90))
+                        Capsule().fill(ribbonColor).frame(width: 32, height: 6).rotationEffect(.degrees(135))
+                        Circle().fill(Color(red: 0.8, green: 0.1, blue: 0.1)).frame(width: 10, height: 10)
                     }
-                    .offset(x: 72, y: 62)
-                    Spacer()
+                    .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                    .frame(width: ribbonWidth, height: ribbonWidth)
+                    .padding(.leading, verticalRibbonOffset)
+                    .padding(.top, horizontalRibbonOffset)
+                    
+                    Spacer(minLength: 0)
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
 
-            VStack(alignment: .leading, spacing: 14) {
+            // Text Content (Left aligned with good breathing space)
+            VStack(spacing: 0) {
                 Spacer()
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(registry.name)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(AppColors.primaryText)
-                    Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(AppColors.primaryText)
-                    Text(registry.collaboratorCountText)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(AppColors.secondaryText)
+                    .frame(height: horizontalRibbonOffset + ribbonWidth)
+                HStack(spacing: 0) {
+                    Spacer()
+                        .frame(width: verticalRibbonOffset + ribbonWidth)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(registry.name)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(Color.primary)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                        
+                        Text(registry.eventDate.formatted(date: .abbreviated, time: .omitted))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.primary)
+                        
+                        Text(registry.collaboratorCountText)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 24)
                 }
             }
-            .padding(28)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, minHeight: 200)
-        .background(AppColors.pureWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 25))
+        .frame(maxWidth: .infinity, minHeight: 180)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .background(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(AppColors.border, lineWidth: 1)
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
         )
     }
 }

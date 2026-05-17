@@ -24,10 +24,11 @@ final class CreateRegistryViewModel: ObservableObject {
     @Published var eventDate: Date = Date()
     @Published var collaboratorCount: Int = 1
     @Published var plannerAnswers: [RegistryPlannerAnswer] = [
-        .init(question: "How many guests are you expecting?", answer: "", options: ["< 10", "10-25", "25-50", "50-100", "100+", "Other"], allowsMultiple: false),
-        .init(question: "What is the overall vibe or theme?", answer: "", options: ["Modern", "Classic", "Rustic", "Bohemian", "Minimalist", "Colorful", "Other"], allowsMultiple: true),
-        .init(question: "Are there any specific product categories you'd like to focus on?", answer: "", options: ["Cookware", "Bakeware", "Electrics", "Tabletop", "Kitchen Tools", "Coffee & Tea", "Other"], allowsMultiple: true),
-        .init(question: "Any items to avoid?", answer: "", options: ["None", "Small Appliances", "Plastic items", "Fragile items", "Sharp objects", "Other"], allowsMultiple: true)
+        .init(question: "What is the primary purpose of this event?", answer: "", answers: [], options: ["Birthday Party", "Wedding", "Anniversary", "Housewarming", "Baby Shower", "Corporate Event", "Other"], allowsMultiple: true),
+        .init(question: "How many guests are you expecting?", answer: "", answers: [], options: ["< 10", "10-25", "25-50", "50-100", "100+", "Other"], allowsMultiple: true),
+        .init(question: "What is the overall vibe or theme?", answer: "", answers: [], options: ["Modern", "Classic", "Rustic", "Bohemian", "Minimalist", "Colorful", "Other"], allowsMultiple: true),
+        .init(question: "Are there any specific product categories you'd like to focus on?", answer: "", answers: [], options: ["Cookware", "Bakeware", "Electrics", "Tabletop", "Kitchen Tools", "Coffee & Tea", "Other"], allowsMultiple: true),
+        .init(question: "Any items to avoid?", answer: "", answers: [], options: ["None", "Small Appliances", "Plastic items", "Fragile items", "Sharp objects", "Other"], allowsMultiple: true)
     ]
     @Published var currentQuestionIndex: Int = 0
     @Published var selectedSplitType: RegistryPaymentSplitType = .split
@@ -46,20 +47,16 @@ final class CreateRegistryViewModel: ObservableObject {
     private let currencyService: CurrencyDetectionService
     private let userManager: UserManager
 
-    init(registryType: RegistryType, userManager: UserManager = UserManager()) {
+    init(registryType: RegistryType, userManager: UserManager? = nil) {
         self.registryType = registryType
         self.registryService = .shared
         self.currencyService = .shared
-        self.userManager = userManager
+        self.userManager = userManager ?? UserManager()
         
         // Pre-fill creator name
-        if let user = userManager.currentUser {
+        if let user = self.userManager.currentUser {
             self.creatorName = "\(user.firstName) \(user.lastName)"
         }
-    }
-
-    var hasChanges: Bool {
-        !creatorName.isEmpty || !registryName.isEmpty || budgetText != "" || yourBudgetText != ""
     }
 
     var canContinueFromStepOne: Bool {
@@ -69,12 +66,13 @@ final class CreateRegistryViewModel: ObservableObject {
     }
 
     var canAdvancePlanner: Bool {
-        let answer = plannerAnswers[currentQuestionIndex]
-        if answer.allowsMultiple {
-            return !answer.answers.isEmpty || !answer.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        } else {
-            return !answer.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let current = plannerAnswers[currentQuestionIndex]
+        let hasSelections = !current.answers.isEmpty
+        let hasCustomAnswer = !current.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if isOtherSelected {
+            return hasSelections && hasCustomAnswer
         }
+        return hasSelections
     }
 
     var canSubmitEventBudget: Bool {
@@ -107,6 +105,10 @@ final class CreateRegistryViewModel: ObservableObject {
 
     var currentQuestion: RegistryPlannerAnswer {
         plannerAnswers[currentQuestionIndex]
+    }
+
+    var shouldShowCustomAnswer: Bool {
+        isOtherSelected
     }
 
     var parsedBudget: Double {
@@ -151,14 +153,6 @@ final class CreateRegistryViewModel: ObservableObject {
         if currentQuestionIndex > 0 {
             currentQuestionIndex -= 1
         } else {
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
-        }
-    }
-
-    func goBack() {
-        if !navigationPath.isEmpty {
             navigationPath.removeLast()
         }
     }
@@ -167,16 +161,15 @@ final class CreateRegistryViewModel: ObservableObject {
         isSubmitting = true
         errorMessage = nil
 
-        // 1. Get current user ID from Supabase Auth SDK
-        guard let session = try? await supabase.auth.session else {
-            errorMessage = "Please log in again."
+        var adminId = userManager.currentUser?.id.uuidString
+        if adminId == nil, let session = try? await supabase.auth.session {
+            adminId = session.user.id.uuidString
+        }
+        guard let adminId else {
+            errorMessage = "Please log in to continue."
             isSubmitting = false
             return
         }
-        let userId = session.user.id.uuidString
-
-        // 2. Generate unique join code
-        let joinCode = generateJoinCode()
 
         let eventDetails = RegistryEventDetails(
             aiPlannerAnswers: registryType == .event ? plannerAnswers : [],
@@ -202,9 +195,9 @@ final class CreateRegistryViewModel: ObservableObject {
         )
 
         let request = CreateRegistryRequest(
-            adminId: userId,
+            adminId: adminId,
             name: registryName,
-            joinCode: joinCode,
+            joinCode: generateJoinCode(),
             registryType: registryType,
             creatorName: creatorName,
             eventType: eventType,
@@ -230,8 +223,43 @@ final class CreateRegistryViewModel: ObservableObject {
         isSubmitting = false
     }
 
-    private func generateJoinCode() -> String {
-        let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0..<6).map { _ in characters.randomElement()! })
+    func togglePlannerOption(_ option: String) {
+        var selections = plannerAnswers[currentQuestionIndex].answers
+
+        if plannerAnswers[currentQuestionIndex].allowsMultiple {
+            if selections.contains(option) {
+                selections.remove(option)
+            } else {
+                selections.insert(option)
+            }
+        } else {
+            selections = [option]
+        }
+
+        plannerAnswers[currentQuestionIndex].answers = selections
+
+        if selections.contains(where: isOtherOption) {
+            return
+        }
+
+        plannerAnswers[currentQuestionIndex].answer = selections.sorted().joined(separator: ", ")
+    }
+
+    func isOptionSelected(_ option: String) -> Bool {
+        plannerAnswers[currentQuestionIndex].answers.contains(option)
+    }
+
+    private var isOtherSelected: Bool {
+        plannerAnswers[currentQuestionIndex].answers.contains(where: isOtherOption)
+    }
+
+    private func isOtherOption(_ option: String) -> Bool {
+        let normalized = option.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return normalized == "other" || normalized == "others"
+    }
+
+    private func generateJoinCode(length: Int = 6) -> String {
+        let alphabet = Array("ABCDEFGHJKLMNPQRSTUVWXYZ23456789")
+        return String((0..<length).compactMap { _ in alphabet.randomElement() })
     }
 }
