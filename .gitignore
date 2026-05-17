@@ -1,1 +1,12 @@
 .DS_Store
+
+# Local build artifacts
+.build-home/
+.deriveddata/
+.deriveddata-ios/
+.sourcepackages/
+Library/
+
+# Python caches and virtual environments
+**/__pycache__/
+**/venv/
