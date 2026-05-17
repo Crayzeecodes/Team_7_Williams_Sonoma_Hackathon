@@ -116,7 +116,7 @@ struct RegistrySuggestionsCategoryView: View {
         }
         .frame(width: 190)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 8)
     }
 }

@@ -73,9 +73,9 @@ struct RoomPreferencesView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(Color(uiColor: .systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 25)
                             .stroke(Color.black, lineWidth: 1)
                     )
                 }
@@ -95,7 +95,7 @@ struct RoomPreferencesView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(viewModel.currentAnswer.isEmpty ? Color(uiColor: .tertiaryLabel) : Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .disabled(viewModel.currentAnswer.isEmpty)
             }
@@ -151,9 +151,9 @@ struct RoomPreferencesView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
             .background(isSelected ? Color.black : Color(uiColor: .secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 25)
                     .stroke(
                         isSelected ? Color.clear : Color(uiColor: .separator),
                         lineWidth: 0.5

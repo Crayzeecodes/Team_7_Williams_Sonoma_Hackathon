@@ -117,7 +117,7 @@ struct RoomScanFlowView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .background(Color.black)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .buttonStyle(WSPressButtonStyle())
 
@@ -129,7 +129,7 @@ struct RoomScanFlowView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 25)
                                 .stroke(Color.black, lineWidth: 1)
                         )
                 }
@@ -162,9 +162,9 @@ struct PastAISuggestionsSection: View {
                             if let firstImage = record.imageUrls.first, let url = URL(string: firstImage) {
                                 CustomAsyncImage(url: url)
                                     .frame(width: 64, height: 64)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                             } else {
-                                RoundedRectangle(cornerRadius: 12)
+                                RoundedRectangle(cornerRadius: 25)
                                     .fill(Color(uiColor: .tertiarySystemFill))
                                     .frame(width: 64, height: 64)
                                     .overlay(

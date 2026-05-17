@@ -311,7 +311,7 @@ struct RegistryDetailView: View {
                                 Rectangle().fill(Color(uiColor: .secondarySystemBackground))
                             }
                             .frame(width: 72, height: 72)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: 25))
 
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(item.name)

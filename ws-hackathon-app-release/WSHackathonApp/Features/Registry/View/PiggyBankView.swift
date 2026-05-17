@@ -54,7 +54,7 @@ struct PiggyBankView: View {
         }
         .padding(20)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .shadow(color: Color.black.opacity(0.08), radius: 18, x: 0, y: 8)
         .onAppear {
             animatedProgress = progress

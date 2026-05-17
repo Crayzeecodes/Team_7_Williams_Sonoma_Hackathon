@@ -133,7 +133,7 @@ struct ShopView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
         .background(Color(uiColor: .secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .padding(.horizontal, 16)
     }
 

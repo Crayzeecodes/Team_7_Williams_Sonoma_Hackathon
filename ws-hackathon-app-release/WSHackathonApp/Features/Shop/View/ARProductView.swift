@@ -197,9 +197,9 @@ struct ARProductView: View {
             if let imgURL = product.primaryImageURL {
                 CustomAsyncImage(url: imgURL)
                     .frame(width: 50, height: 50)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
             } else {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 25)
                     .fill(Color.white.opacity(0.2))
                     .frame(width: 50, height: 50)
             }
@@ -241,7 +241,7 @@ struct ARProductView: View {
         }
         .padding(12)
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .allowsHitTesting(false)
     }
 

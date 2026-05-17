@@ -187,13 +187,12 @@ struct MultiARView: View {
                 saveProductsToRoom()
                 dismiss() 
             }) {
-                Text("Done")
+                Image(systemName: "checkmark")
                     .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(.black)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .padding(12)
                     .background(.white)
-                    .clipShape(Capsule())
+                    .clipShape(Circle())
             }
         }
         .padding(.horizontal, 20)
@@ -214,7 +213,7 @@ struct MultiARView: View {
                     if let imgURL = selected.primaryImageURL {
                         CustomAsyncImage(url: imgURL)
                             .frame(width: 50, height: 50)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .clipShape(RoundedRectangle(cornerRadius: 25))
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -236,7 +235,7 @@ struct MultiARView: View {
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 8)
+                                RoundedRectangle(cornerRadius: 25)
                                     .stroke(Color.primary.opacity(0.3), lineWidth: 1)
                             )
                     }
@@ -258,7 +257,7 @@ struct MultiARView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .padding(.horizontal, 16)
                 
@@ -274,14 +273,14 @@ struct MultiARView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .padding(.horizontal, 16)
             }
         }
         .padding(.vertical, 16)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: 25)
                 .fill(Color(uiColor: .systemBackground).opacity(0.95))
                 .shadow(color: .black.opacity(0.15), radius: 20, y: -5)
         )
@@ -341,9 +340,9 @@ struct MultiARView: View {
                                     if let imgURL = product.primaryImageURL {
                                         CustomAsyncImage(url: imgURL)
                                             .frame(width: 56, height: 56)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .clipShape(RoundedRectangle(cornerRadius: 25))
                                     } else {
-                                        RoundedRectangle(cornerRadius: 10)
+                                        RoundedRectangle(cornerRadius: 25)
                                             .fill(Color(uiColor: .tertiarySystemFill))
                                             .frame(width: 56, height: 56)
                                             .overlay(Image(systemName: "photo").foregroundStyle(.tertiary))
@@ -384,7 +383,7 @@ struct MultiARView: View {
                 .frame(maxHeight: 400)
             }
             .background(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: 25)
                     .fill(Color(uiColor: .systemBackground))
             )
             .padding(.horizontal, 8)

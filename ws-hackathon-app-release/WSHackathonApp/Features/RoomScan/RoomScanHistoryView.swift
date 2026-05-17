@@ -43,9 +43,9 @@ struct RoomScanHistoryView: View {
                             if let firstImage = record.imageUrls.first, let url = URL(string: firstImage) {
                                 CustomAsyncImage(url: url)
                                     .frame(width: 60, height: 60)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                             } else {
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 25)
                                     .fill(Color(uiColor: .tertiarySystemFill))
                                     .frame(width: 60, height: 60)
                                     .overlay(Image(systemName: "photo").foregroundStyle(.secondary))

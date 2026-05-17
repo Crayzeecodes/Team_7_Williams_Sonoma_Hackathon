@@ -31,7 +31,7 @@ struct WSDealCard: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
                     .padding(8)
             }
 

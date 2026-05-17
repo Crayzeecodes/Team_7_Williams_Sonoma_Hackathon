@@ -92,9 +92,9 @@ struct RoomAnalysisLoadingView: View {
             .padding(10)
         }
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
         .redacted(reason: .placeholder)

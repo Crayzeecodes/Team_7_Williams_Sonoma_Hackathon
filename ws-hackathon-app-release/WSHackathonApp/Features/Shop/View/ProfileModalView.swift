@@ -96,7 +96,7 @@ struct ProfileModalView: View {
             }
         }
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .padding(.horizontal, 16)
         .padding(.top, 16)
     }

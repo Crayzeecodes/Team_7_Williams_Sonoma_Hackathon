@@ -22,7 +22,7 @@ struct WSPrimaryButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: isCompact ? 40 : 50)
                 .background(Color.black)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: 25))
         }
         .buttonStyle(WSPressButtonStyle())
     }
@@ -43,9 +43,9 @@ struct WSSecondaryButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: isCompact ? 40 : 50)
                 .background(Color(uiColor: .systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: 25))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 25)
                         .stroke(Color.black, lineWidth: 1)
                 )
         }

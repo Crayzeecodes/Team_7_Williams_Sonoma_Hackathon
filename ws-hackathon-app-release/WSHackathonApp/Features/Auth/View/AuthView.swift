@@ -92,7 +92,7 @@ struct AuthView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
                         .background(AppColors.accent) // Sharp black rectangular button like "SHOP NOW"
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
                     }
                     .disabled(viewModel.isLoading)
                 }
@@ -143,9 +143,9 @@ struct AuthView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
             .background(AppColors.background) // Pure white background
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
             .overlay(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 25)
                     .stroke(AppColors.border, lineWidth: 1) // Crisp, thin border
             )
         }

@@ -145,14 +145,9 @@ struct WSFilterView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { dismiss() } label: {
-                        Text("Apply")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
-                            .background(Color.black)
-                            .clipShape(Capsule())
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.primary)
                     }
                 }
             }

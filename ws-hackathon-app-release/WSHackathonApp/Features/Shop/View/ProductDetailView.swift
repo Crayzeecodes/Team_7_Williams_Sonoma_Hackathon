@@ -306,7 +306,7 @@ struct ProductDetailView: View {
                         )
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .clipShape(RoundedRectangle(cornerRadius: 25))
                 .padding(.horizontal, 8)
                 .padding(.bottom, 16)
             }
@@ -649,7 +649,7 @@ private struct RegistryPickerSheet: View {
                                     .padding(.vertical, 14)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .background(Color.white)
-                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                                     .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 3)
                                 }
                                 .buttonStyle(.plain)

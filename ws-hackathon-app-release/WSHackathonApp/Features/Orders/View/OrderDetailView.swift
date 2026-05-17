@@ -57,12 +57,12 @@ struct OrderDetailView: View {
                                     }
                                 }
                                 .frame(width: 80, height: 80)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .clipShape(RoundedRectangle(cornerRadius: 25))
                             } else {
                                 Rectangle()
                                     .fill(Color(uiColor: .secondarySystemBackground))
                                     .frame(width: 80, height: 80)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                             }
                             
                             VStack(alignment: .leading, spacing: 6) {
@@ -105,7 +105,7 @@ struct OrderDetailView: View {
                     }
                     .padding(16)
                     .background(Color(uiColor: .secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
                     .padding(.horizontal, 16)
                 }
             }

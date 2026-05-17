@@ -17,7 +17,7 @@ struct ScannerView: View {
             VStack(spacing: 20) {
                 // Viewfinder graphic
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 25)
                         .stroke(Color.white, lineWidth: 2)
                         .frame(width: 260, height: 260)
 

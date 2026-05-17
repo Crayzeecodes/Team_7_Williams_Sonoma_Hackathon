@@ -70,9 +70,9 @@ struct RoomScanEntryView: View {
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: 80, height: 80)
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .clipShape(RoundedRectangle(cornerRadius: 25))
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
+                                            RoundedRectangle(cornerRadius: 25)
                                                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
                                         )
 
@@ -149,7 +149,7 @@ struct RoomScanEntryView: View {
                     .foregroundStyle(Color.primary)
                     .frame(width: 44, height: 44)
                     .background(Color(uiColor: .tertiarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)

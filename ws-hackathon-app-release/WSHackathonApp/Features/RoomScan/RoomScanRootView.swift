@@ -47,7 +47,9 @@ struct RoomScanRootView: View {
             }
             .alert("Create Room", isPresented: $showingCreateRoom) {
                 TextField("Room Name (e.g. Living Room)", text: $newRoomName)
-                Button("Cancel", role: .cancel) { newRoomName = "" }
+                Button(role: .cancel) { newRoomName = "" } label: {
+                    Image(systemName: "xmark")
+                }
                 Button("Create") {
                     let room = MyRoom(id: UUID(), name: newRoomName, screenshotData: [], productIds: [])
                     MyRoomStorage.shared.addRoom(room)

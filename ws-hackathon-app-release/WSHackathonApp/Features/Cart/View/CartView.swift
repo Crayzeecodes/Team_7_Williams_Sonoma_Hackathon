@@ -17,6 +17,9 @@ struct CartView: View {
     @State private var showCheckout = false
     @State private var selectedProduct: WSProduct?
     @State private var recommendationProducts: [UUID: [WSProduct]] = [:]
+    @State private var loadingRecommendationProductIDs = Set<UUID>()
+    @State private var unavailableRecommendationProductIDs = Set<UUID>()
+    @State private var noMatchRecommendationProductIDs = Set<UUID>()
 
     var body: some View {
         NavigationStack {
@@ -92,7 +95,9 @@ struct CartView: View {
                             selectedProduct = item.product
                         }
 
-                        if let suggestions = recommendationProducts[item.product.id], !suggestions.isEmpty {
+                        if loadingRecommendationProductIDs.contains(item.product.id) {
+                            CartBundleRecommendationLoadingSection()
+                        } else if let suggestions = recommendationProducts[item.product.id], !suggestions.isEmpty {
                             CartBundleRecommendationSection(
                                 products: suggestions,
                                 onSelectProduct: { product in
@@ -101,6 +106,16 @@ struct CartView: View {
                                 onAddProduct: { product in
                                     cartManager.add(product: product)
                                 }
+                            )
+                        } else if unavailableRecommendationProductIDs.contains(item.product.id) {
+                            CartBundleRecommendationStatusSection(
+                                title: "AI recommendations unavailable",
+                                message: "We couldn't load AI picks for this item right now. Please try again in a moment."
+                            )
+                        } else if noMatchRecommendationProductIDs.contains(item.product.id) {
+                            CartBundleRecommendationStatusSection(
+                                title: "No complementary products found yet",
+                                message: "The AI didn't find a strong match for this item from the current catalog."
                             )
                         }
                     }
@@ -130,14 +145,14 @@ struct CartView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
                     .background(Color(uiColor: .secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
 
                 Button("Apply") { }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(promoCode.isEmpty ? Color.secondary : Color.white)
                     .frame(width: 76, height: 40)
                     .background(promoCode.isEmpty ? Color(uiColor: .systemGray4) : Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
                     .disabled(promoCode.isEmpty)
             }
         }
@@ -221,29 +236,54 @@ struct CartView: View {
 
         guard !items.isEmpty else {
             recommendationProducts = [:]
+            loadingRecommendationProductIDs = []
+            unavailableRecommendationProductIDs = []
+            noMatchRecommendationProductIDs = []
             return
         }
+
+        loadingRecommendationProductIDs = Set(items.map { $0.product.id })
+        unavailableRecommendationProductIDs = []
+        noMatchRecommendationProductIDs = []
 
         do {
             let catalog = try await WSService.shared.fetchProducts()
             let cartProducts = items.map(\.product)
             var nextRecommendations: [UUID: [WSProduct]] = [:]
+            var unavailableIDs = Set<UUID>()
+            var noMatchIDs = Set<UUID>()
 
             for item in items {
-                let recommendations = await CartAIRecommendationService.shared.recommendations(
+                let outcome = await CartAIRecommendationService.shared.recommendations(
                     for: item.product,
                     cartProducts: cartProducts,
                     catalog: catalog,
                     limit: 4
                 )
-                nextRecommendations[item.product.id] = recommendations
+
+                switch outcome {
+                case .success(let recommendations):
+                    nextRecommendations[item.product.id] = recommendations
+                case .noMatches:
+                    nextRecommendations[item.product.id] = []
+                    noMatchIDs.insert(item.product.id)
+                case .unavailable:
+                    nextRecommendations[item.product.id] = []
+                    unavailableIDs.insert(item.product.id)
+                }
             }
 
             if signature == cartRecommendationSignature {
                 recommendationProducts = nextRecommendations
+                unavailableRecommendationProductIDs = unavailableIDs
+                noMatchRecommendationProductIDs = noMatchIDs
+                loadingRecommendationProductIDs = []
             }
         } catch {
             recommendationProducts = [:]
+            unavailableRecommendationProductIDs = Set(items.map { $0.product.id })
+            noMatchRecommendationProductIDs = []
+            loadingRecommendationProductIDs = []
         }
     }
 }
@@ -335,9 +375,9 @@ private struct CartItemCell: View {
             }
         }
         .frame(width: 116, height: 116)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }
@@ -401,6 +441,52 @@ private struct CartBundleRecommendationSection: View {
     }
 }
 
+private struct CartBundleRecommendationLoadingSection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("AI is recommending complementary products")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.primary)
+                .padding(.horizontal, 2)
+
+            HStack(spacing: 10) {
+                ProgressView()
+                    .controlSize(.regular)
+
+                Text("Finding suitable products for this item...")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
+        }
+    }
+}
+
+private struct CartBundleRecommendationStatusSection: View {
+    let title: String
+    let message: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.primary)
+                .padding(.horizontal, 2)
+
+            Text(message)
+                .font(.system(size: 13))
+                .foregroundStyle(Color.secondary)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(uiColor: .secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 25))
+        }
+    }
+}
+
 private struct CartBundleProductCard: View {
     let product: WSProduct
     let onSelect: () -> Void
@@ -443,9 +529,9 @@ private struct CartBundleProductCard: View {
         .padding(10)
         .frame(width: 148, alignment: .leading)
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }
@@ -468,9 +554,9 @@ private struct CartBundleProductCard: View {
             }
         }
         .frame(width: 128, height: 96)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }
@@ -641,9 +727,9 @@ struct CheckoutView: View {
         }
         .padding(14)
         .background(Color(uiColor: .systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }

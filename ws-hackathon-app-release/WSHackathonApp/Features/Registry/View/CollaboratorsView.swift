@@ -60,8 +60,10 @@ struct CollaboratorsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .foregroundStyle(AppColors.primaryText)
+                    Button { dismiss() } label: {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(AppColors.primaryText)
+                    }
                 }
             }
         }

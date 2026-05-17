@@ -42,7 +42,7 @@ struct RoomResultsView: View {
                                 if let url = URL(string: urlStr) {
                                     CustomAsyncImage(url: url)
                                         .frame(width: 140, height: 140)
-                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .clipShape(RoundedRectangle(cornerRadius: 25))
                                         .onTapGesture {
                                             activeGallery = .remote(index: index)
                                         }
@@ -60,7 +60,7 @@ struct RoomResultsView: View {
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: 140, height: 140)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                                     .onTapGesture {
                                         activeGallery = .local(index: idx)
                                     }
@@ -311,7 +311,7 @@ struct RoomResultsView: View {
                     .padding(.horizontal, 32)
                     .padding(.vertical, 14)
                     .background(Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 25))
             }
             .buttonStyle(WSPressButtonStyle())
         }

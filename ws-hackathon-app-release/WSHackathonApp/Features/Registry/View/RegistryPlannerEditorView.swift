@@ -49,12 +49,12 @@ struct RegistryPlannerEditorView: View {
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 12)
                                     .background(Color(uiColor: .secondarySystemBackground))
-                                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                             }
                         }
                         .padding(18)
                         .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
                         .shadow(color: Color.black.opacity(0.06), radius: 16, x: 0, y: 8)
                     }
                 }
@@ -66,8 +66,10 @@ struct RegistryPlannerEditorView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
                     }
                     .disabled(isSaving)
                 }
@@ -79,7 +81,7 @@ struct RegistryPlannerEditorView: View {
                         if isSaving {
                             ProgressView()
                         } else {
-                            Text("Save")
+                            Image(systemName: "checkmark")
                                 .font(.system(size: 16, weight: .semibold))
                         }
                     }
@@ -120,7 +122,7 @@ struct RegistryPlannerEditorView: View {
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(selected ? Color.black : Color(uiColor: .secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
         }
         .buttonStyle(.plain)
     }

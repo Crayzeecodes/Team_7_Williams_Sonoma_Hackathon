@@ -74,9 +74,9 @@ struct MyRoomsListView: View {
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: 64, height: 64)
-                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                        .clipShape(RoundedRectangle(cornerRadius: 25))
                                 } else {
-                                    RoundedRectangle(cornerRadius: 12)
+                                    RoundedRectangle(cornerRadius: 25)
                                         .fill(Color(uiColor: .tertiarySystemFill))
                                         .frame(width: 64, height: 64)
                                         .overlay(
