@@ -35,11 +35,11 @@ struct WSTabView: View {
                 }
                 .tag(NavigationManager.AppTab.registry)
 
-            placeholderTab(icon: "shippingbox", title: "Orders")
+            RoomScanContainerView()
                 .tabItem {
-                    Label("Orders", systemImage: "shippingbox.fill")
+                    Label("Scan", systemImage: "viewfinder")
                 }
-                .tag(NavigationManager.AppTab.orders)
+                .tag(NavigationManager.AppTab.scan)
         }
         .tint(.black)
     }

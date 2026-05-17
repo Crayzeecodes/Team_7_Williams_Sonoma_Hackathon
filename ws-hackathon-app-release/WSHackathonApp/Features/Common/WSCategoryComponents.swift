@@ -58,9 +58,9 @@ struct WSCategoryCard: View {
         .frame(maxWidth: .infinity)
         .frame(height: 140)
         .background(Color(uiColor: .secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 25))
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 25)
                 .stroke(Color(uiColor: .separator), lineWidth: 0.5)
         )
     }

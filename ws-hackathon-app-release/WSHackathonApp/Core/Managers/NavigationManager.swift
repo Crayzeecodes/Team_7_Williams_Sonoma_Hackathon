@@ -27,7 +27,7 @@ class NavigationManager {
         case shop = 0
         case cart
         case registry
-        case orders
+        case scan
 
         var id: Int { rawValue }
 
@@ -36,7 +36,7 @@ class NavigationManager {
             case .shop:     return "Shop"
             case .cart:     return "Cart"
             case .registry: return "Registry"
-            case .orders:   return "Orders"
+            case .scan:     return "Scan"
             }
         }
 
@@ -45,7 +45,7 @@ class NavigationManager {
             case .shop:     return "storefront"
             case .cart:     return "cart"
             case .registry: return "gift"
-            case .orders:   return "shippingbox"
+            case .scan:     return "viewfinder"
             }
         }
     }

@@ -18,7 +18,6 @@ struct ShopView: View {
     @State private var searchText = ""
     @State private var showSearchResults = false
     @State private var showScanner = false
-    @State private var showRoomScan = false
 
     var body: some View {
         NavigationStack {
@@ -55,9 +54,6 @@ struct ShopView: View {
             .fullScreenCover(isPresented: $showScanner) {
                 ScannerView()
             }
-            .sheet(isPresented: $showRoomScan) {
-                RoomScanContainerView()
-            }
             .sheet(isPresented: Bindable(navManager).showProfile) {
                 ProfileModalView()
             }
@@ -69,13 +65,6 @@ struct ShopView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
-            // 1. AI Room Scan button
-            Button(action: { showRoomScan = true }) {
-                Image(systemName: "camera.viewfinder")
-                    .font(.system(size: 19))
-                    .foregroundStyle(Color.primary)
-            }
-            .accessibilityLabel("AI Room Scan")
 
             // 2. Wishlist button
             NavigationLink(destination: WishlistView()) {

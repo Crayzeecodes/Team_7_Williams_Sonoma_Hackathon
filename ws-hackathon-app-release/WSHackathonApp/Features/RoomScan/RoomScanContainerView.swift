@@ -33,17 +33,21 @@ struct RoomScanContainerView: View {
                 }
             }
             .navigationTitle(navigationTitle)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .semibold))
+                if viewModel.viewState == .capturing {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink(destination: RoomScanHistoryView()) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .font(.system(size: 13, weight: .semibold))
+                                Text("History")
+                                    .font(.system(size: 13, weight: .medium))
+                            }
                             .foregroundStyle(Color.primary)
+                        }
                     }
-                }
-
-                if viewModel.viewState == .results {
+                } else if viewModel.viewState == .results {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: { viewModel.reset() }) {
                             HStack(spacing: 4) {

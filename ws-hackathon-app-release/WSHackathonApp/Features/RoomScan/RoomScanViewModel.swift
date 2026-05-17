@@ -122,9 +122,22 @@ class RoomScanViewModel {
                     preferences: preferences
                 )
                 self.analysisResult = result
-                // Use the dynamically fetched MongoDB products returned by the backend
-                self.recommendedProducts = result.recommendedProducts
+                // Fallback to empty array if decoding gives nil, though we expect RoomScanService to populate it locally.
+                self.recommendedProducts = result.recommendedProducts ?? []
                 self.viewState = .results
+                
+                // Save to history asynchronously in the background
+                Task {
+                    do {
+                        try await RoomScanHistoryService.shared.saveScanResult(
+                            images: capturedImages,
+                            result: result,
+                            recommendedProducts: self.recommendedProducts
+                        )
+                    } catch {
+                        print("Failed to save scan history: \\(error)")
+                    }
+                }
             } catch is CancellationError {
                 // Task was cancelled — do nothing
             } catch {

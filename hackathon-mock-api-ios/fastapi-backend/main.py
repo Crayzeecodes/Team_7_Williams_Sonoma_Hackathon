@@ -33,7 +33,7 @@ from datetime import datetime, timezone
 
 # ── Configure Gemini & Supabase ───────────────────────────
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
@@ -83,6 +83,7 @@ class RoomAnalysisResult(BaseModel):
     dominant_materials: list[str]
     recommended_style_tags: list[str]
     recommended_categories: list[str]
+    price_max: float
     size_preference: str
     reasoning: str
     negative_categories: list[str]
@@ -102,11 +103,12 @@ User preferences:
 - Style: {style_vibe}
 
 Your job:
-1. Identify the room type precisely (kitchen, living_room, dining_room, bedroom, bathroom, outdoor_patio — be accurate, do not suggest kitchen products for a living room or bedroom items for a kitchen)
-2. Identify dominant colors and materials visible in the room
-3. Identify the overall design style
-4. Recommend Williams-Sonoma product categories that would genuinely complement this specific room — be contextually intelligent, never recommend irrelevant categories. Use these exact category names where applicable: Cookware, Knives & Cutlery, Bakeware, Electrics, Kitchen Tools, Coffee & Tea, Outdoor & BBQ, Tabletop & Bar, Food & Pantry, Storage & Organization, Cleaning, Gifts & Registry
-5. Return structured JSON only — no prose, no markdown, no explanation
+1. Identify the room type precisely (kitchen, living_room, dining_room, bedroom, bathroom, outdoor_patio).
+2. Deeply analyze the visual foundation of the room: look at the background colors, the wall paint, any wallpaper patterns, flooring, and dominant textures.
+3. Identify the overall design style (e.g., minimalist, rustic, farmhouse, mid-century modern).
+4. Reason about what would actually *look good* in this exact space. Would a certain material clash with the wallpaper? Would a specific color pop beautifully against the wall paint?
+5. Based on this visual harmony, recommend Williams-Sonoma product categories that would genuinely complement the room. Use these exact category names where applicable: Cookware, Knives & Cutlery, Bakeware, Electrics, Kitchen Tools, Coffee & Tea, Outdoor & BBQ, Tabletop & Bar, Food & Pantry, Storage & Organization, Cleaning, Gifts & Registry.
+6. Return structured JSON only — no prose, no markdown, no explanation.
 
 Return ONLY this JSON:
 {{
@@ -208,8 +210,18 @@ async def analyze_room(request: RoomAnalyzeRequest):
                     stars_val = float(doc.get("stars") or 0.0)
                     images_val = doc.get("images") or []
                     
+                    raw_created = doc.get("created_at")
+                    if raw_created:
+                        try:
+                            dt = datetime.fromisoformat(raw_created.replace("Z", "+00:00"))
+                            created_str = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+                        except Exception:
+                            created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    else:
+                        created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
                     mapped_products.append({
-                        "id": str(doc.get("id")), # Use native Supabase UUID
+                        "id": str(doc.get("id")),
                         "name": doc.get("name", "Unknown Product"),
                         "brand": "Williams Sonoma",
                         "category": doc.get("category", "General"),
@@ -218,20 +230,20 @@ async def analyze_room(request: RoomAnalyzeRequest):
                         "sale_price": None,
                         "image_names": images_val,
                         "rating": stars_val,
-                        "reviewCount": 0, # Now in a separate table, default to 0
+                        "review_count": 0,
                         "description": doc.get("description", ""),
-                        "specs": {}, # Schema is text[] but iOS expects [String:String], empty is safe
-                        "isOnSale": False,
-                        "isFeatured": False,
-                        "isNewArrival": False,
+                        "specs": {},
+                        "is_on_sale": False,
+                        "is_featured": False,
+                        "is_new_arrival": False,
                         "occasions": [],
-                        "collectionName": None,
-                        "stockCount": 100,
-                        "giftPackagingAvailable": False,
-                        "giftPackagingPrice": None,
+                        "collection_name": None,
+                        "stock_count": 100,
+                        "gift_packaging_available": False,
+                        "gift_packaging_price": None,
                         "colors": [],
                         "sizes": [],
-                        "createdAt": doc.get("created_at") or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                        "created_at": created_str
                     })
             except Exception as e:
                 logger.error(f"Supabase query error: {e}")
@@ -249,3 +261,65 @@ async def analyze_room(request: RoomAnalyzeRequest):
     except Exception as e:
         logger.error(f"Gemini API error: {e}")
         raise HTTPException(status_code=502, detail=f"AI analysis failed: {str(e)}")
+
+# ── Fetch All Products Endpoint ──────────────────────────
+@app.get("/products")
+async def get_all_products():
+    """
+    Fetches all products from Supabase and maps them to the iOS WSProduct schema.
+    Used by the main Shop tab.
+    """
+    mapped_products = []
+    
+    if supabase is not None:
+        try:
+            # Fetch all products (limit 50 to avoid massive payloads)
+            db_response = supabase.table('products').select('*').limit(50).execute()
+            supabase_docs = db_response.data
+            
+            for doc in supabase_docs:
+                price_val = float(doc.get("price") or 0.0)
+                stars_val = float(doc.get("stars") or 0.0)
+                images_val = doc.get("images") or []
+                
+                raw_created = doc.get("created_at")
+                if raw_created:
+                    try:
+                        # Convert to strict ISO8601 without fractional seconds to appease Swift decoder
+                        dt = datetime.fromisoformat(raw_created.replace("Z", "+00:00"))
+                        created_str = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+                    except Exception:
+                        created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                else:
+                    created_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+                mapped_products.append({
+                    "id": str(doc.get("id")),
+                    "name": doc.get("name", "Unknown Product"),
+                    "brand": "Williams Sonoma",
+                    "category": doc.get("category", "General"),
+                    "subcategory": None,
+                    "price": price_val,
+                    "sale_price": None,
+                    "image_names": images_val,
+                    "rating": stars_val,
+                    "review_count": 0,
+                    "description": doc.get("description", ""),
+                    "specs": {},
+                    "is_on_sale": False,
+                    "is_featured": False,
+                    "is_new_arrival": False,
+                    "occasions": [],
+                    "collection_name": None,
+                    "stock_count": 100,
+                    "gift_packaging_available": False,
+                    "gift_packaging_price": None,
+                    "colors": [],
+                    "sizes": [],
+                    "created_at": created_str
+                })
+        except Exception as e:
+            logger.error(f"Supabase fetch all products error: {e}")
+            raise HTTPException(status_code=500, detail="Failed to fetch products from Supabase")
+            
+    return mapped_products
