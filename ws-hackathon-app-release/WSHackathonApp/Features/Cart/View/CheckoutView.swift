@@ -29,6 +29,29 @@ struct CheckoutView: View {
         return cartManager.items
     }
 
+    private var checkoutShipping: Double {
+        let items = itemsToCheckout
+        guard !items.isEmpty else { return 0 }
+
+        return items.reduce(0) { total, item in
+            total + shippingCharge(for: item.product) * Double(item.quantity)
+        }
+    }
+
+    private var checkoutEstimatedTax: Double {
+        let items = itemsToCheckout
+        guard !items.isEmpty else { return 0 }
+
+        return items.reduce(0) { total, item in
+            let itemSubtotal = item.lineTotal
+            return total + itemSubtotal * taxRate(for: item.product)
+        }
+    }
+
+    private var checkoutTotal: Double {
+        viewModel.subtotal + checkoutShipping + checkoutEstimatedTax
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -59,10 +82,10 @@ struct CheckoutView: View {
                     title: "Order Summary",
                     content: {
                         SummaryRow(title: "Subtotal", value: formattedCurrency(viewModel.subtotal))
-                        SummaryRow(title: "Shipping", value: "Calculated at checkout")
-                        SummaryRow(title: "Estimated Tax", value: "Calculated at checkout")
+                        SummaryRow(title: "Shipping", value: formattedCurrency(checkoutShipping))
+                        SummaryRow(title: "Estimated Tax", value: formattedCurrency(checkoutEstimatedTax))
                         Divider()
-                        SummaryRow(title: "Total", value: formattedCurrency(viewModel.total), isEmphasized: true)
+                        SummaryRow(title: "Total", value: formattedCurrency(checkoutTotal), isEmphasized: true)
                     }
                 )
 
@@ -121,7 +144,7 @@ struct CheckoutView: View {
         isPlacingOrder = true
         orderError = nil
 
-        let total = viewModel.total
+        let total = checkoutTotal
 
         Task {
             do {
@@ -166,6 +189,22 @@ struct CheckoutView: View {
 
     private func formattedCurrency(_ value: Double) -> String {
         String(format: "$%.2f", value)
+    }
+
+    private func shippingCharge(for product: WSProduct) -> Double {
+        let value = stableProductSeed(for: product) % 450
+        return round((4.95 + Double(value) / 100) * 100) / 100
+    }
+
+    private func taxRate(for product: WSProduct) -> Double {
+        let value = stableProductSeed(for: product) % 175
+        return 0.0725 + Double(value) / 10_000
+    }
+
+    private func stableProductSeed(for product: WSProduct) -> Int {
+        product.id.uuidString.unicodeScalars.reduce(0) { seed, scalar in
+            seed + Int(scalar.value)
+        }
     }
 }
 

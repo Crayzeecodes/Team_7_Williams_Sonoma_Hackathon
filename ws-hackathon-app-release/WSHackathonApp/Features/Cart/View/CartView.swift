@@ -74,9 +74,9 @@ struct CartView: View {
 
     private var cartContent: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
+            LazyVStack(spacing: 28) {
                 ForEach(cartManager.items) { item in
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 18) {
                         CartItemCell(
                             item: item,
                             onUpdateQuantity: { newQuantity in
@@ -398,14 +398,14 @@ private struct CartBundleRecommendationSection: View {
     let onAddProduct: (WSProduct) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("You might need these")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Color.primary)
                 .padding(.horizontal, 2)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 18) {
                     ForEach(products) { product in
                         CartBundleProductCard(
                             product: product,
@@ -426,7 +426,7 @@ private struct CartBundleRecommendationSection: View {
 
 private struct CartBundleRecommendationLoadingSection: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("AI is recommending complementary products")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Color.primary)
