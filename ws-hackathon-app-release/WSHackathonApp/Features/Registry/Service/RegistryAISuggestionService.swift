@@ -95,18 +95,7 @@ actor RegistryAISuggestionService {
 
 private extension RegistryAISuggestionService {
     nonisolated static func getGeminiAPIKey() -> String {
-        if let path = Bundle.main.path(forResource: ".env", ofType: nil),
-           let content = try? String(contentsOfFile: path) {
-            for line in content.components(separatedBy: .newlines) {
-                let parts = line.split(separator: "=", maxSplits: 1).map(String.init)
-                if parts.count == 2, parts[0] == "GEMINI_API_KEY" {
-                    let val = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !val.isEmpty { return val }
-                }
-            }
-        }
-
-        return "YOUR_GEMINI_API_KEY_HERE"
+        return "AIzaSyAST0sV6uIXnSgpkxu5Tgi4U95Ruz3BlJk"
     }
 
     func buildPrompt(for registry: Registry, products: [RegistryProduct], limit: Int) -> String {

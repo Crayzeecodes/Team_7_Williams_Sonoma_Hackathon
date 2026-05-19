@@ -57,8 +57,13 @@ actor CartAIRecommendationService {
         )
 
         do {
-            let response = try await model.generateContent(prompt)
-            guard let text = response.text else { return .unavailable }
+            let currentModel = GenerativeModel(
+                name: "gemini-1.5-flash",
+                apiKey: Self.getGeminiAPIKey(),
+                generationConfig: GenerationConfig(responseMIMEType: "application/json")
+            )
+            let response = try await currentModel.generateContent(prompt)
+            guard let text = response.text else { return .success(fallbackRecommendations(for: cartProduct, catalog: candidates, limit: limit)) }
 
             let cleanedText = text
                 .replacingOccurrences(of: "```json\n", with: "")
@@ -66,7 +71,7 @@ actor CartAIRecommendationService {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
 
             let jsonString = extractJSONObject(from: cleanedText) ?? cleanedText
-            guard let data = jsonString.data(using: .utf8) else { return .unavailable }
+            guard let data = jsonString.data(using: .utf8) else { return .success(fallbackRecommendations(for: cartProduct, catalog: candidates, limit: limit)) }
 
             let decoded = try JSONDecoder().decode(RecommendationIDsResponse.self, from: data)
             let productsByID = Dictionary(uniqueKeysWithValues: candidates.map { ($0.id.uuidString.lowercased(), $0) })
@@ -79,29 +84,50 @@ actor CartAIRecommendationService {
                 return product
             }
 
-            if matchedProducts.isEmpty { return .noMatches }
+            if matchedProducts.isEmpty { return .success(fallbackRecommendations(for: cartProduct, catalog: candidates, limit: limit)) }
 
             return .success(Array(matchedProducts.prefix(limit)))
         } catch {
-            return .unavailable
+            print("❌ Cart AI Recommendation Error: \(error.localizedDescription)")
+            return .success(fallbackRecommendations(for: cartProduct, catalog: candidates, limit: limit))
         }
+    }
+
+    private func fallbackRecommendations(for cartProduct: WSProduct, catalog: [WSProduct], limit: Int) -> [WSProduct] {
+        let cartCat = cartProduct.category.lowercased()
+        
+        var categoryScores = [(WSProduct, Double)]()
+        for p in catalog {
+            var score = 0.0
+            let pCat = p.category.lowercased()
+            
+            // Bidirectional pairings
+            if (cartCat.contains("electric") && pCat.contains("bakeware")) || 
+               (cartCat.contains("bakeware") && pCat.contains("electric")) { score += 5 }
+               
+            else if (cartCat.contains("furniture") && pCat.contains("home essential")) || 
+                    (cartCat.contains("home essential") && pCat.contains("furniture")) { score += 5 }
+                    
+            else if (cartCat.contains("cookware") && (pCat.contains("cook's tools") || pCat.contains("tools") || pCat.contains("food"))) || 
+                    ((cartCat.contains("cook's tools") || cartCat.contains("tools") || cartCat.contains("food")) && pCat.contains("cookware")) { score += 5 }
+                    
+            else if cartCat.contains("cutlery") && pCat.contains("cutlery") { score += 5 }
+            else if cartCat.contains("gift") && pCat.contains("gift") { score += 5 }
+            
+            // Minor score for other items just to have fallbacks
+            else { score += 1 } 
+            
+            categoryScores.append((p, score))
+        }
+        
+        let sorted = categoryScores.sorted { $0.1 > $1.1 }
+        return Array(sorted.prefix(limit).map { $0.0 })
     }
 }
 
 private extension CartAIRecommendationService {
     nonisolated static func getGeminiAPIKey() -> String {
-        if let path = Bundle.main.path(forResource: ".env", ofType: nil),
-           let content = try? String(contentsOfFile: path) {
-            for line in content.components(separatedBy: .newlines) {
-                let parts = line.split(separator: "=", maxSplits: 1).map(String.init)
-                if parts.count == 2, parts[0] == "GEMINI_API_KEY" {
-                    let val = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !val.isEmpty { return val }
-                }
-            }
-        }
-
-        return "YOUR_GEMINI_API_KEY_HERE"
+        return "AIzaSyAST0sV6uIXnSgpkxu5Tgi4U95Ruz3BlJk"
     }
 
     func buildPrompt(
@@ -119,44 +145,66 @@ private extension CartAIRecommendationService {
             {
               "id": "\(product.id.uuidString)",
               "name": "\(escapeJSONString(product.name))",
-              "category": "\(escapeJSONString(product.category))",
-              "price": \(product.salePrice ?? product.price),
-              "description": "\(escapeJSONString(product.description))"
+              "category": "\(escapeJSONString(product.category))"
             }
             """
         }.joined(separator: ",\n")
 
         return """
-        You are a Williams Sonoma product bundling assistant.
-        Recommend products that complete a practical set with the target cart item.
-        Example: if the target item is a plate or dinnerware, recommend spoons, forks, flatware, napkins, or glassware.
-        Return only product IDs from the provided catalog.
-        Do not return explanations, markdown, or extra text.
+You are a smart product bundling engine for a premium home and kitchen retail store.
 
-        Target cart item:
-        - Name: \(cartProduct.name)
-        - Category: \(cartProduct.category)
-        - Description: \(cartProduct.description)
+Your job is to recommend \(limit) products from the catalog that a customer would genuinely want to add alongside their selected item — based on real-world usage, function, and context.
 
-        Current cart:
-        \(cartSummary)
+---
 
-        Candidate catalog:
-        [
-        \(catalog)
-        ]
+TARGET ITEM (what the customer just added):
+Name: \(cartProduct.name)
+Category: \(cartProduct.category)
+Description: \(cartProduct.description)
+CURRENT CART:
+\(cartSummary)
 
-        Return this JSON only:
-        {
-          "product_ids": ["id1", "id2"]
-        }
+CANDIDATE CATALOG (items available to recommend):
+\(catalog)
+Each catalog entry includes: id, name, category, description, material, and use_case.
 
-        Rules:
-        - Return at most \(limit) product IDs.
-        - Choose complementary items that help complete a bundle or set.
-        - Do not choose duplicate versions of the target item.
-        - Every returned value must exactly match a provided product id.
-        """
+---
+
+HOW TO REASON (think step by step before outputting):
+
+1. UNDERSTAND the target item's primary use context.
+   Ask: What task or setting is this product for? Where and how will it be used?
+   Example: "Le Creuset Dutch Oven" → stovetop and oven cooking, high heat, needs matching lids or utensils.
+
+2. FIND items in the catalog that share the same use context or directly complement it.
+   Ask: Would someone using this product also need or reach for that one?
+   Examples:
+   - Oven → recommend oven-safe bakeware, oven mitts, wire racks (NOT outdoor grills)
+   - Couch → recommend sofa cushions, throw blankets, side tables (NOT garden planters)
+   - Chef's knife → recommend a cutting board, honing rod, or knife block (NOT dinner plates)
+   - Dinner plates → recommend matching bowls, serving platters, or placemats (NOT a stockpot)
+
+3. AVOID over-broad category matching.
+   A category like "Home Essentials" may contain both sofa cushions AND camping gear.
+   Do NOT recommend based on shared category alone — reason about whether the specific product fits the specific context.
+
+4. AVOID items already in the cart.
+
+5. PRIORITIZE functional pairing over aesthetic pairing.
+   Functional: this item makes the target item more useful or complete.
+   Aesthetic: this item simply "looks nice with it."
+   Functional always wins.
+
+6. If the target item is a consumable (coffee, flour, seasoning), recommend the equipment that uses it.
+   If the target is equipment (espresso machine, mixer), recommend consumables or accessories for it.
+
+---
+
+Return ONLY this JSON — no markdown, no explanation, no extra keys:
+{
+  "product_ids": ["id1", "id2"]
+}        
+"""
     }
 
     func escapeJSONString(_ value: String) -> String {

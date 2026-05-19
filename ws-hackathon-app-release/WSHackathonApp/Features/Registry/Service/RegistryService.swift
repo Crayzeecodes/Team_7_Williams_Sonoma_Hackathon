@@ -22,6 +22,7 @@ enum RegistryServiceError: LocalizedError {
 final class RegistryService {
     static let shared = RegistryService()
     private let aiSuggestionService = RegistryAISuggestionService.shared
+    private let joinedRegistryIDsKeyPrefix = "ws.joinedRegistryIDs."
 
     private init() {}
 
@@ -30,34 +31,30 @@ final class RegistryService {
             throw RegistryServiceError.notAuthenticated
         }
 
+        let userId = session.user.id.uuidString.lowercased()
         let ownedRegistries: [Registry] = try await supabase
             .from("registries")
             .select()
-            .eq("admin_id", value: session.user.id.uuidString.lowercased())
+            .eq("admin_id", value: userId)
             .execute()
             .value
 
         let memberships: [RegistryMemberRequest] = try await supabase
             .from("registry_members")
             .select()
-            .eq("user_id", value: session.user.id.uuidString.lowercased())
+            .eq("user_id", value: userId)
             .execute()
             .value
 
-        let joinedRegistryIDs = memberships
-            .map(\.registryId)
-            .filter { id in !ownedRegistries.contains(where: { $0.id == id }) }
+        var joinedRegistryIDs = Set(memberships.map(\.registryId))
+        joinedRegistryIDs.formUnion(cachedJoinedRegistryIDs(for: userId))
 
-        guard !joinedRegistryIDs.isEmpty else { return ownedRegistries }
+        let ownedRegistryIDs = Set(ownedRegistries.map { $0.supabaseId ?? $0.id })
+        joinedRegistryIDs.subtract(ownedRegistryIDs)
 
-        let joinedRegistries: [Registry] = try await supabase
-            .from("registries")
-            .select()
-            .in("id", values: joinedRegistryIDs)
-            .execute()
-            .value
+        let joinedRegistries = try await loadJoinedRegistries(ids: joinedRegistryIDs, userId: userId)
 
-        return ownedRegistries + joinedRegistries
+        return uniqueSortedRegistries(ownedRegistries + joinedRegistries)
     }
 
     func previewRegistry(joinCode: String) async throws -> RegistryPreview {
@@ -122,6 +119,7 @@ final class RegistryService {
             .value
 
         if !existingMemberships.isEmpty {
+            cacheJoinedRegistry(id: registryId, for: session.user.id.uuidString.lowercased())
             return try await loadRegistry(id: registryId)
         }
 
@@ -133,11 +131,23 @@ final class RegistryService {
             joinedAt: Date()
         )
 
-        try await supabase
-            .from("registry_members")
-            .insert(memberRequest)
-            .execute()
+        do {
+            try await supabase
+                .from("registry_members")
+                .insert(memberRequest)
+                .execute()
+        } catch {
+            // If this user is already a member (duplicate key / unique constraint),
+            // just return the existing registry instead of surfacing a DB error.
+            let msg = error.localizedDescription.lowercased()
+            if msg.contains("duplicate key") || msg.contains("23505") || msg.contains("unique constraint") {
+                cacheJoinedRegistry(id: registryId, for: session.user.id.uuidString.lowercased())
+                return try await loadRegistry(id: registryId)
+            }
+            throw error
+        }
 
+        cacheJoinedRegistry(id: registryId, for: session.user.id.uuidString.lowercased())
         let registry = try await loadRegistry(id: registryId)
         if registry.registryType == .gifting,
            registry.giftingDetails.splitType == .dutch,
@@ -188,6 +198,8 @@ final class RegistryService {
             .eq("user_id", value: userId)
             .execute()
 
+        removeCachedJoinedRegistry(id: id, for: userId)
+
         let registry = try? await loadRegistry(id: id)
         if let registry = registry,
            registry.registryType == .gifting,
@@ -236,6 +248,10 @@ final class RegistryService {
             .delete()
             .eq("id", value: id)
             .execute()
+
+        if let session = try? await supabase.auth.session {
+            removeCachedJoinedRegistry(id: id, for: session.user.id.uuidString.lowercased())
+        }
     }
 
     func addCartItem(registryId: String, requestBody: AddRegistryCartItemRequest) async throws -> CartUpdatePayload {
@@ -623,6 +639,79 @@ final class RegistryService {
             .execute()
 
         return try await loadRegistry(id: registry.id)
+    }
+
+    private func loadJoinedRegistries(ids: Set<String>, userId: String) async throws -> [Registry] {
+        guard !ids.isEmpty else { return [] }
+        let requestedIDs = Array(ids)
+
+        do {
+            let registries: [Registry] = try await supabase
+                .from("registries")
+                .select()
+                .in("id", values: requestedIDs)
+                .execute()
+                .value
+
+            let loadedIDs = Set(registries.map { $0.supabaseId ?? $0.id })
+            let missingIDs = ids.subtracting(loadedIDs)
+            guard !missingIDs.isEmpty else { return registries }
+
+            var recoveredRegistries = registries
+            for id in missingIDs {
+                do {
+                    recoveredRegistries.append(try await loadRegistry(id: id))
+                } catch {
+                    removeCachedJoinedRegistry(id: id, for: userId)
+                }
+            }
+            return recoveredRegistries
+        } catch {
+            var recoveredRegistries: [Registry] = []
+            for id in requestedIDs {
+                do {
+                    recoveredRegistries.append(try await loadRegistry(id: id))
+                } catch {
+                    removeCachedJoinedRegistry(id: id, for: userId)
+                }
+            }
+
+            guard !recoveredRegistries.isEmpty else { throw error }
+            return recoveredRegistries
+        }
+    }
+
+    private func uniqueSortedRegistries(_ registries: [Registry]) -> [Registry] {
+        var seenIDs = Set<String>()
+        return registries
+            .filter { registry in
+                seenIDs.insert(registry.supabaseId ?? registry.id).inserted
+            }
+            .sorted { $0.eventDate < $1.eventDate }
+    }
+
+    private func cachedJoinedRegistryIDs(for userId: String) -> Set<String> {
+        Set(UserDefaults.standard.stringArray(forKey: joinedRegistryIDsKey(for: userId)) ?? [])
+    }
+
+    private func cacheJoinedRegistry(id: String, for userId: String) {
+        var ids = cachedJoinedRegistryIDs(for: userId)
+        ids.insert(id)
+        saveCachedJoinedRegistryIDs(ids, for: userId)
+    }
+
+    private func removeCachedJoinedRegistry(id: String, for userId: String) {
+        var ids = cachedJoinedRegistryIDs(for: userId)
+        ids.remove(id)
+        saveCachedJoinedRegistryIDs(ids, for: userId)
+    }
+
+    private func saveCachedJoinedRegistryIDs(_ ids: Set<String>, for userId: String) {
+        UserDefaults.standard.set(Array(ids).sorted(), forKey: joinedRegistryIDsKey(for: userId))
+    }
+
+    private func joinedRegistryIDsKey(for userId: String) -> String {
+        "\(joinedRegistryIDsKeyPrefix)\(userId)"
     }
 }
 
