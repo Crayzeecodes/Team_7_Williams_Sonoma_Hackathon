@@ -23,16 +23,16 @@ struct WSHackathonAppApp: App {
             }
             .preferredColorScheme(.light)
             .task {
-
-                if let session = try? await supabase.auth.session {
+                if let session = try? await supabase.auth.session, !session.isExpired {
                     self.isAuthenticated = true
                     await loadUserProfile(userId: session.user.id)
                 }
 
                 for await state in supabase.auth.authStateChanges {
                     if [.initialSession, .signedIn, .passwordRecovery].contains(state.event) {
-                        self.isAuthenticated = state.session != nil
-                        if let userId = state.session?.user.id {
+                        let isSessionValid = if let session = state.session { !session.isExpired } else { false }
+                        self.isAuthenticated = isSessionValid
+                        if isSessionValid, let userId = state.session?.user.id {
                             await loadUserProfile(userId: userId)
                         }
                     } else if [.signedOut, .userDeleted].contains(state.event) {

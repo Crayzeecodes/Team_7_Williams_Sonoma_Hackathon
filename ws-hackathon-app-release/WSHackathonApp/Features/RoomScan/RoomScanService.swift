@@ -1,3 +1,11 @@
+//
+//  RoomScanService.swift
+//  WSHackathonApp
+//
+//  Created by Zeeshan Khan on 20/05/26.
+//
+
+
 import Foundation
 import UIKit
 import GoogleGenerativeAI
@@ -9,7 +17,7 @@ actor RoomScanService {
 
     private init() {
         self.model = GenerativeModel(
-            name: "gemini-3.1-flash-lite",
+            name: "gemini-2.5-flash-lite",
             apiKey: Self.getGeminiAPIKey()
         )
     }
@@ -21,7 +29,12 @@ actor RoomScanService {
                 let parts = line.split(separator: "=", maxSplits: 1).map(String.init)
                 if parts.count == 2, parts[0] == "GEMINI_API_KEY" {
                     let val = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !val.isEmpty { return val }
+                    if !val.isEmpty {
+                        let prefix = String(val.prefix(4))
+                        let suffix = String(val.suffix(4))
+                        print("🔑 Room Scan service loaded Gemini API Key: \(prefix)...\(suffix) (Length: \(val.count))")
+                        return val
+                    }
                 }
             }
         }
@@ -151,15 +164,35 @@ actor RoomScanService {
         }
         let content = ModelContent(role: "user", parts: inputParts)
 
-        let response: GenerateContentResponse
-        do {
-            response = try await model.generateContent([content])
-        } catch {
-            print("Gemini API error: \(error)")
-            throw RoomScanError.networkError(error)
+        var response: GenerateContentResponse?
+        var lastError: Error?
+        var currentDelay: Double = 1.0
+        let maxAttempts = 3
+
+        for attempt in 1...maxAttempts {
+            do {
+                response = try await model.generateContent([content])
+                break
+            } catch {
+                lastError = error
+                let errStr = String(describing: error)
+                if errStr.contains("503") || errStr.contains("429") || errStr.contains("unavailable") {
+                    print("⚠️ Room Scan Service encountered temporary error (Attempt \(attempt)/\(maxAttempts)): \(error). Retrying in \(currentDelay)s...")
+                    try? await Task.sleep(nanoseconds: UInt64(currentDelay * 1_000_000_000))
+                    currentDelay *= 2.0
+                } else {
+                    break // Non-retriable error
+                }
+            }
         }
 
-        guard let text = response.text else {
+        guard let finalResponse = response else {
+            let finalErr = lastError ?? RoomScanError.decodingError
+            print("Gemini API error after retries: \(finalErr)")
+            throw RoomScanError.networkError(finalErr)
+        }
+
+        guard let text = finalResponse.text else {
             throw RoomScanError.decodingError
         }
 
@@ -167,6 +200,7 @@ actor RoomScanService {
             .replacingOccurrences(of: "```json\n", with: "")
             .replacingOccurrences(of: "```", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+            .sanitizingJSONControlCharacters()
 
         guard let jsonData = cleanedText.data(using: .utf8) else {
             throw RoomScanError.decodingError
