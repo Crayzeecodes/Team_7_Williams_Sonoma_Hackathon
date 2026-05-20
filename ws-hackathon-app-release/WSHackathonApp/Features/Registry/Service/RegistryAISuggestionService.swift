@@ -19,7 +19,7 @@ actor RegistryAISuggestionService {
         let apiKey = Self.getGeminiAPIKey()
         self.apiKey = apiKey
         self.model = GenerativeModel(
-            name: "gemini-1.5-flash",
+            name: "gemini-2.5-flash-lite",
             apiKey: apiKey,
             generationConfig: GenerationConfig(
                 responseMIMEType: "application/json"
@@ -40,19 +40,42 @@ actor RegistryAISuggestionService {
         }
 
         let prompt = buildPrompt(for: registry, products: cappedProducts, limit: limit)
-        do {
-            let response = try await model.generateContent(prompt)
+        var response: GenerateContentResponse?
+        var lastError: Error?
+        var currentDelay: Double = 1.0
+        let maxAttempts = 3
 
-            guard let text = response.text else {
-                return fallbackProductIDs(for: registry, products: cappedProducts, limit: limit)
+        for attempt in 1...maxAttempts {
+            do {
+                response = try await model.generateContent(prompt)
+                break
+            } catch {
+                lastError = error
+                let errStr = String(describing: error)
+                if errStr.contains("503") || errStr.contains("429") || errStr.contains("unavailable") {
+                    print("⚠️ Registry AI Suggestion service encountered temporary error (Attempt \(attempt)/\(maxAttempts)): \(error). Retrying in \(currentDelay)s...")
+                    try? await Task.sleep(nanoseconds: UInt64(currentDelay * 1_000_000_000))
+                    currentDelay *= 2.0
+                } else {
+                    break // Non-retriable error
+                }
             }
+        }
 
+        guard let finalResponse = response, let text = finalResponse.text else {
+            if let err = lastError {
+                print("❌ Registry AI Suggestion Error: \(err)")
+            }
+            return fallbackProductIDs(for: registry, products: cappedProducts, limit: limit)
+        }
+
+        do {
             let cleanedText = text
                 .replacingOccurrences(of: "```json\n", with: "")
                 .replacingOccurrences(of: "```", with: "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
 
-            let jsonString = extractJSONObject(from: cleanedText) ?? cleanedText
+            let jsonString = (extractJSONObject(from: cleanedText) ?? cleanedText).sanitizingJSONControlCharacters()
             guard let data = jsonString.data(using: .utf8) else {
                 return fallbackProductIDs(for: registry, products: cappedProducts, limit: limit)
             }
@@ -95,7 +118,23 @@ actor RegistryAISuggestionService {
 
 private extension RegistryAISuggestionService {
     nonisolated static func getGeminiAPIKey() -> String {
-        return "AIzaSyAST0sV6uIXnSgpkxu5Tgi4U95Ruz3BlJk"
+        if let path = Bundle.main.path(forResource: ".env", ofType: nil),
+           let content = try? String(contentsOfFile: path) {
+            for line in content.components(separatedBy: .newlines) {
+                let parts = line.split(separator: "=", maxSplits: 1).map(String.init)
+                if parts.count == 2, parts[0] == "GEMINI_API_KEY" {
+                    let value = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !value.isEmpty, value != "YOUR_GEMINI_API_KEY_HERE" {
+                        let prefix = String(value.prefix(4))
+                        let suffix = String(value.suffix(4))
+                        print("🔑 Registry service loaded Gemini API Key: \(prefix)...\(suffix) (Length: \(value.count))")
+                        return value
+                    }
+                }
+            }
+        }
+
+        return ""
     }
 
     func buildPrompt(for registry: Registry, products: [RegistryProduct], limit: Int) -> String {
